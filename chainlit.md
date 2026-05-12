@@ -1,14 +1,28 @@
-# Welcome to Chainlit! 🚀🤖
+# Airline Customer Support Agent
 
-Hi there, Developer! 👋 We're excited to have you on board. Chainlit is a powerful tool designed to help you prototype, debug and share applications built on top of LLMs.
+This is a demo agent from the **agent-cookbook** project — a production-grade walkthrough for building and deploying LLM agents. The running example is an airline customer-support agent built on the tau2-bench dataset.
 
-## Useful Links 🔗
+## What I can help with
 
-- **Documentation:** Get started with our comprehensive [Chainlit Documentation](https://docs.chainlit.io) 📚
-- **Discord Community:** Join our friendly [Chainlit Discord](https://discord.gg/k73SQ3FyUh) to ask questions, share your projects, and connect with other developers! 💬
+- **Book** a new flight reservation
+- **Modify** an existing reservation (flights, cabin, baggage, passengers)
+- **Cancel** a reservation and process refunds
+- **Compensation** for cancelled or delayed flights (within policy)
 
-We can't wait to see what you create with Chainlit! Happy coding! 💻😊
+## How to get started
 
-## Welcome screen
+Give me your **user id** (e.g. `mia_li_3668`) and tell me what you'd like to do. Examples:
 
-To modify the welcome screen, edit the `chainlit.md` file at the root of your project. If you do not want a welcome screen, just leave this file empty.
+- *"I'm `raj_sanchez_7340`, please pull up my reservations."*
+- *"I want to book a one-way from ORD to PHL on 2024-05-26."*
+- *"Cancel reservation Q69X3R — my plans changed."*
+
+I follow a strict policy for every booking and modification — I'll always confirm before making any database changes.
+
+## Under the hood
+
+- **Model:** Kimi K2.6 via OpenRouter (Moonshot)
+- **Framework:** LangChain + LangGraph (ReAct agent)
+- **Tracing:** every turn flows to Langfuse — your session id is shown in the welcome message so you can look up the trace
+
+Each browser session gets a fresh copy of the airline database, isolated from every other session.
