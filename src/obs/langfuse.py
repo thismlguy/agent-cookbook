@@ -56,3 +56,34 @@ def run_config(session_id: str, user_id: str | None = None) -> dict[str, Any]:
         "callbacks": [get_handler()],
         "metadata": metadata,
     }
+
+
+def task_run_config(
+    *,
+    run_id: str,
+    task_id: str,
+    agent_variant: str,
+    model: str,
+    sim_model: str,
+    judge_model: str,
+) -> dict[str, Any]:
+    """Build a LangChain run config for a single evaluated task.
+
+    All sim/agent/tool/judge spans inside this run config will land
+    inside one Langfuse trace named `task:<task_id>`, tagged with the
+    run id and configuration so dashboards can filter and aggregate.
+    """
+    return {
+        "callbacks": [get_handler()],
+        "run_name": f"task:{task_id}",
+        "metadata": {
+            "agent_variant": agent_variant,
+            "judge_model": judge_model,
+            "langfuse_session_id": run_id,
+            "langfuse_tags": [f"run:{run_id}", f"task:{task_id}", f"agent:{agent_variant}"],
+            "model": model,
+            "run_id": run_id,
+            "sim_model": sim_model,
+            "task_id": task_id,
+        },
+    }

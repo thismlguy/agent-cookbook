@@ -61,10 +61,11 @@ results flow back into the message history and the model is re-invoked.
 ## LLM stack
 
 ```
-   src/agent/graph.py
+   src/providers/select.py builds the LLM; src/agents/v1/graph.py
+   wraps create_react_agent(llm, tools, prompt).
    ─────────────────────────────────────────
                 ChatOpenAI(
-                  model = MODEL_ID         ◀── env, default moonshotai/kimi-k2.6
+                  model = <model id>       ◀── from --model CLI flag
                   openai_api_base = …/v1   ◀── OpenRouter OpenAI-compatible
                   openai_api_key  = …      ◀── OPENROUTER_API_KEY
                   extra_body = {provider:  ◀── pin routing
@@ -131,9 +132,8 @@ session view, regardless of how many tool calls happened across them.
 ## File map
 
 ```
-src/agent/
+src/agents/v1/
 ├── prompt.py       load_system_prompt() — reads data/policy.md verbatim
 ├── tools.py        make_tools(store)    — factory yielding 10 @tool closures
-└── graph.py        build_llm(config)    — ChatOpenAI pinned to OpenRouter/Moonshot
-                    build_agent(config, store) — create_react_agent(llm, tools, prompt)
+└── graph.py        make_agent(store, llm) — create_react_agent(llm, tools, prompt)
 ```

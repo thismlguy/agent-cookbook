@@ -16,10 +16,11 @@ import chainlit as cl
 from chainlit.langchain.callbacks import LangchainTracer
 from langchain_core.messages import HumanMessage
 
-from src.agent.graph import build_agent
+from src.agents import get_variant
 from src.config import DB_PATH, load_config
 from src.domain.store import Store
 from src.obs.langfuse import init_langfuse, run_config
+from src.providers import build_chat_model
 
 # Strict precheck on import — fails fast if any required env var is missing.
 CONFIG = load_config()
@@ -29,10 +30,14 @@ logger = logging.getLogger("airline-agent")
 logger.setLevel(logging.INFO)
 
 
+CHAT_MODEL_SPEC = f"openrouter:{CONFIG.model_id}"
+
+
 @cl.on_chat_start
 async def on_chat_start() -> None:
     store = Store.load_from_path(DB_PATH)
-    agent = build_agent(CONFIG, store)
+    llm = build_chat_model(CHAT_MODEL_SPEC)
+    agent = get_variant("v1")(store, llm)
     session_id = str(uuid.uuid4())
 
     cl.user_session.set("store", store)

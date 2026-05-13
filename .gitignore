@@ -38,5 +38,8 @@ logs/
 .chainlit/.langchain.db
 .chainlit/translations/
 
+# Eval results — per-run output directories (top-level only, not src/results/)
+/results/
+
 # Claude Code (per-user)
 .claude/settings.local.json

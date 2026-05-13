@@ -19,9 +19,10 @@ import respx
 from httpx import Response
 from langchain_core.messages import HumanMessage
 
-from src.agent.graph import build_agent
+from src.agents import get_variant
 from src.config import DB_PATH, Config
 from src.domain.store import Store
+from src.providers import build_chat_model
 
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -85,8 +86,9 @@ def _resp_final() -> dict:
 
 
 @pytest.mark.asyncio
-async def test_agent_full_react_loop_with_mocked_openrouter():
+async def test_agent_full_react_loop_with_mocked_openrouter(monkeypatch):
     cfg = _fake_config()
+    monkeypatch.setenv("OPENROUTER_API_KEY", cfg.openrouter_api_key)
     store = Store.load_from_path(DB_PATH)
 
     with respx.mock(assert_all_called=True) as mock:
@@ -97,7 +99,8 @@ async def test_agent_full_react_loop_with_mocked_openrouter():
             ]
         )
 
-        agent = build_agent(cfg, store)
+        llm = build_chat_model(f"openrouter:{cfg.model_id}")
+        agent = get_variant("v1")(store, llm)
         result = await agent.ainvoke(
             {"messages": [HumanMessage(content="Who is mia_li_3668?")]}
         )

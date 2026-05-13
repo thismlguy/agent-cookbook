@@ -1,0 +1,226 @@
+"""`python -m src.eval.run` — run an agent variant + provider against tasks.json.
+
+Each task is run through the conversation runner, judged by the LLM-as-judge,
+and written to a per-run results directory. Per-task spans are sent to
+Langfuse as one trace per task.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+import traceback
+from pathlib import Path
+from typing import Any
+
+from dotenv import load_dotenv
+
+from src.eval.judge import judge as judge_task
+from src.eval.schemas import JudgeResult
+from src.obs.langfuse import init_langfuse, task_run_config
+from src.providers import build_chat_model, required_keys_for, validate_env
+from src.results import ResultsWriter, compose_run_id
+from src.runner import TurnEvent, run_task
+
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+DEFAULT_TASKS_PATH = REPO_ROOT / "data" / "tasks.json"
+DEFAULT_RESULTS_DIR = REPO_ROOT / "results"
+DEFAULT_AGENT_MODEL = "openrouter:moonshotai/kimi-k2.6"
+DEFAULT_AGENT = "v1"
+DEFAULT_MAX_TURNS = 30
+
+UNCONDITIONAL_KEYS = (
+    "OPENROUTER_API_KEY",
+    "LANGFUSE_PUBLIC_KEY",
+    "LANGFUSE_SECRET_KEY",
+    "LANGFUSE_BASE_URL",
+)
+
+
+# ────────────────────────── CLI plumbing ──────────────────────────
+
+
+def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    p = argparse.ArgumentParser(prog="src.eval.run", description="Run an agent variant + provider against tasks.json.")
+    p.add_argument("--agent", default=DEFAULT_AGENT, help=f"agent variant id (default: {DEFAULT_AGENT})")
+    p.add_argument("--model", default=DEFAULT_AGENT_MODEL, help=f"agent model spec '<provider>:<model>' (default: {DEFAULT_AGENT_MODEL})")
+    p.add_argument("--sim-model", default=None, help="simulator model spec (default: same as --model)")
+    p.add_argument("--judge-model", default=None, help="judge model spec (default: same as --model)")
+    p.add_argument("--task-id", default=None, help="run only this task id (default: all)")
+    p.add_argument("--limit", type=int, default=None, help="run only the first N tasks (after --task-id filter)")
+    p.add_argument("--max-turns", type=int, default=DEFAULT_MAX_TURNS, help="conversation turn cap")
+    p.add_argument("--tasks", default=str(DEFAULT_TASKS_PATH), help="path to tasks.json (default: data/tasks.json)")
+    p.add_argument("--results-dir", default=str(DEFAULT_RESULTS_DIR), help="parent directory for per-run results")
+    return p.parse_args(argv)
+
+
+def _load_tasks(path: Path, task_id: str | None) -> list[dict[str, Any]]:
+    tasks = json.loads(path.read_text())
+    if task_id is not None:
+        for t in tasks:
+            if str(t.get("id")) == str(task_id):
+                return [t]
+        raise SystemExit(f"task id {task_id!r} not found in {path}")
+    return tasks
+
+
+# ────────────────────────── per-turn stream ──────────────────────────
+
+
+def _print_event(ev: TurnEvent) -> None:
+    if ev.user is not None:
+        print(f"[turn {ev.turn}] USER: {ev.user}")
+    for tc in ev.tool_calls:
+        args = json.dumps(tc.get("args", {}), sort_keys=True)
+        result = (tc.get("result") or "")
+        if len(result) > 240:
+            result = result[:240] + "…"
+        print(f"[turn {ev.turn}] TOOL {tc.get('name')}({args}) -> {result}")
+    if ev.agent:
+        print(f"[turn {ev.turn}] AGENT: {ev.agent}")
+    if ev.ended:
+        print(f"[turn {ev.turn}] (simulator ended the conversation)")
+
+
+# ────────────────────────── per-task pipeline ──────────────────────────
+
+
+def _run_one_task(
+    task: dict[str, Any],
+    *,
+    args: argparse.Namespace,
+    sim_spec: str,
+    judge_spec: str,
+    writer: ResultsWriter,
+    run_id: str,
+) -> str:
+    task_id = str(task.get("id"))
+    print(f"\n=== task {task_id} ===")
+    cfg = task_run_config(
+        run_id=run_id,
+        task_id=task_id,
+        agent_variant=args.agent,
+        model=args.model,
+        sim_model=sim_spec,
+        judge_model=judge_spec,
+    )
+
+    try:
+        agent_llm = build_chat_model(args.model)
+        sim_llm = build_chat_model(sim_spec)
+        judge_llm = build_chat_model(judge_spec)
+
+        run_result = run_task(
+            task=task,
+            agent_id=args.agent,
+            agent_llm=agent_llm,
+            sim_llm=sim_llm,
+            max_turns=args.max_turns,
+            on_event=_print_event,
+            invoke_config=cfg,
+        )
+        verdict: JudgeResult = judge_task(task, run_result.transcript, judge_llm)
+        score = "PASS" if verdict.passed else "FAIL"
+        writer.write_task(
+            task_id=task_id,
+            score=score,
+            terminated_by=run_result.terminated_by,
+            turn_count=run_result.turn_count,
+            transcript=run_result.transcript,
+            evaluation=verdict.model_dump(),
+        )
+        print(f"task {task_id}: {score} — {verdict.summary}")
+        return score
+    except Exception as e:  # noqa: BLE001 — per-task isolation
+        tb = traceback.format_exc()
+        print(f"task {task_id}: ERROR — {e}", file=sys.stderr)
+        writer.write_task(
+            task_id=task_id,
+            score="ERROR",
+            terminated_by="error",
+            turn_count=0,
+            transcript=[],
+            evaluation={"assertions": [], "passed": False, "summary": "error during run/judge"},
+            error=tb,
+        )
+        return "ERROR"
+
+
+# ────────────────────────── main ──────────────────────────
+
+
+def main(argv: list[str] | None = None) -> int:
+    load_dotenv(REPO_ROOT / ".env")
+    args = _parse_args(argv)
+
+    sim_spec = args.sim_model or args.model
+    judge_spec = args.judge_model or args.model
+
+    validate_env(
+        {"agent": args.model, "sim": sim_spec, "judge": judge_spec},
+        extra_required=UNCONDITIONAL_KEYS,
+    )
+
+    # Initialize Langfuse from the already-validated env (re-use Config dataclass).
+    from src.config import Config
+
+    cfg = Config(
+        openrouter_api_key=os.environ["OPENROUTER_API_KEY"],
+        langfuse_public_key=os.environ["LANGFUSE_PUBLIC_KEY"],
+        langfuse_secret_key=os.environ["LANGFUSE_SECRET_KEY"],
+        langfuse_base_url=os.environ["LANGFUSE_BASE_URL"],
+        model_id=args.model.split(":", 1)[1],
+    )
+    init_langfuse(cfg)
+
+    tasks_path = Path(args.tasks)
+    tasks = _load_tasks(tasks_path, args.task_id)
+    if args.limit is not None:
+        tasks = tasks[: args.limit]
+
+    run_id = compose_run_id(args.agent, args.model)
+    run_dir = Path(args.results_dir) / run_id
+    api_keys = sorted(
+        required_keys_for(args.model)
+        | required_keys_for(sim_spec)
+        | required_keys_for(judge_spec)
+        | {"LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_BASE_URL"}
+    )
+
+    print(f"run id:   {run_id}")
+    print(f"results:  {run_dir}")
+    print(f"tasks:    {len(tasks)} from {tasks_path}")
+    print(f"agent:    {args.agent} @ {args.model}")
+    print(f"sim:      {sim_spec}")
+    print(f"judge:    {judge_spec}")
+
+    counts = {"PASS": 0, "FAIL": 0, "ERROR": 0}
+    with ResultsWriter(
+        run_dir,
+        run_id=run_id,
+        agent=args.agent,
+        model=args.model,
+        sim_model=sim_spec,
+        judge_model=judge_spec,
+        max_turns=args.max_turns,
+        api_keys_used=api_keys,
+    ) as writer:
+        for task in tasks:
+            score = _run_one_task(
+                task,
+                args=args,
+                sim_spec=sim_spec,
+                judge_spec=judge_spec,
+                writer=writer,
+                run_id=run_id,
+            )
+            counts[score] = counts.get(score, 0) + 1
+
+    print(f"\n=== summary ===\nPASS:  {counts['PASS']}\nFAIL:  {counts['FAIL']}\nERROR: {counts['ERROR']}")
+    print(f"results written to: {run_dir}")
+    return 0 if counts["FAIL"] == 0 and counts["ERROR"] == 0 else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
