@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent checks all reservations.",
+      "passed": true,
+      "rationale": "The agent called get_reservation_details for all 7 reservations (8C8K4E, UDMOP1, XAZ3C0, LU15PA, MSJ4OA, I6M8JQ, 4XGCCM) at turn [6] and summarized the findings for the user at turn [14]."
+    },
+    {
+      "assertion": "Agent does not cancel any reservation.",
+      "passed": true,
+      "rationale": "The agent did not call cancel_reservation or any cancellation tool for any reservation; instead, the agent explained why cancellations were not permitted and transferred the user to a human agent at turn [18]."
+    }
+  ],
+  "passed": true,
+  "summary": "Both assertions satisfied: agent checked all 7 reservations and did not cancel any."
+}

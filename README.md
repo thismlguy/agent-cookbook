@@ -86,6 +86,33 @@ mv results/<run_id> published-runs/
 
 Browse the existing committed runs under `published-runs/`.
 
+### Re-judge an existing run
+
+To iterate on the judge prompt / model / schema without re-running the
+expensive sim ↔ agent loop, point the CLI at an existing run directory:
+
+```bash
+# Same judge model, fresh verdicts (useful after editing src/eval/judge.py).
+uv run python -m src.eval.run --rejudge-from results/<run_id>
+
+# Swap in a different judge.
+uv run python -m src.eval.run \
+  --rejudge-from results/<run_id> \
+  --judge-model anthropic:claude-sonnet-4-5
+
+# Filter the rejudge to a subset.
+uv run python -m src.eval.run --rejudge-from results/<run_id> --limit 5
+uv run python -m src.eval.run --rejudge-from results/<run_id> --task-id 0
+```
+
+In rejudge mode, `--model` and `--sim-model` are ignored and only the
+judge's provider API key (plus Langfuse) is required. The source run
+is never modified — a fresh directory is created under
+`results/<UTC-ts>__rejudge__<provider>__<model>/` with the same
+transcripts copied through and brand-new evaluation files. The new
+run's `metadata.json` includes a `source_run_id` field so lineage is
+queryable, and every Langfuse trace is tagged `mode:rejudge`.
+
 ## Testing
 
 ```bash

@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent upgrades XEHM4B to business.",
+      "passed": false,
+      "rationale": "The agent explicitly refused to upgrade XEHM4B to business, stating at [10]: 'Basic economy flights cannot be modified in any way, including cabin upgrades. This is a restriction on basic economy tickets.' No upgrade tool call was made for XEHM4B."
+    },
+    {
+      "assertion": "Agent cancels XEHM4B (as it is business flight).",
+      "passed": false,
+      "rationale": "The agent did not cancel XEHM4B. At [8] and [10], the agent explained that XEHM4B does not meet cancellation criteria (Basic Economy, no insurance, not within 24 hours). The agent transferred the user to a human agent at [26]–[28] without cancelling XEHM4B."
+    },
+    {
+      "assertion": "Agent cancels 59XX6W (as it has insurance and the user is sick).",
+      "passed": true,
+      "rationale": "At [14], the agent called cancel_reservation for 59XX6W, and at [15] the tool returned status 'cancelled'. The agent confirmed the cancellation at [16], citing illness covered by travel insurance."
+    },
+    {
+      "assertion": "Agent communicates that total cost of upcoming flights is $1,628.",
+      "passed": false,
+      "rationale": "At [26], the agent stated the total cost of upcoming flights is $1,004 (3EMQJ6: $306 + 7WPL39: $402 + XEHM4B: $296), not $1,628."
+    }
+  ],
+  "passed": false,
+  "summary": "Only assertion 3 passed; assertions 1, 2, and 4 failed."
+}

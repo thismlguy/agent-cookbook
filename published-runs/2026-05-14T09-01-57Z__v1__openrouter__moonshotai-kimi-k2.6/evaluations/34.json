@@ -1,0 +1,11 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent should not make any changes.",
+      "passed": true,
+      "rationale": "The agent searched for flights and calculated costs but never actually modified the reservation; when the user decided the price was too high, the agent explicitly confirmed the reservation would be kept as-is, and no change tools were called."
+    }
+  ],
+  "passed": true,
+  "summary": "The agent did not make any changes to the reservation."
+}

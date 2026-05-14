@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent get sophia_silva_7557 user details.",
+      "passed": true,
+      "rationale": "At turn [4], the agent calls get_user_details with user_id 'sophia_silva_7557' and receives the user's profile information at turn [5]."
+    },
+    {
+      "assertion": "Agent identifies reservation id as WUNA5K.",
+      "passed": true,
+      "rationale": "At turn [14] the agent retrieves reservation WUNA5K, and at turn [16] explicitly tells the user, 'Your reservation (WUNA5K) shows you flew on flight HAT271 from ORD to PHL on May 10, 2024, in economy class.'"
+    },
+    {
+      "assertion": "Agent books one-way flight HAT271, May 26, in economy, no travel insurance, no baggage. Passengers on reservation is Kevin Smith DOB 2001-04-12 + Sophia Silvia DOB 1957-10-05.",
+      "passed": true,
+      "rationale": "At turn [22] the agent calls book_reservation with flight HAT271 on 2024-05-26, cabin economy, insurance 'no', total_baggages 0, and passengers Sophia Silva (DOB 1957-10-05) and Kevin Smith (DOB 2001-04-12). The tool result at [23] confirms the booking matches these details."
+    },
+    {
+      "assertion": "Agent uses single certificate for payment.",
+      "passed": true,
+      "rationale": "At turn [22] the agent's book_reservation call includes a single payment method, certificate_8045380, with amount 348. The tool result at [23] confirms payment_history contains only that single certificate payment."
+    }
+  ],
+  "passed": true,
+  "summary": "All four assertions are satisfied by the transcript."
+}

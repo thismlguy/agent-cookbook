@@ -52,6 +52,15 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--max-turns", type=int, default=DEFAULT_MAX_TURNS, help="conversation turn cap")
     p.add_argument("--tasks", default=str(DEFAULT_TASKS_PATH), help="path to tasks.json (default: data/tasks.json)")
     p.add_argument("--results-dir", default=str(DEFAULT_RESULTS_DIR), help="parent directory for per-run results")
+    p.add_argument(
+        "--rejudge-from",
+        default=None,
+        help=(
+            "path to an existing results/<run_id>/ directory; when set, the simulator "
+            "and agent are skipped and the judge is re-applied to each saved transcript. "
+            "--model and --sim-model are ignored in this mode."
+        ),
+    )
     return p.parse_args(argv)
 
 
@@ -63,6 +72,27 @@ def _load_tasks(path: Path, task_id: str | None) -> list[dict[str, Any]]:
                 return [t]
         raise SystemExit(f"task id {task_id!r} not found in {path}")
     return tasks
+
+
+def _load_source_run(source_dir: Path) -> tuple[str, dict[str, Any], dict[str, dict[str, Any]]]:
+    """Read an existing results dir and return (source_run_id, source_metadata, transcripts_by_id).
+
+    `transcripts_by_id` maps `task_id -> parsed transcript JSON` (the per-task
+    file as written by the runner: `{task_id, terminated_by, transcript, turn_count}`).
+    """
+    if not source_dir.is_dir():
+        raise SystemExit(f"--rejudge-from path does not exist or is not a directory: {source_dir}")
+    metadata_path = source_dir / "metadata.json"
+    transcripts_dir = source_dir / "transcripts"
+    if not transcripts_dir.is_dir():
+        raise SystemExit(f"no transcripts/ subdirectory under {source_dir}")
+    source_metadata = json.loads(metadata_path.read_text()) if metadata_path.is_file() else {}
+    source_run_id = source_metadata.get("run_id") or source_dir.name
+    transcripts: dict[str, dict[str, Any]] = {}
+    for tf in sorted(transcripts_dir.glob("*.json")):
+        entry = json.loads(tf.read_text())
+        transcripts[str(entry.get("task_id", tf.stem))] = entry
+    return source_run_id, source_metadata, transcripts
 
 
 # ────────────────────────── per-turn stream ──────────────────────────
@@ -84,6 +114,89 @@ def _print_event(ev: TurnEvent) -> None:
 
 
 # ────────────────────────── per-task pipeline ──────────────────────────
+
+
+def _rejudge_one_task(
+    *,
+    task: dict[str, Any],
+    transcript_entry: dict[str, Any],
+    judge_spec: str,
+    writer: ResultsWriter,
+    run_id: str,
+    source_run_id: str,
+    source_agent_variant: str,
+    source_model: str,
+    source_sim_model: str,
+) -> str:
+    """Re-run the judge against a previously-saved transcript.
+
+    Skips the simulator and agent entirely. Preserves the source
+    transcript verbatim in the new run dir; only the evaluation file
+    is freshly produced.
+    """
+    task_id = str(task.get("id"))
+    saved_transcript: list[dict[str, Any]] = transcript_entry.get("transcript") or []
+    terminated_by = transcript_entry.get("terminated_by") or "unknown"
+    turn_count = int(transcript_entry.get("turn_count") or 0)
+
+    print(f"\n=== task {task_id} (rejudge) ===")
+    cfg = task_run_config(
+        run_id=run_id,
+        task_id=task_id,
+        agent_variant=source_agent_variant,
+        model=source_model,
+        sim_model=source_sim_model,
+        judge_model=judge_spec,
+        mode="rejudge",
+        source_run_id=source_run_id,
+    )
+
+    if not saved_transcript:
+        # Source task had no usable transcript (e.g. it errored before any turns).
+        # Carry the ERROR forward without invoking the judge.
+        writer.write_task(
+            task_id=task_id,
+            score="ERROR",
+            terminated_by=terminated_by,
+            turn_count=turn_count,
+            transcript=[],
+            evaluation={
+                "assertions": [],
+                "passed": False,
+                "summary": "source transcript was empty; rejudge skipped.",
+            },
+            error="source transcript was empty",
+        )
+        print(f"task {task_id}: ERROR — source transcript empty; skipped")
+        return "ERROR"
+
+    try:
+        judge_llm = build_chat_model(judge_spec)
+        verdict: JudgeResult = judge_task(task, saved_transcript, judge_llm)
+        score = "PASS" if verdict.passed else "FAIL"
+        writer.write_task(
+            task_id=task_id,
+            score=score,
+            terminated_by=terminated_by,
+            turn_count=turn_count,
+            transcript=saved_transcript,
+            evaluation=verdict.model_dump(),
+        )
+        print(f"task {task_id}: {score} — {verdict.summary}")
+        return score
+    except Exception as e:  # noqa: BLE001 — per-task isolation
+        tb = traceback.format_exc()
+        print(f"task {task_id}: ERROR — {e}", file=sys.stderr)
+        writer.write_task(
+            task_id=task_id,
+            score="ERROR",
+            terminated_by=terminated_by,
+            turn_count=turn_count,
+            transcript=saved_transcript,
+            evaluation={"assertions": [], "passed": False, "summary": "error during rejudge"},
+            error=tb,
+        )
+        return "ERROR"
 
 
 def _run_one_task(
@@ -150,9 +263,97 @@ def _run_one_task(
 # ────────────────────────── main ──────────────────────────
 
 
+def _init_langfuse_from_env(model_id_for_config: str) -> None:
+    """Re-use the Config dataclass to spin up Langfuse with already-validated keys."""
+    from src.config import Config
+
+    cfg = Config(
+        openrouter_api_key=os.environ.get("OPENROUTER_API_KEY", ""),
+        langfuse_public_key=os.environ["LANGFUSE_PUBLIC_KEY"],
+        langfuse_secret_key=os.environ["LANGFUSE_SECRET_KEY"],
+        langfuse_base_url=os.environ["LANGFUSE_BASE_URL"],
+        model_id=model_id_for_config,
+    )
+    init_langfuse(cfg)
+
+
+def _main_rejudge(args: argparse.Namespace) -> int:
+    """Re-run only the judge against an existing results/<run_id>/ directory."""
+    judge_spec = args.judge_model or args.model
+    validate_env({"judge": judge_spec}, extra_required=UNCONDITIONAL_KEYS)
+    _init_langfuse_from_env(judge_spec.split(":", 1)[1])
+
+    source_dir = Path(args.rejudge_from)
+    source_run_id, source_metadata, source_transcripts = _load_source_run(source_dir)
+
+    tasks_path = Path(args.tasks)
+    tasks = _load_tasks(tasks_path, args.task_id)
+    tasks = [t for t in tasks if str(t.get("id")) in source_transcripts]
+    if args.limit is not None:
+        tasks = tasks[: args.limit]
+    if not tasks:
+        raise SystemExit(
+            "no tasks to rejudge — every requested task either missing from "
+            f"tasks.json or absent from {source_dir}/transcripts/"
+        )
+
+    source_agent = str(source_metadata.get("agent_variant") or "unknown")
+    source_model = str(source_metadata.get("model") or "unknown")
+    source_sim_model = str(source_metadata.get("sim_model") or "unknown")
+
+    run_id = compose_run_id("rejudge", judge_spec)
+    run_dir = Path(args.results_dir) / run_id
+    api_keys = sorted(
+        required_keys_for(judge_spec)
+        | {"LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_BASE_URL"}
+    )
+
+    print(f"mode:           rejudge")
+    print(f"source run:     {source_dir}")
+    print(f"source run id:  {source_run_id}")
+    print(f"new run id:     {run_id}")
+    print(f"new results:    {run_dir}")
+    print(f"tasks:          {len(tasks)} (filtered by intersection with source transcripts)")
+    print(f"judge:          {judge_spec}")
+
+    counts = {"PASS": 0, "FAIL": 0, "ERROR": 0}
+    with ResultsWriter(
+        run_dir,
+        run_id=run_id,
+        agent=source_agent,
+        model=source_model,
+        sim_model=source_sim_model,
+        judge_model=judge_spec,
+        max_turns=int(source_metadata.get("max_turns") or 0),
+        api_keys_used=api_keys,
+        extra_metadata={"mode": "rejudge", "source_run_id": source_run_id},
+    ) as writer:
+        for task in tasks:
+            task_id = str(task.get("id"))
+            score = _rejudge_one_task(
+                task=task,
+                transcript_entry=source_transcripts[task_id],
+                judge_spec=judge_spec,
+                writer=writer,
+                run_id=run_id,
+                source_run_id=source_run_id,
+                source_agent_variant=source_agent,
+                source_model=source_model,
+                source_sim_model=source_sim_model,
+            )
+            counts[score] = counts.get(score, 0) + 1
+
+    print(f"\n=== summary ===\nPASS:  {counts['PASS']}\nFAIL:  {counts['FAIL']}\nERROR: {counts['ERROR']}")
+    print(f"results written to: {run_dir}")
+    return 0 if counts["FAIL"] == 0 and counts["ERROR"] == 0 else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     load_dotenv(REPO_ROOT / ".env")
     args = _parse_args(argv)
+
+    if args.rejudge_from is not None:
+        return _main_rejudge(args)
 
     sim_spec = args.sim_model or args.model
     judge_spec = args.judge_model or args.model
@@ -161,18 +362,7 @@ def main(argv: list[str] | None = None) -> int:
         {"agent": args.model, "sim": sim_spec, "judge": judge_spec},
         extra_required=UNCONDITIONAL_KEYS,
     )
-
-    # Initialize Langfuse from the already-validated env (re-use Config dataclass).
-    from src.config import Config
-
-    cfg = Config(
-        openrouter_api_key=os.environ["OPENROUTER_API_KEY"],
-        langfuse_public_key=os.environ["LANGFUSE_PUBLIC_KEY"],
-        langfuse_secret_key=os.environ["LANGFUSE_SECRET_KEY"],
-        langfuse_base_url=os.environ["LANGFUSE_BASE_URL"],
-        model_id=args.model.split(":", 1)[1],
-    )
-    init_langfuse(cfg)
+    _init_langfuse_from_env(args.model.split(":", 1)[1])
 
     tasks_path = Path(args.tasks)
     tasks = _load_tasks(tasks_path, args.task_id)

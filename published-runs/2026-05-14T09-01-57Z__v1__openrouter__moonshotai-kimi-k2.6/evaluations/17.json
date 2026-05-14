@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Reservation FQ8APE is updated to economy.",
+      "passed": true,
+      "rationale": "At [20] the agent calls update_reservation_flights with cabin set to economy, and the tool result at [21] confirms the reservation cabin is now economy; the final summary at [26] also confirms this change."
+    },
+    {
+      "assertion": "Passenger for reservation FQ8APE is updated to Omar Rossi.",
+      "passed": true,
+      "rationale": "At [22] the agent calls update_reservation_passengers with Omar Rossi, and the tool result at [23] confirms the passenger is now Omar Rossi; the final summary at [26] also confirms this change."
+    },
+    {
+      "assertion": "Number of bags for reservation FQ8APE is updated to 3.",
+      "passed": true,
+      "rationale": "At [24] the agent calls update_reservation_baggages with total_baggages set to 3, and the tool result at [25] confirms total_baggages is 3; the final summary at [26] also confirms this change."
+    }
+  ],
+  "passed": true,
+  "summary": "All three requested changes—cabin to economy, passenger to Omar Rossi, and bags to 3—were successfully completed and confirmed by tool results."
+}

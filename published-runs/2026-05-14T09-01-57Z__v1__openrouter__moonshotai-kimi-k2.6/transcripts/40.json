@@ -1,0 +1,93 @@
+{
+  "task_id": "40",
+  "terminated_by": "simulator_end",
+  "transcript": [
+    {
+      "content": "Hi, I need to change the passenger name on my reservation.",
+      "role": "user"
+    },
+    {
+      "content": "Hello! I'd be happy to help you change the passenger name on your reservation.\n\nTo get started, I'll need:\n1. Your user ID\n2. Your reservation ID\n\nCould you please provide these details?",
+      "role": "agent"
+    },
+    {
+      "content": "My user ID is anya_garcia_5901 and my reservation ID is 3RK2T9.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "reservation_id": "3RK2T9"
+          },
+          "id": "get_reservation_details:0",
+          "name": "get_reservation_details"
+        }
+      ]
+    },
+    {
+      "content": "{\"reservation_id\": \"3RK2T9\", \"user_id\": \"anya_garcia_5901\", \"origin\": \"MCO\", \"destination\": \"SFO\", \"flight_type\": \"one_way\", \"cabin\": \"basic_economy\", \"flights\": [{\"origin\": \"MCO\", \"destination\": \"PHX\", \"flight_number\": \"HAT214\", \"date\": \"2024-05-19\", \"price\": 57}, {\"origin\": \"PHX\", \"destination\": \"SFO\", \"flight_number\": \"HAT009\", \"date\": \"2024-05-20\", \"price\": 83}], \"passengers\": [{\"first_name\": \"Anya\", \"last_name\": \"Garcia\", \"dob\": \"1992-11-12\"}, {\"first_name\": \"Mei\", \"last_name\": \"Lee\", \"dob\": \"1989-12-13\"}], \"payment_history\": [{\"payment_id\": \"gift_card_2550356\", \"amount\": 280}], \"created_at\": \"2024-05-02T06:02:56\", \"total_baggages\": 0, \"nonfree_baggages\": 0, \"insurance\": \"no\"}",
+      "name": "get_reservation_details",
+      "role": "tool",
+      "tool_call_id": "get_reservation_details:0"
+    },
+    {
+      "content": "Thank you! I can see your reservation details:\n\n**Reservation 3RK2T9**\n- Flight 1: HAT214 on May 19, 2024 (MCO → PHX)\n- Flight 2: HAT009 on May 20, 2024 (PHX → SFO)\n- Cabin: Basic Economy\n- Passengers:\n  1. Anya Garcia (DOB: 1992-11-12)\n  2. Mei Lee (DOB: 1989-12-13)\n\nWhich passenger's name would you like to change, and what should the new name be? Please provide the first name, last name, and date of birth for the updated passenger information.",
+      "role": "agent"
+    },
+    {
+      "content": "I need to change Mei Lee to Mei Garcia. Same date of birth.",
+      "role": "user"
+    },
+    {
+      "content": "Thank you for the clarification. I'll update the passenger information for the second passenger from \"Mei Lee\" to \"Mei Garcia\" (keeping the same date of birth: 1989-12-13).\n\n**Action to be taken:**\n- Update passenger 2 name from \"Mei Lee\" to \"Mei Garcia\"\n- Reservation ID: 3RK2T9\n- All other details remain the same\n\nDo you confirm you want me to proceed with this passenger name change? Please reply \"yes\" to confirm.",
+      "role": "agent"
+    },
+    {
+      "content": "Yes, please proceed.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "passengers": [
+              {
+                "dob": "1992-11-12",
+                "first_name": "Anya",
+                "last_name": "Garcia"
+              },
+              {
+                "dob": "1989-12-13",
+                "first_name": "Mei",
+                "last_name": "Garcia"
+              }
+            ],
+            "reservation_id": "3RK2T9"
+          },
+          "id": "update_reservation_passengers:1",
+          "name": "update_reservation_passengers"
+        }
+      ]
+    },
+    {
+      "content": "{\"reservation_id\": \"3RK2T9\", \"user_id\": \"anya_garcia_5901\", \"origin\": \"MCO\", \"destination\": \"SFO\", \"flight_type\": \"one_way\", \"cabin\": \"basic_economy\", \"flights\": [{\"origin\": \"MCO\", \"destination\": \"PHX\", \"flight_number\": \"HAT214\", \"date\": \"2024-05-19\", \"price\": 57}, {\"origin\": \"PHX\", \"destination\": \"SFO\", \"flight_number\": \"HAT009\", \"date\": \"2024-05-20\", \"price\": 83}], \"passengers\": [{\"first_name\": \"Anya\", \"last_name\": \"Garcia\", \"dob\": \"1992-11-12\"}, {\"first_name\": \"Mei\", \"last_name\": \"Garcia\", \"dob\": \"1989-12-13\"}], \"payment_history\": [{\"payment_id\": \"gift_card_2550356\", \"amount\": 280}], \"created_at\": \"2024-05-02T06:02:56\", \"total_baggages\": 0, \"nonfree_baggages\": 0, \"insurance\": \"no\"}",
+      "name": "update_reservation_passengers",
+      "role": "tool",
+      "tool_call_id": "update_reservation_passengers:1"
+    },
+    {
+      "content": "Perfect! The passenger name has been successfully updated.\n\n**Updated Reservation 3RK2T9:**\n- Passenger 1: Anya Garcia (DOB: 1992-11-12)\n- Passenger 2: Mei Garcia (DOB: 1989-12-13)\n\nThe name change from \"Mei Lee\" to \"Mei Garcia\" is now complete. All other reservation details remain the same. Is there anything else I can help you with today?",
+      "role": "agent"
+    },
+    {
+      "content": "No, that's all. Thanks!",
+      "role": "user"
+    }
+  ],
+  "turn_count": 5
+}

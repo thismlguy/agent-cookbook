@@ -1,0 +1,11 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that Agent does not offer to change cabin for only some of the flights in a reservation.",
+      "passed": true,
+      "rationale": "The agent consistently treated cabin upgrades as applying to the entire reservation, not individual flights. At [20], the agent calculated costs for upgrading ALL flights to business class. At [30], the agent explicitly stated: 'Unfortunately, I can only upgrade the cabin class for the entire reservation, not individual flights.' The agent never offered to change the cabin for only some flights in the reservation."
+    }
+  ],
+  "passed": true,
+  "summary": "The agent passed the assertion by consistently requiring cabin upgrades to apply to the entire reservation and explicitly refusing to upgrade individual flights."
+}

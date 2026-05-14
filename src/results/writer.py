@@ -73,6 +73,7 @@ class ResultsWriter:
         judge_model: str,
         max_turns: int,
         api_keys_used: list[str],
+        extra_metadata: dict[str, Any] | None = None,
     ) -> None:
         self.run_dir = _resolve_collision(run_dir)
         self.run_id = run_id
@@ -82,6 +83,7 @@ class ResultsWriter:
         self.judge_model = judge_model
         self.max_turns = max_turns
         self.api_keys_used = sorted(set(api_keys_used))
+        self.extra_metadata = dict(extra_metadata) if extra_metadata else {}
         self._start_ts = datetime.now(timezone.utc).isoformat()
         self._per_task: list[dict[str, Any]] = []
 
@@ -111,6 +113,7 @@ class ResultsWriter:
             "sim_model": self.sim_model,
             "start_ts": self._start_ts,
             "task_count": task_count,
+            **self.extra_metadata,
         }
 
     def _write_metadata(self, *, end_ts: str | None, task_count: int | None) -> None:

@@ -114,7 +114,7 @@ async def test_agent_full_react_loop_with_mocked_openrouter(monkeypatch):
     assert body1["provider"] == {"only": ["moonshotai"]}
     assert body1["reasoning"] == {"enabled": False}
     # langchain-openai / openai-sdk now serializes max_tokens as max_completion_tokens
-    assert body1["max_completion_tokens"] == 4096
+    assert body1["max_completion_tokens"] == 40960
     assert body1["temperature"] == 0
 
     sys_msg = body1["messages"][0]

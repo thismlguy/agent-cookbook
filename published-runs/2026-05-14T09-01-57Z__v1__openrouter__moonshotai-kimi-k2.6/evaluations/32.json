@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent update reservation OWZ4XL to economy.",
+      "passed": false,
+      "rationale": "The agent explicitly refused to upgrade reservation OWZ4XL from basic economy to economy, stating multiple times that basic economy flights cannot be modified in any way, including cabin upgrades, and no such update was ever performed."
+    },
+    {
+      "assertion": "Agent updates reservation OWZ4XL to flight HAT041.",
+      "passed": false,
+      "rationale": "The agent never updated reservation OWZ4XL to flight HAT041 or any other flight; the agent consistently maintained that basic economy reservations cannot be modified and ultimately transferred the user to a human agent without making any flight changes."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent did not update reservation OWZ4XL to economy or to flight HAT041, as basic economy restrictions prevented any modifications."
+}

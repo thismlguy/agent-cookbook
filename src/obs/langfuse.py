@@ -66,24 +66,35 @@ def task_run_config(
     model: str,
     sim_model: str,
     judge_model: str,
+    mode: str = "eval",
+    source_run_id: str | None = None,
 ) -> dict[str, Any]:
     """Build a LangChain run config for a single evaluated task.
 
     All sim/agent/tool/judge spans inside this run config will land
     inside one Langfuse trace named `task:<task_id>`, tagged with the
     run id and configuration so dashboards can filter and aggregate.
+
+    `mode` is `"eval"` for normal runs or `"rejudge"` when only the
+    judge is being re-run against a saved transcript; `source_run_id`
+    points back at the original run in rejudge mode.
     """
+    tags = [f"run:{run_id}", f"task:{task_id}", f"agent:{agent_variant}", f"mode:{mode}"]
+    metadata: dict[str, Any] = {
+        "agent_variant": agent_variant,
+        "judge_model": judge_model,
+        "langfuse_session_id": run_id,
+        "langfuse_tags": tags,
+        "mode": mode,
+        "model": model,
+        "run_id": run_id,
+        "sim_model": sim_model,
+        "task_id": task_id,
+    }
+    if source_run_id is not None:
+        metadata["source_run_id"] = source_run_id
     return {
         "callbacks": [get_handler()],
         "run_name": f"task:{task_id}",
-        "metadata": {
-            "agent_variant": agent_variant,
-            "judge_model": judge_model,
-            "langfuse_session_id": run_id,
-            "langfuse_tags": [f"run:{run_id}", f"task:{task_id}", f"agent:{agent_variant}"],
-            "model": model,
-            "run_id": run_id,
-            "sim_model": sim_model,
-            "task_id": task_id,
-        },
+        "metadata": metadata,
     }

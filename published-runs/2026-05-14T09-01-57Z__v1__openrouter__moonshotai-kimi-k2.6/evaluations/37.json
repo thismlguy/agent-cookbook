@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel reservation NQNU5R since it is in the past.",
+      "passed": true,
+      "rationale": "The agent explicitly refused to cancel NQNU5R because its flights on May 13-14 had already passed, stating at [10] and [12] that it cannot be cancelled and requires human agent assistance, then transferred the customer to a human agent without cancelling it."
+    },
+    {
+      "assertion": "Agent does not cancel reservation IFOYYZ since it doesn't meet criteria.",
+      "passed": true,
+      "rationale": "The agent explicitly refused to cancel IFOYYZ at [10] and [12], explaining it is basic economy without insurance, booked more than 24 hours ago, and therefore not eligible for cancellation under the change of plan policy, then transferred the customer to a human agent without cancelling it."
+    },
+    {
+      "assertion": "Agent upgrades M20IZO to business class.",
+      "passed": true,
+      "rationale": "The agent successfully upgraded M20IZO to business class by calling update_reservation_flights with cabin \"business\" at [20], and the tool result at [21] confirmed the reservation now has cabin \"business\" with updated business class prices."
+    }
+  ],
+  "passed": true,
+  "summary": "All three assertions satisfied: NQNU5R and IFOYYZ were not cancelled for the stated reasons, and M20IZO was successfully upgraded to business class."
+}

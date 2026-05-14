@@ -1,0 +1,309 @@
+{
+  "counts": {
+    "ERROR": 0,
+    "FAIL": 17,
+    "PASS": 33
+  },
+  "tasks": [
+    {
+      "score": "PASS",
+      "task_id": "0",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "score": "PASS",
+      "task_id": "1",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "PASS",
+      "task_id": "10",
+      "terminated_by": "simulator_end",
+      "turn_count": 8
+    },
+    {
+      "score": "FAIL",
+      "task_id": "11",
+      "terminated_by": "simulator_end",
+      "turn_count": 7
+    },
+    {
+      "score": "PASS",
+      "task_id": "12",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "FAIL",
+      "task_id": "13",
+      "terminated_by": "simulator_end",
+      "turn_count": 10
+    },
+    {
+      "score": "FAIL",
+      "task_id": "14",
+      "terminated_by": "simulator_end",
+      "turn_count": 10
+    },
+    {
+      "score": "FAIL",
+      "task_id": "15",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "score": "FAIL",
+      "task_id": "16",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "PASS",
+      "task_id": "17",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "FAIL",
+      "task_id": "18",
+      "terminated_by": "simulator_end",
+      "turn_count": 8
+    },
+    {
+      "score": "PASS",
+      "task_id": "19",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "score": "FAIL",
+      "task_id": "2",
+      "terminated_by": "simulator_end",
+      "turn_count": 10
+    },
+    {
+      "score": "FAIL",
+      "task_id": "20",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "score": "FAIL",
+      "task_id": "21",
+      "terminated_by": "simulator_end",
+      "turn_count": 3
+    },
+    {
+      "score": "PASS",
+      "task_id": "22",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "FAIL",
+      "task_id": "23",
+      "terminated_by": "simulator_end",
+      "turn_count": 10
+    },
+    {
+      "score": "FAIL",
+      "task_id": "24",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "score": "PASS",
+      "task_id": "25",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "PASS",
+      "task_id": "26",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "FAIL",
+      "task_id": "27",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "score": "PASS",
+      "task_id": "28",
+      "terminated_by": "simulator_end",
+      "turn_count": 7
+    },
+    {
+      "score": "FAIL",
+      "task_id": "29",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "score": "PASS",
+      "task_id": "3",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "PASS",
+      "task_id": "30",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "PASS",
+      "task_id": "31",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "score": "FAIL",
+      "task_id": "32",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "score": "PASS",
+      "task_id": "33",
+      "terminated_by": "simulator_end",
+      "turn_count": 9
+    },
+    {
+      "score": "PASS",
+      "task_id": "34",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "FAIL",
+      "task_id": "35",
+      "terminated_by": "simulator_end",
+      "turn_count": 10
+    },
+    {
+      "score": "PASS",
+      "task_id": "36",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "PASS",
+      "task_id": "37",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "PASS",
+      "task_id": "38",
+      "terminated_by": "simulator_end",
+      "turn_count": 9
+    },
+    {
+      "score": "PASS",
+      "task_id": "39",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "score": "PASS",
+      "task_id": "4",
+      "terminated_by": "simulator_end",
+      "turn_count": 7
+    },
+    {
+      "score": "PASS",
+      "task_id": "40",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "score": "PASS",
+      "task_id": "41",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "PASS",
+      "task_id": "42",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "score": "PASS",
+      "task_id": "43",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "FAIL",
+      "task_id": "44",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "PASS",
+      "task_id": "45",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "score": "PASS",
+      "task_id": "46",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "score": "PASS",
+      "task_id": "47",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "PASS",
+      "task_id": "48",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "PASS",
+      "task_id": "49",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "score": "PASS",
+      "task_id": "5",
+      "terminated_by": "simulator_end",
+      "turn_count": 9
+    },
+    {
+      "score": "PASS",
+      "task_id": "6",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "score": "FAIL",
+      "task_id": "7",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "score": "PASS",
+      "task_id": "8",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "score": "PASS",
+      "task_id": "9",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    }
+  ]
+}

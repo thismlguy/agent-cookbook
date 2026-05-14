@@ -1,0 +1,123 @@
+{
+  "task_id": "20",
+  "terminated_by": "simulator_end",
+  "transcript": [
+    {
+      "content": "Hi, I'd like to book a one-way flight from New York to Seattle on May 20. My name is Mia Li.",
+      "role": "user"
+    },
+    {
+      "content": "Hello! I'd be happy to help you book a one-way flight from New York to Seattle on May 20. To get started, I'll need your user ID to access your profile and available payment methods.\n\nCould you please provide your user ID?",
+      "role": "agent"
+    },
+    {
+      "content": "My user ID is mia_li_3668.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "user_id": "mia_li_3668"
+          },
+          "id": "get_user_details:0",
+          "name": "get_user_details"
+        }
+      ]
+    },
+    {
+      "content": "{\"user_id\": \"mia_li_3668\", \"name\": {\"first_name\": \"Mia\", \"last_name\": \"Li\"}, \"address\": {\"address1\": \"975 Sunset Drive\", \"address2\": \"Suite 217\", \"city\": \"Austin\", \"country\": \"USA\", \"state\": \"TX\", \"zip\": \"78750\"}, \"email\": \"mia.li3818@example.com\", \"dob\": \"1990-04-05\", \"payment_methods\": {\"credit_card_4421486\": {\"source\": \"credit_card\", \"id\": \"credit_card_4421486\", \"brand\": \"visa\", \"last_four\": \"7447\", \"amount\": null}, \"certificate_4856383\": {\"source\": \"certificate\", \"id\": \"certificate_4856383\", \"brand\": null, \"last_four\": null, \"amount\": 100.0}, \"certificate_7504069\": {\"source\": \"certificate\", \"id\": \"certificate_7504069\", \"brand\": null, \"last_four\": null, \"amount\": 250.0}, \"credit_card_1955700\": {\"source\": \"credit_card\", \"id\": \"credit_card_1955700\", \"brand\": \"visa\", \"last_four\": \"1907\", \"amount\": null}}, \"saved_passengers\": [{\"first_name\": \"Amelia\", \"last_name\": \"Ahmed\", \"dob\": \"1957-03-21\"}], \"membership\": \"gold\", \"reservations\": [\"NO6JO3\", \"AIXC49\", \"HKEG34\"]}",
+      "name": "get_user_details",
+      "role": "tool",
+      "tool_call_id": "get_user_details:0"
+    },
+    {
+      "content": "",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "date": "2024-05-20",
+            "destination": "Seattle",
+            "origin": "New York"
+          },
+          "id": "search_direct_flight:1",
+          "name": "search_direct_flight"
+        }
+      ]
+    },
+    {
+      "content": "[]",
+      "name": "search_direct_flight",
+      "role": "tool",
+      "tool_call_id": "search_direct_flight:1"
+    },
+    {
+      "content": "I found your profile, Mia. Now let me search for available flights from New York to Seattle on May 20, 2024.",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "date": "2024-05-20",
+            "destination": "Seattle",
+            "origin": "New York"
+          },
+          "id": "search_direct_flight:2",
+          "name": "search_direct_flight"
+        }
+      ]
+    },
+    {
+      "content": "[]",
+      "name": "search_direct_flight",
+      "role": "tool",
+      "tool_call_id": "search_direct_flight:2"
+    },
+    {
+      "content": "It looks like there are no available direct flights from New York to Seattle on May 20, 2024. Unfortunately, I can only book direct flights through this system, and there don't appear to be any available options for that date.\n\nWould you like me to:\n1. Check a different date for your travel?\n2. Transfer you to a human agent who can help with connecting flights or other options?\n\nPlease let me know how you'd like to proceed.",
+      "role": "agent"
+    },
+    {
+      "content": "I was told one stopover is fine, so could you transfer me to a human agent who can help with connecting flights?",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "summary": "Customer Mia Li (user ID: mia_li_3668) wants to book a one-way flight from New York to Seattle on May 20, 2024. No direct flights are available on that date. Customer is open to one stopover/connecting flights and needs assistance booking through a human agent."
+          },
+          "id": "transfer_to_human_agents:3",
+          "name": "transfer_to_human_agents"
+        }
+      ]
+    },
+    {
+      "content": "{\"status\": \"transferred\", \"summary\": \"Customer Mia Li (user ID: mia_li_3668) wants to book a one-way flight from New York to Seattle on May 20, 2024. No direct flights are available on that date. Customer is open to one stopover/connecting flights and needs assistance booking through a human agent.\"}",
+      "name": "transfer_to_human_agents",
+      "role": "tool",
+      "tool_call_id": "transfer_to_human_agents:3"
+    },
+    {
+      "content": "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON.",
+      "role": "agent"
+    },
+    {
+      "content": "Okay, I'll hold. Thanks.",
+      "role": "user"
+    },
+    {
+      "content": "You're welcome! A human agent will be with you shortly to help you find connecting flights from New York to Seattle on May 20. They'll have all the details from our conversation. Thank you for your patience!",
+      "role": "agent"
+    },
+    {
+      "content": "Thanks, I'll wait for them. Bye!",
+      "role": "user"
+    }
+  ],
+  "turn_count": 5
+}

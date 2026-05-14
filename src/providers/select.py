@@ -17,6 +17,8 @@ from langchain_core.language_models import BaseChatModel
 from langchain_openai import ChatOpenAI
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
+DEFAULT_MAX_TOKENS = 40960
+DEFAULT_TEMPERATURE = 0
 
 
 def parse_spec(spec: str) -> tuple[str, str]:
@@ -49,8 +51,8 @@ def _build_openrouter(model: str, **kwargs) -> ChatOpenAI:
         openai_api_key=api_key,
         openai_api_base=OPENROUTER_BASE_URL,
         extra_body=extra_body or None,
-        temperature=kwargs.get("temperature", 0),
-        max_tokens=kwargs.get("max_tokens", 4096),
+        temperature=kwargs.get("temperature", DEFAULT_TEMPERATURE),
+        max_tokens=kwargs.get("max_tokens", DEFAULT_MAX_TOKENS),
     )
 
 

@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent updates reservation HXDUBJ to flights HAT072 on 2024-05-19 and HAT278 on 2024-05-23.",
+      "passed": true,
+      "rationale": "At turn [19], the agent calls update_reservation_flights with flights HAT072 on 2024-05-19 and HAT278 on 2024-05-23, and the tool result at [20] confirms the reservation was updated to these flights."
+    },
+    {
+      "assertion": "Agent does not allow change to business class for only one leg of the flight.",
+      "passed": true,
+      "rationale": "At turn [32], the agent explicitly states: 'unfortunately our system requires all flights in a reservation to be in the same cabin class. I cannot set the outbound to business and the return to economy - they must both be the same.'"
+    },
+    {
+      "assertion": "Agent add 2 free baggages to reservation HXDUBJ.",
+      "passed": true,
+      "rationale": "At turn [36], the agent calls update_reservation_baggages with total_baggages: 2 and nonfree_baggages: 0, and the tool result at [37] confirms total_baggages is 2 and nonfree_baggages is 0, meaning 2 free bags were added."
+    }
+  ],
+  "passed": true,
+  "summary": "All three assertions are satisfied based on the transcript."
+}

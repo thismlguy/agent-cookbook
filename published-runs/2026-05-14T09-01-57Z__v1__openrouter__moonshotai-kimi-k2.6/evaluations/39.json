@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent cancels reservation 8C8K4E.",
+      "passed": true,
+      "rationale": "The agent explicitly calls cancel_reservation for 8C8K4E at transcript step [22], and the tool returns status 'cancelled' at step [23]."
+    },
+    {
+      "assertion": "Agent cancels reservation LU15PA.",
+      "passed": true,
+      "rationale": "The agent explicitly calls cancel_reservation for LU15PA at transcript step [24], and the tool returns status 'cancelled' at step [25]."
+    },
+    {
+      "assertion": "Agent cancels reservation MSJ4OA.",
+      "passed": true,
+      "rationale": "The agent explicitly calls cancel_reservation for MSJ4OA at transcript step [26], and the tool returns status 'cancelled' at step [27]."
+    },
+    {
+      "assertion": "Agent does not cancel any other reservation.",
+      "passed": true,
+      "rationale": "The agent only invokes cancel_reservation for 8C8K4E, LU15PA, and MSJ4OA. The other reservations (UDMOP1, XAZ3C0, I6M8JQ, 4XGCCM) are never cancelled; UDMOP1 and XAZ3C0 are transferred to a human agent instead."
+    }
+  ],
+  "passed": true,
+  "summary": "All four assertions are satisfied: the agent cancelled exactly reservations 8C8K4E, LU15PA, and MSJ4OA, and no others."
+}

@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent cancels reservation FDZ0T5",
+      "passed": true,
+      "rationale": "At turn [18], the agent calls the cancel_reservation tool with reservation_id 'FDZ0T5', and at turn [19] the tool returns status 'cancelled' with a refund of $3,778, confirming the cancellation was successful."
+    },
+    {
+      "assertion": "Agent cancels reservation HSR97W",
+      "passed": true,
+      "rationale": "At turn [20], the agent calls the cancel_reservation tool with reservation_id 'HSR97W', and at turn [21] the tool returns status 'cancelled' with a refund of $1,227, confirming the cancellation was successful."
+    }
+  ],
+  "passed": true,
+  "summary": "Both reservations FDZ0T5 and HSR97W were successfully cancelled by the agent."
+}
