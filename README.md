@@ -46,8 +46,11 @@ variant and LLM provider, judges each transcript against the task's
 `nl_assertions`, and writes a per-run results directory under `results/`.
 
 ```bash
-# default: agent v1 on Kimi K2.6 via OpenRouter, all 50 tasks
+# default: agent v1 on Kimi K2.6 via OpenRouter, all 50 tasks, 10 in parallel
 uv run python -m src.eval.run
+
+# tune concurrency (default 10; drop to 1 for sequential debugging or if you trip rate limits)
+uv run python -m src.eval.run --concurrency 5
 
 # pick a different provider/model
 uv run python -m src.eval.run --model anthropic:claude-sonnet-4-5
