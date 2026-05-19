@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel reservation NQNU5R since it is in the past.",
+      "passed": true,
+      "rationale": "The agent correctly identified that NQNU5R flights had already departed (May 13-14) and declined to cancel it, instead transferring it to a human agent with the explanation 'both flights have already flown' and 'Per policy, this requires human agent handling.'"
+    },
+    {
+      "assertion": "Agent does not cancel reservation IFOYYZ since it doesn't meet criteria.",
+      "passed": false,
+      "rationale": "The agent cancelled IFOYYZ despite the assertion requiring that it NOT be cancelled. The agent determined IFOYYZ was eligible for cancellation (flights were upcoming on May 28 & 30), processed the cancellation in step 12, and received confirmation in step 13 with a $116 refund."
+    },
+    {
+      "assertion": "Agent upgrades M20IZO to business class.",
+      "passed": true,
+      "rationale": "The agent successfully upgraded M20IZO from economy to business class in step 12 using the update_reservation_flights tool, and the tool result in step 14 confirms the cabin changed to 'business' with updated pricing ($430 and $412 for the two flights)."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation IFOYYZ. The basic-economy denial is in-scope per policy and is a complete answer. (Transfer for NQNU5R is policy-warranted because portions have already been flown.)",
+      "passed": true,
+      "rationale": "The agent did not transfer IFOYYZ to a human agent. Instead, the agent cancelled it directly. The agent only transferred NQNU5R to human agents (step 12), which is policy-warranted because the flights had already departed, as noted in the transfer summary."
+    }
+  ],
+  "passed": false,
+  "summary": "Three of four assertions passed. Agent incorrectly cancelled IFOYYZ when it should not have been cancelled per the test requirements."
+}

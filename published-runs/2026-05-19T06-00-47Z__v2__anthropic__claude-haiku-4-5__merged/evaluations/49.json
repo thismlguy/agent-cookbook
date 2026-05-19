@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel 3RK2T9.",
+      "passed": false,
+      "rationale": "The agent explicitly cancelled reservation 3RK2T9 at message [28], calling cancel_reservation with the reservation_id, and received confirmation at message [29] showing the reservation status as 'cancelled' with a $280 refund processed."
+    },
+    {
+      "assertion": "Agent should not promise that a human agent can 'verify your payment history' or 'check if there was an error in how the insurance was recorded' as a way to soften denial of an unverifiable user claim. The system's `payment_history` and `insurance` fields are the ground truth available to all agents.",
+      "passed": false,
+      "rationale": "At message [26], the agent explicitly states that a human agent 'would have access to transaction logs, emails, and booking history that I don't have—they'd be the right person to determine if there was a purchasing error or system issue.' This directly promises human investigation into the insurance discrepancy, which violates the assertion's requirement not to soften the denial by promising verification capabilities beyond the system's ground truth."
+    }
+  ],
+  "passed": false,
+  "summary": "Both assertions failed: the agent cancelled the reservation despite task description saying to deny it, and promised human verification of the insurance discrepancy rather than treating the system record as definitive ground truth."
+}

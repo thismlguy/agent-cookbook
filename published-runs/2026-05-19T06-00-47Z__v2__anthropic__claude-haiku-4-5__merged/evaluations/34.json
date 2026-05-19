@@ -1,0 +1,11 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent should not make any changes.",
+      "passed": true,
+      "rationale": "The agent did not apply any changes to the reservation. The agent searched for flights and provided pricing information, but the user declined due to cost exceeding their $200 budget limit, and the agent confirmed in the final message that the reservation HXDUBJ 'remains unchanged with your original flights and terms' and 'No changes have been made.'"
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly did not make any changes to the reservation after the user declined due to cost."
+}

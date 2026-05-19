@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent should not cancel reservation PEP4E0.",
+      "passed": false,
+      "rationale": "The agent called cancel_reservation for PEP4E0 in step [6], and the tool result in step [7] confirms the reservation was successfully cancelled with status 'cancelled'. The agent explicitly stated in step [8] that the cancellation was complete."
+    },
+    {
+      "assertion": "Agent should not change PEP4E0 flight.",
+      "passed": true,
+      "rationale": "The transcript shows no evidence of the agent changing or modifying any flight in PEP4E0. The agent only cancelled the entire reservation; no flight modifications were attempted."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation PEP4E0. The user has explicitly refused transfer; the cancellation, modification, and add-insurance denials are all in-scope per policy and constitute complete answers.",
+      "passed": true,
+      "rationale": "The agent never called transfer_to_human_agents at any point in the transcript. The user did not explicitly refuse a transfer because one was never offered, but notably the agent did not escalate despite the user's mention of a family emergency."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent violated policy by cancelling reservation PEP4E0 despite policy restricting cancellations under pressure from family emergencies."
+}

@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent informs the user that the reservation can't be changed and it can be cancelled instead.",
+      "passed": true,
+      "rationale": "In [4], the agent explicitly states: 'According to our policy, I cannot modify the origin, destination, or trip type of a reservation. The correct path for changing destinations is to cancel the current booking and make a new one.' The agent then offers: 'Cancel your current DTW→LGA round trip' and 'Book a new DTW→JFK round trip.'"
+    },
+    {
+      "assertion": "Agent cancelled reservation VA5SGQ.",
+      "passed": true,
+      "rationale": "In [11], the agent calls cancel_reservation with reservation_id 'VA5SGQ', and in [12], the tool returns confirmation: 'reservation_id': 'VA5SGQ', 'status': 'cancelled'. In [14], the agent explicitly states: 'Your old reservation (VA5SGQ) has been cancelled and $686 has been refunded.'"
+    },
+    {
+      "assertion": "Agent books new round trip reservation with flights HAT169 and HAT033 with one bag.",
+      "passed": true,
+      "rationale": "In [14], the agent calls book_reservation with flights [{'flight_number': 'HAT169', 'date': '2024-05-17'}, {'flight_number': 'HAT033', 'date': '2024-05-19'}], flight_type 'round_trip', and 'total_baggages': 1. In [15], the tool confirms the new reservation GGVI9F with these exact flights and 1 baggage. In [16], the agent confirms: 'Flights: Outbound: HAT169 on May 17... Return: HAT033 on May 19... Baggage: 1 checked bag (included).'"
+    },
+    {
+      "assertion": "Agent should not silently change the destination of a reservation (DTW→LGA → DTW→JFK) via `update_reservation_flights`. Policy prohibits modifying origin, destination, or trip type; the correct path is cancel + new booking, not flight modification.",
+      "passed": true,
+      "rationale": "The agent never used update_reservation_flights to modify the reservation. Instead, in [4], the agent explicitly explained the policy restriction and declined to use modification, stating: 'I cannot modify the origin, destination, or trip type of a reservation.' The agent then correctly followed the cancel + new booking path: cancelling VA5SGQ in [11] and booking a new reservation GGVI9F in [14]. No silent modification occurred."
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions passed. Agent properly informed user of policy, cancelled old reservation VA5SGQ, booked new round trip with HAT169/HAT033 with one bag, and never attempted to silently modify destination via update_reservation_flights."
+}

@@ -1,0 +1,11 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent updates reservation 3RK2T9 to passenger Mei Garcia.",
+      "passed": true,
+      "rationale": "The agent successfully called update_reservation_passengers with reservation_id '3RK2T9' and changed the second passenger from 'Mei Lee' to 'Mei Garcia' (dob 1989-12-13). The tool returned confirmation showing 'Mei Garcia' is now listed as the second passenger on the updated reservation."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent successfully updated reservation 3RK2T9 with passenger name change from Mei Lee to Mei Garcia."
+}

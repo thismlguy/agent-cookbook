@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not offer compensation before the user asks.",
+      "passed": true,
+      "rationale": "The agent never offers compensation. In turn [10], the agent states 'your situation may qualify for compensation' but explicitly does not offer it—instead stating that a human agent is needed to review and process compensation. The agent only discusses compensation as a possibility for a human agent to handle, not as an actual offer."
+    },
+    {
+      "assertion": "Agent verifies that the flight was delayed.",
+      "passed": false,
+      "rationale": "The agent never verifies the delay. The user states in turn [9] that flight HAT006 'was significantly delayed,' but the agent accepts this claim without verification. The agent does not call any tool to check flight status, delay records, or verify the delay claim—it simply acknowledges what the user said and proceeds to discuss compensation eligibility."
+    },
+    {
+      "assertion": "Agent verifies the number of passengers in the reservation.",
+      "passed": true,
+      "rationale": "In turn [7], the agent retrieves reservation details via get_reservation_details, which shows the 'passengers' field containing one entry (Noah Muller). The agent thus has access to and verified the passenger count is 1 passenger in the reservation."
+    },
+    {
+      "assertion": "Agent does not offer a $50 certificate.",
+      "passed": true,
+      "rationale": "The agent never offers a $50 certificate. The only mention of any compensation-related benefit is in turn [10], where the agent mentions the user has 'Gold membership' and 'Insurance on the reservation' but makes no specific offer of a $50 certificate or any other monetary amount. The agent transfers the case to a human agent without making any certificate offer."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent failed to verify the flight delay claim; passed other assertions about not offering compensation prematurely, verifying passenger count, and not offering a $50 certificate."
+}
