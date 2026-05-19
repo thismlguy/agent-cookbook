@@ -10,9 +10,11 @@ import argparse
 import json
 import os
 import sys
+import threading
 import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from dotenv import load_dotenv
 
@@ -29,6 +31,11 @@ DEFAULT_RESULTS_DIR = REPO_ROOT / "results"
 DEFAULT_AGENT_MODEL = "openrouter:moonshotai/kimi-k2.6"
 DEFAULT_AGENT = "v1"
 DEFAULT_MAX_TURNS = 30
+DEFAULT_CONCURRENCY = 10
+
+# Serializes the per-task stdout blocks so concurrent workers print one task
+# at a time instead of interleaving lines.
+_print_lock = threading.Lock()
 
 UNCONDITIONAL_KEYS = (
     "OPENROUTER_API_KEY",
@@ -47,9 +54,23 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--model", default=DEFAULT_AGENT_MODEL, help=f"agent model spec '<provider>:<model>' (default: {DEFAULT_AGENT_MODEL})")
     p.add_argument("--sim-model", default=None, help="simulator model spec (default: same as --model)")
     p.add_argument("--judge-model", default=None, help="judge model spec (default: same as --model)")
-    p.add_argument("--task-id", default=None, help="run only this task id (default: all)")
+    p.add_argument(
+        "--task-id",
+        default=None,
+        help="run only these task ids — comma-separated for multiple (e.g. '7,21,38'). Default: all.",
+    )
     p.add_argument("--limit", type=int, default=None, help="run only the first N tasks (after --task-id filter)")
     p.add_argument("--max-turns", type=int, default=DEFAULT_MAX_TURNS, help="conversation turn cap")
+    p.add_argument(
+        "--concurrency",
+        type=int,
+        default=DEFAULT_CONCURRENCY,
+        help=(
+            f"number of tasks to run in parallel (default: {DEFAULT_CONCURRENCY}). "
+            "Set to 1 for fully sequential / easier debugging. Higher values may "
+            "trip provider rate limits or credit-reservation caps."
+        ),
+    )
     p.add_argument("--tasks", default=str(DEFAULT_TASKS_PATH), help="path to tasks.json (default: data/tasks.json)")
     p.add_argument("--results-dir", default=str(DEFAULT_RESULTS_DIR), help="parent directory for per-run results")
     p.add_argument(
@@ -66,12 +87,14 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def _load_tasks(path: Path, task_id: str | None) -> list[dict[str, Any]]:
     tasks = json.loads(path.read_text())
-    if task_id is not None:
-        for t in tasks:
-            if str(t.get("id")) == str(task_id):
-                return [t]
-        raise SystemExit(f"task id {task_id!r} not found in {path}")
-    return tasks
+    if task_id is None:
+        return tasks
+    wanted = [s.strip() for s in task_id.split(",") if s.strip()]
+    by_id = {str(t.get("id")): t for t in tasks}
+    missing = [w for w in wanted if w not in by_id]
+    if missing:
+        raise SystemExit(f"task id(s) {missing!r} not found in {path}")
+    return [by_id[w] for w in wanted]
 
 
 def _load_source_run(source_dir: Path) -> tuple[str, dict[str, Any], dict[str, dict[str, Any]]]:
@@ -98,19 +121,45 @@ def _load_source_run(source_dir: Path) -> tuple[str, dict[str, Any], dict[str, d
 # ────────────────────────── per-turn stream ──────────────────────────
 
 
-def _print_event(ev: TurnEvent) -> None:
+def _format_event(ev: TurnEvent) -> list[str]:
+    lines: list[str] = []
     if ev.user is not None:
-        print(f"[turn {ev.turn}] USER: {ev.user}")
+        lines.append(f"[turn {ev.turn}] USER: {ev.user}")
     for tc in ev.tool_calls:
         args = json.dumps(tc.get("args", {}), sort_keys=True)
         result = (tc.get("result") or "")
         if len(result) > 240:
             result = result[:240] + "…"
-        print(f"[turn {ev.turn}] TOOL {tc.get('name')}({args}) -> {result}")
+        lines.append(f"[turn {ev.turn}] TOOL {tc.get('name')}({args}) -> {result}")
     if ev.agent:
-        print(f"[turn {ev.turn}] AGENT: {ev.agent}")
+        lines.append(f"[turn {ev.turn}] AGENT: {ev.agent}")
     if ev.ended:
-        print(f"[turn {ev.turn}] (simulator ended the conversation)")
+        lines.append(f"[turn {ev.turn}] (simulator ended the conversation)")
+    return lines
+
+
+def _make_event_collector() -> tuple[Callable[[TurnEvent], None], list[str]]:
+    """Build an `on_event` callback that buffers formatted lines into a list.
+
+    With multiple tasks running concurrently we cannot print per-turn lines
+    immediately without garbling stdout. Each task collects its own buffer
+    and the worker flushes it atomically (under `_print_lock`) when done.
+    """
+    lines: list[str] = []
+
+    def cb(ev: TurnEvent) -> None:
+        lines.extend(_format_event(ev))
+
+    return cb, lines
+
+
+def _flush_task_block(header: str, lines: list[str], verdict_line: str, *, error: bool = False) -> None:
+    """Print one task's buffered output as a single contiguous block."""
+    with _print_lock:
+        print(header)
+        for line in lines:
+            print(line)
+        print(verdict_line, file=sys.stderr if error else sys.stdout)
 
 
 # ────────────────────────── per-task pipeline ──────────────────────────
@@ -138,8 +187,9 @@ def _rejudge_one_task(
     saved_transcript: list[dict[str, Any]] = transcript_entry.get("transcript") or []
     terminated_by = transcript_entry.get("terminated_by") or "unknown"
     turn_count = int(transcript_entry.get("turn_count") or 0)
+    saved_times: list[float] = list(transcript_entry.get("agent_response_times_ms") or [])
+    header = f"\n=== task {task_id} (rejudge) ==="
 
-    print(f"\n=== task {task_id} (rejudge) ===")
     cfg = task_run_config(
         run_id=run_id,
         task_id=task_id,
@@ -152,8 +202,6 @@ def _rejudge_one_task(
     )
 
     if not saved_transcript:
-        # Source task had no usable transcript (e.g. it errored before any turns).
-        # Carry the ERROR forward without invoking the judge.
         writer.write_task(
             task_id=task_id,
             score="ERROR",
@@ -167,7 +215,7 @@ def _rejudge_one_task(
             },
             error="source transcript was empty",
         )
-        print(f"task {task_id}: ERROR — source transcript empty; skipped")
+        _flush_task_block(header, [], f"task {task_id}: ERROR — source transcript empty; skipped", error=True)
         return "ERROR"
 
     try:
@@ -181,21 +229,30 @@ def _rejudge_one_task(
             turn_count=turn_count,
             transcript=saved_transcript,
             evaluation=verdict.model_dump(),
+            agent_response_times_ms=saved_times,
         )
-        print(f"task {task_id}: {score} — {verdict.summary}")
+        _flush_task_block(
+            header,
+            [],
+            f"task {task_id}: {score} — {verdict.summary}",
+        )
         return score
     except Exception as e:  # noqa: BLE001 — per-task isolation
         tb = traceback.format_exc()
-        print(f"task {task_id}: ERROR — {e}", file=sys.stderr)
         writer.write_task(
             task_id=task_id,
             score="ERROR",
             terminated_by=terminated_by,
             turn_count=turn_count,
             transcript=saved_transcript,
-            evaluation={"assertions": [], "passed": False, "summary": "error during rejudge"},
+            evaluation={
+                "assertions": [], "passed": False,
+                "summary": "error during rejudge",
+            },
             error=tb,
+            agent_response_times_ms=saved_times,
         )
+        _flush_task_block(header, [], f"task {task_id}: ERROR — {e}", error=True)
         return "ERROR"
 
 
@@ -209,7 +266,8 @@ def _run_one_task(
     run_id: str,
 ) -> str:
     task_id = str(task.get("id"))
-    print(f"\n=== task {task_id} ===")
+    header = f"\n=== task {task_id} ==="
+    on_event, event_lines = _make_event_collector()
     cfg = task_run_config(
         run_id=run_id,
         task_id=task_id,
@@ -230,7 +288,7 @@ def _run_one_task(
             agent_llm=agent_llm,
             sim_llm=sim_llm,
             max_turns=args.max_turns,
-            on_event=_print_event,
+            on_event=on_event,
             invoke_config=cfg,
         )
         verdict: JudgeResult = judge_task(task, run_result.transcript, judge_llm)
@@ -242,25 +300,42 @@ def _run_one_task(
             turn_count=run_result.turn_count,
             transcript=run_result.transcript,
             evaluation=verdict.model_dump(),
+            agent_response_times_ms=run_result.agent_response_times_ms,
         )
-        print(f"task {task_id}: {score} — {verdict.summary}")
+        _flush_task_block(
+            header,
+            event_lines,
+            f"task {task_id}: {score} — {verdict.summary}",
+        )
         return score
     except Exception as e:  # noqa: BLE001 — per-task isolation
         tb = traceback.format_exc()
-        print(f"task {task_id}: ERROR — {e}", file=sys.stderr)
         writer.write_task(
             task_id=task_id,
             score="ERROR",
             terminated_by="error",
             turn_count=0,
             transcript=[],
-            evaluation={"assertions": [], "passed": False, "summary": "error during run/judge"},
+            evaluation={
+                "assertions": [], "passed": False,
+                "summary": "error during run/judge",
+            },
             error=tb,
         )
+        _flush_task_block(header, event_lines, f"task {task_id}: ERROR — {e}", error=True)
         return "ERROR"
 
 
 # ────────────────────────── main ──────────────────────────
+
+
+def _print_summary(counts: dict[str, int]) -> None:
+    print("\n=== summary ===")
+    print(
+        f"nl_assertions  PASS: {counts.get('PASS', 0)}  "
+        f"FAIL: {counts.get('FAIL', 0)}  "
+        f"ERROR: {counts.get('ERROR', 0)}"
+    )
 
 
 def _init_langfuse_from_env(model_id_for_config: str) -> None:
@@ -315,6 +390,7 @@ def _main_rejudge(args: argparse.Namespace) -> int:
     print(f"new results:    {run_dir}")
     print(f"tasks:          {len(tasks)} (filtered by intersection with source transcripts)")
     print(f"judge:          {judge_spec}")
+    print(f"concurrency:    {args.concurrency}")
 
     counts = {"PASS": 0, "FAIL": 0, "ERROR": 0}
     with ResultsWriter(
@@ -328,22 +404,27 @@ def _main_rejudge(args: argparse.Namespace) -> int:
         api_keys_used=api_keys,
         extra_metadata={"mode": "rejudge", "source_run_id": source_run_id},
     ) as writer:
-        for task in tasks:
-            task_id = str(task.get("id"))
-            score = _rejudge_one_task(
-                task=task,
-                transcript_entry=source_transcripts[task_id],
-                judge_spec=judge_spec,
-                writer=writer,
-                run_id=run_id,
-                source_run_id=source_run_id,
-                source_agent_variant=source_agent,
-                source_model=source_model,
-                source_sim_model=source_sim_model,
-            )
-            counts[score] = counts.get(score, 0) + 1
+        with ThreadPoolExecutor(max_workers=max(1, args.concurrency)) as ex:
+            futures = [
+                ex.submit(
+                    _rejudge_one_task,
+                    task=task,
+                    transcript_entry=source_transcripts[str(task.get("id"))],
+                    judge_spec=judge_spec,
+                    writer=writer,
+                    run_id=run_id,
+                    source_run_id=source_run_id,
+                    source_agent_variant=source_agent,
+                    source_model=source_model,
+                    source_sim_model=source_sim_model,
+                )
+                for task in tasks
+            ]
+            for fut in as_completed(futures):
+                score = fut.result()
+                counts[score] = counts.get(score, 0) + 1
 
-    print(f"\n=== summary ===\nPASS:  {counts['PASS']}\nFAIL:  {counts['FAIL']}\nERROR: {counts['ERROR']}")
+    _print_summary(counts)
     print(f"results written to: {run_dir}")
     return 0 if counts["FAIL"] == 0 and counts["ERROR"] == 0 else 1
 
@@ -378,12 +459,13 @@ def main(argv: list[str] | None = None) -> int:
         | {"LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_BASE_URL"}
     )
 
-    print(f"run id:   {run_id}")
-    print(f"results:  {run_dir}")
-    print(f"tasks:    {len(tasks)} from {tasks_path}")
-    print(f"agent:    {args.agent} @ {args.model}")
-    print(f"sim:      {sim_spec}")
-    print(f"judge:    {judge_spec}")
+    print(f"run id:      {run_id}")
+    print(f"results:     {run_dir}")
+    print(f"tasks:       {len(tasks)} from {tasks_path}")
+    print(f"agent:       {args.agent} @ {args.model}")
+    print(f"sim:         {sim_spec}")
+    print(f"judge:       {judge_spec}")
+    print(f"concurrency: {args.concurrency}")
 
     counts = {"PASS": 0, "FAIL": 0, "ERROR": 0}
     with ResultsWriter(
@@ -396,18 +478,24 @@ def main(argv: list[str] | None = None) -> int:
         max_turns=args.max_turns,
         api_keys_used=api_keys,
     ) as writer:
-        for task in tasks:
-            score = _run_one_task(
-                task,
-                args=args,
-                sim_spec=sim_spec,
-                judge_spec=judge_spec,
-                writer=writer,
-                run_id=run_id,
-            )
-            counts[score] = counts.get(score, 0) + 1
+        with ThreadPoolExecutor(max_workers=max(1, args.concurrency)) as ex:
+            futures = [
+                ex.submit(
+                    _run_one_task,
+                    task,
+                    args=args,
+                    sim_spec=sim_spec,
+                    judge_spec=judge_spec,
+                    writer=writer,
+                    run_id=run_id,
+                )
+                for task in tasks
+            ]
+            for fut in as_completed(futures):
+                score = fut.result()
+                counts[score] = counts.get(score, 0) + 1
 
-    print(f"\n=== summary ===\nPASS:  {counts['PASS']}\nFAIL:  {counts['FAIL']}\nERROR: {counts['ERROR']}")
+    _print_summary(counts)
     print(f"results written to: {run_dir}")
     return 0 if counts["FAIL"] == 0 and counts["ERROR"] == 0 else 1
 

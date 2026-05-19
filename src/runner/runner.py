@@ -1,6 +1,7 @@
 """Drive one sim-user ↔ agent conversation end-to-end for a single task."""
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Literal
 
@@ -36,6 +37,7 @@ class RunResult:
     terminated_by: TerminatedBy
     error: str | None = None
     store_snapshot: dict[str, Any] | None = None
+    agent_response_times_ms: list[float] = field(default_factory=list)
 
 
 def _serialize_message(m: BaseMessage) -> dict[str, Any]:
@@ -118,6 +120,7 @@ def run_task(
     simulator = make_simulator(task.get("user_scenario") or {}, sim_llm)
 
     history: list[BaseMessage] = []
+    agent_response_times_ms: list[float] = []
     turn = 0
     terminated_by: TerminatedBy
     while True:
@@ -137,7 +140,9 @@ def run_task(
             break
 
         prev_len = len(history)
+        t0 = time.perf_counter()
         result = agent.invoke({"messages": history}, config=invoke_config or {})
+        agent_response_times_ms.append((time.perf_counter() - t0) * 1000.0)
         history = list(result["messages"])
         new_msgs = history[prev_len:]
 
@@ -158,4 +163,5 @@ def run_task(
         turn_count=turn,
         terminated_by=terminated_by,
         store_snapshot=store.snapshot(),
+        agent_response_times_ms=agent_response_times_ms,
     )

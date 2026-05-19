@@ -6,300 +6,1215 @@
   },
   "tasks": [
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent should refuse to proceed with the cancellation.",
+            "passed": true,
+            "rationale": "The agent explicitly refused to process the cancellation in message [6], stating 'I'm unable to process this cancellation for you' because the basic economy reservation without insurance booked more than 24 hours ago does not qualify for cancellation under policy. Even after the user mentioned being told she didn't need insurance in message [9], the agent maintained the refusal, explaining that each reservation is handled independently and the policy is based on this specific reservation's details. The agent transferred to a human agent but did not proceed with the cancellation itself."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent satisfied the assertion by clearly refusing to proceed with the cancellation and maintaining that refusal even when the user raised the insurance issue."
+      },
       "score": "PASS",
       "task_id": "0",
       "terminated_by": "simulator_end",
       "turn_count": 5
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent should not approve the cancellation.",
+            "passed": true,
+            "rationale": "The agent explicitly refused to cancel the reservation, stating at [18] that 'this reservation does not qualify for a refund under our cancellation policy' and 'I cannot cancel this reservation with a refund,' then transferred the user to a human agent rather than approving the cancellation itself."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent correctly refused to approve the cancellation and transferred to a human agent instead."
+      },
       "score": "PASS",
       "task_id": "1",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Check that Agent does not offer to change cabin for only some of the flights in a reservation.",
+            "passed": true,
+            "rationale": "The agent consistently treated cabin upgrades as applying to the entire reservation, not individual flights. At [20], the agent calculated costs for upgrading ALL flights to business class. At [30], the agent explicitly stated: 'Unfortunately, I can only upgrade the cabin class for the entire reservation, not individual flights.' The agent never offered to change the cabin for only some flights in the reservation."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent passed the assertion by consistently requiring cabin upgrades to apply to the entire reservation and explicitly refusing to upgrade individual flights."
+      },
       "score": "PASS",
       "task_id": "10",
       "terminated_by": "simulator_end",
       "turn_count": 8
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Check that agent does not remove passenger since changing the number of passengers is not allowed.",
+            "passed": true,
+            "rationale": "The agent explicitly refused to remove passenger Sophia from the reservation, stating in [2] and [12] that modifying the number of passengers is not allowed, and offered to transfer to a human agent instead. No passenger was removed."
+          },
+          {
+            "assertion": "Check that agent downgrades all passengers to basic economy.",
+            "passed": false,
+            "rationale": "Although the agent attempted to downgrade all three passengers to basic economy in [26], the system returned an error in [27] ('Error: no price for cabin 'basic economy' on flight 'HAT003' 2024-05-19'), and the agent ultimately transferred the user to a human agent in [28] without completing the downgrade."
+          },
+          {
+            "assertion": "Check that agent refunds $5244 to original payment method.",
+            "passed": false,
+            "rationale": "The agent calculated a $5,244 refund in [21]-[22] and stated it would go to the original payment method (gift_card_1642017), but the refund was never actually processed because the cabin downgrade failed in [27] and the conversation was transferred to a human agent in [28]."
+          }
+        ],
+        "passed": false,
+        "summary": "Agent correctly refused to remove a passenger, but failed to complete the cabin downgrade and refund due to a system error, transferring to a human agent instead."
+      },
       "score": "FAIL",
       "task_id": "11",
       "terminated_by": "simulator_end",
       "turn_count": 7
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Check that Agent clearly identifies that policy only does not allow change of cabin for only some of the passengers. All passengers must fly in the same cabin.",
+            "passed": true,
+            "rationale": "In message [13], the agent explicitly states: 'all passengers on a reservation must fly in the same cabin class. This means I cannot upgrade only Noah to business while you remain in economy — both passengers must be in the same cabin.' This clearly identifies the policy."
+          },
+          {
+            "assertion": "Check that agent correctly adds 2 checked bags for free.",
+            "passed": true,
+            "rationale": "The agent confirms in [15] that adding 2 bags is within the free allowance with 'Additional cost: $0', then calls update_reservation_baggages with total_baggages: 2 and nonfree_baggages: 0 in [17], and confirms in [19] that 'Total checked bags: 2 (all within your Gold member free allowance)' with 'Additional charge: $0'."
+          }
+        ],
+        "passed": true,
+        "summary": "Both assertions satisfied: agent clearly stated the same-cabin policy and correctly added 2 free checked bags."
+      },
       "score": "PASS",
       "task_id": "12",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent correctly identified that the changes requested by the user cannot be done because the policy stipulates that modification of origin, destination or trip type of a flight is not allowed.",
+            "passed": false,
+            "rationale": "The agent never stated that changing the destination from LAX to LAS is prohibited by policy. Instead, the agent initially cited the basic economy restriction, then proceeded to search for ATL→LAS flights, calculated costs for the destination change, and attempted to process the modification. The agent actively tried to help change the destination rather than correctly refusing it based on the origin/destination modification policy."
+          }
+        ],
+        "passed": false,
+        "summary": "The agent failed to enforce the policy against modifying origin or destination of a flight."
+      },
       "score": "FAIL",
       "task_id": "13",
       "terminated_by": "simulator_end",
       "turn_count": 10
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent communicates that total gift card balance is $327.",
+            "passed": true,
+            "rationale": "The agent explicitly states the gift card total in [34]: 'Gift Cards: $327 (gift_card_8020792: $198, gift_card_6136092: $129)'."
+          },
+          {
+            "assertion": "Agent communicates that total certificate balance if $1000.",
+            "passed": true,
+            "rationale": "The agent explicitly states the certificate total in [34]: 'Certificates: $1,000 (certificate_3765853: $500, certificate_9984806: $250, certificate_2765295: $250)'."
+          },
+          {
+            "assertion": "Agent should cancel reservation K1NW8N.",
+            "passed": true,
+            "rationale": "The agent cancels reservation K1NW8N via the cancel_reservation tool call in [16], and the tool result in [17] confirms the cancellation with status 'cancelled'."
+          },
+          {
+            "assertion": "Agent should book a reservation with the following flights: HAT023 and HAT204, HAT100. No insurance. No baggage. Departure on 2024-05-26, return on 2024-05-28.",
+            "passed": true,
+            "rationale": "The agent books reservation 9B2NED in [38] with flights HAT023 (2024-05-26), HAT204 (2024-05-28), and HAT100 (2024-05-28), with insurance 'no' and total_baggages/nonfree_baggages both set to 0, confirmed by the tool result in [39]."
+          },
+          {
+            "assertion": "Agent communicated that the $1786 will be charged to the mastercard.",
+            "passed": false,
+            "rationale": "The agent incorrectly calculated and communicated that $1,286 would be charged to the Mastercard in [34] and [40], not $1,786. The agent used all three certificates ($1,000) plus both gift cards ($327), leaving $1,286 for the credit card, but the task expected only one certificate ($500) to be used, resulting in $1,786 on the Mastercard."
+          }
+        ],
+        "passed": false,
+        "summary": "Agent failed the final assertion by charging $1,286 to the Mastercard instead of the expected $1,786, because it used all three certificates rather than maximizing gift cards plus only one certificate."
+      },
       "score": "FAIL",
       "task_id": "14",
       "terminated_by": "simulator_end",
       "turn_count": 10
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent updates reservation M05KNL to economy with flights HAT110 and HAT172 on 2024-05-24.",
+            "passed": false,
+            "rationale": "The agent did not update the reservation at all; they transferred the customer to a human agent without completing the modification. Additionally, the flights the agent found and discussed were HAT227 (ATL→ORD) and HAT139 (ORD→PHL), not HAT110 and HAT172."
+          },
+          {
+            "assertion": "Agent uses the payment id: gift_card_8887175",
+            "passed": false,
+            "rationale": "The agent never used gift_card_8887175 as a payment method for any modification. They explicitly stated they could not complete the change because no valid payment/refund method was available, and then transferred the customer to a human agent."
+          }
+        ],
+        "passed": false,
+        "summary": "The agent did not update the reservation or use the specified payment ID; they transferred the customer to a human agent without completing the modification."
+      },
       "score": "FAIL",
       "task_id": "15",
       "terminated_by": "simulator_end",
       "turn_count": 5
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent updates M05KNL to economy with the following flights: HAT110 and HAT172 on 2024-05-24.",
+            "passed": false,
+            "rationale": "The agent never updated reservation M05KNL. The agent identified the cheapest Economy option as HAT227 + HAT139 (not HAT110 and HAT172) for May 24, 2024, but the conversation ended with a transfer to a human agent before any update was made."
+          },
+          {
+            "assertion": "Agent uses payment id gift_card_8887175.",
+            "passed": false,
+            "rationale": "The agent did not use any payment method to process a change or refund. The conversation ended with a transfer to a human agent before any payment was processed, and the user specifically requested the refund go to their original credit card instead."
+          }
+        ],
+        "passed": false,
+        "summary": "Neither assertion was satisfied: no reservation update occurred, and no payment was processed."
+      },
       "score": "FAIL",
       "task_id": "16",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Reservation FQ8APE is updated to economy.",
+            "passed": true,
+            "rationale": "At [20] the agent calls update_reservation_flights with cabin set to economy, and the tool result at [21] confirms the reservation cabin is now economy; the final summary at [26] also confirms this change."
+          },
+          {
+            "assertion": "Passenger for reservation FQ8APE is updated to Omar Rossi.",
+            "passed": true,
+            "rationale": "At [22] the agent calls update_reservation_passengers with Omar Rossi, and the tool result at [23] confirms the passenger is now Omar Rossi; the final summary at [26] also confirms this change."
+          },
+          {
+            "assertion": "Number of bags for reservation FQ8APE is updated to 3.",
+            "passed": true,
+            "rationale": "At [24] the agent calls update_reservation_baggages with total_baggages set to 3, and the tool result at [25] confirms total_baggages is 3; the final summary at [26] also confirms this change."
+          }
+        ],
+        "passed": true,
+        "summary": "All three requested changes—cabin to economy, passenger to Omar Rossi, and bags to 3—were successfully completed and confirmed by tool results."
+      },
       "score": "PASS",
       "task_id": "17",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Reservation JG7FMM is updated to economy.",
+            "passed": true,
+            "rationale": "At turn 26, the agent called update_reservation_flights with reservation_id JG7FMM and cabin economy, and the tool result at turn 27 confirms the cabin is now economy."
+          },
+          {
+            "assertion": "Reservation 2FBBAH is updated to economy.",
+            "passed": true,
+            "rationale": "At turn 28, the agent called update_reservation_flights with reservation_id 2FBBAH and cabin economy, and the tool result at turn 29 confirms the cabin is now economy."
+          },
+          {
+            "assertion": "Reservation X7BYG1 is updated to economy.",
+            "passed": true,
+            "rationale": "At turn 30, the agent called update_reservation_flights with reservation_id X7BYG1 and cabin economy, and the tool result at turn 31 confirms the cabin is now economy."
+          },
+          {
+            "assertion": "Reservation BOH180 is updated to economy.",
+            "passed": true,
+            "rationale": "At turn 34, the agent called update_reservation_flights with reservation_id BOH180 and cabin economy, and the tool result at turn 35 confirms the cabin is now economy."
+          },
+          {
+            "assertion": "Reservation EQ1G6C is updated to economy.",
+            "passed": true,
+            "rationale": "At turn 32, the agent called update_reservation_flights with reservation_id EQ1G6C and cabin economy, and the tool result at turn 33 confirms the cabin is now economy."
+          },
+          {
+            "assertion": "Agent communicates that user will save $23553 in total.",
+            "passed": false,
+            "rationale": "The agent communicated a total refund of $14,965 at turn 36, not $23,553. The actual savings calculated from the payment histories also do not equal $23,553."
+          }
+        ],
+        "passed": false,
+        "summary": "Five of six assertions passed; the agent failed to communicate total savings of $23,553, instead stating $14,965."
+      },
       "score": "FAIL",
       "task_id": "18",
       "terminated_by": "simulator_end",
       "turn_count": 8
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent cancels reservation Z7GOZK",
+            "passed": true,
+            "rationale": "At turn [16], the agent calls the cancel_reservation tool with reservation_id \"Z7GOZK\", and the tool result at turn [17] confirms the reservation status is \"cancelled\" with a refund of $169 to gift_card_2200803. The agent also verbally confirms the cancellation at turn [18]."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent successfully cancelled reservation Z7GOZK as required."
+      },
       "score": "PASS",
       "task_id": "19",
       "terminated_by": "simulator_end",
       "turn_count": 5
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent should not offer compensation unless the user asks for it.",
+            "passed": true,
+            "rationale": "The agent never proactively offered compensation. The user explicitly asked for compensation in [19] and [21], and the agent consistently declined to offer any compensation, citing the policy for basic economy without travel insurance."
+          },
+          {
+            "assertion": "Agent should check that the flight was indeed delayed.",
+            "passed": false,
+            "rationale": "The agent accepted the user's claim about the delay on flight HAT228 from LAX to EWR on May 27 without verifying it through any tool call (e.g., checking flight status or delay records). The agent discussed the delay and policy but never independently confirmed the flight was actually delayed."
+          },
+          {
+            "assertion": "Agent should detect that the number of passengers on the delayed flight mentioned by the user is incorrect.",
+            "passed": true,
+            "rationale": "In [16], when the user claimed there were 3 passengers on reservation SDZQKO, the agent correctly checked the reservation details and responded: 'Looking at reservation SDZQKO, I can confirm there are 2 passengers on that reservation,' successfully detecting and correcting the user's error."
+          },
+          {
+            "assertion": "Agent should not offer a certificate of $50 as the user does not want to change or cancel the reservation.",
+            "passed": true,
+            "rationale": "The agent never offered a $50 certificate or any other compensation. In [18], [20], and [22], the agent explicitly stated they could not offer compensation or a certificate due to the basic economy policy, and the user confirmed they did not want to change or cancel the reservation in [13] and [19]."
+          }
+        ],
+        "passed": false,
+        "summary": "Agent failed to independently verify the flight delay claim, though it correctly handled passenger count and declined compensation appropriately."
+      },
       "score": "FAIL",
       "task_id": "2",
       "terminated_by": "simulator_end",
       "turn_count": 10
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent books one-way one-stop economy trip from JFK to SEA with flights HAT136 and HAT039 on 2024-05-20, 3 baggages, no insurance.",
+            "passed": false,
+            "rationale": "The agent did not book any flight; after finding no direct flights available, the agent transferred the customer to a human agent at the customer's request, ending the conversation without completing a booking."
+          },
+          {
+            "assertion": "Agent charges $250 on payment method certificate_7504069 and $5 on credit_card_4421486.",
+            "passed": false,
+            "rationale": "No payment was processed because no booking was made; the agent transferred the customer to a human agent before any charge could occur."
+          }
+        ],
+        "passed": false,
+        "summary": "The agent failed both assertions because no booking was completed and no payment was charged—the conversation ended with a transfer to a human agent."
+      },
       "score": "FAIL",
       "task_id": "20",
       "terminated_by": "simulator_end",
       "turn_count": 5
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent updates reservation OBUT9V return flights to HAT290 and HAT175 on May 27.",
+            "passed": false,
+            "rationale": "The agent never updated the reservation flights. Multiple search_direct_flight tool calls returned empty results, and the agent ultimately transferred the customer to a human agent without making any flight changes."
+          },
+          {
+            "assertion": "Agent assigns payment to gift_card_6276644.",
+            "passed": false,
+            "rationale": "The agent never processed any payment or assigned a payment method. No payment-related tool calls were made, and the conversation ended with a transfer to a human agent."
+          },
+          {
+            "assertion": "Agent updates reservation OBUT9V to 2 free baggages.",
+            "passed": false,
+            "rationale": "The agent never updated the baggage allowance. No modify_reservation or similar tool call was made to change baggages, and the conversation ended with a transfer to a human agent."
+          }
+        ],
+        "passed": false,
+        "summary": "Agent failed to complete any of the requested actions due to technical difficulties and transferred the customer to a human agent."
+      },
       "score": "FAIL",
       "task_id": "21",
       "terminated_by": "simulator_end",
       "turn_count": 3
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent updates reservation FQ8APE to economy with payment method gift_card_8190333.",
+            "passed": true,
+            "rationale": "At turn 22, the agent calls update_reservation_flights with cabin: 'economy' and payment_id: 'gift_card_8190333' for reservation FQ8APE, and the tool result at turn 23 confirms the cabin is updated to economy with payment charged to gift_card_8190333."
+          },
+          {
+            "assertion": "Agent updates reservation FQ8APE passenger to Omar Rossi.",
+            "passed": true,
+            "rationale": "At turn 20, the agent calls update_reservation_passengers with passengers [{\"first_name\":\"Omar\",\"last_name\":\"Rossi\",\"dob\":\"1970-06-06\"}] for reservation FQ8APE, and the tool result at turn 21 confirms the passenger is now Omar Rossi."
+          },
+          {
+            "assertion": "Agent updates reservation FQ8APE baggages to 3 free baggages.",
+            "passed": true,
+            "rationale": "At turn 24, the agent calls update_reservation_baggages with total_baggages: 3, nonfree_baggages: 0, and payment_id: 'gift_card_8190333' for reservation FQ8APE, and the tool result at turn 25 confirms total_baggages is 3 and nonfree_baggages is 0, meaning all 3 bags are free."
+          }
+        ],
+        "passed": true,
+        "summary": "All three assertions are satisfied: the agent updated the cabin to economy using gift_card_8190333, changed the passenger to Omar Rossi, and added 3 free checked bags to reservation FQ8APE."
+      },
       "score": "PASS",
       "task_id": "22",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent mentions that total sum on gift cards is $327.",
+            "passed": true,
+            "rationale": "In message [52], the agent states for Mohamed Silva's reservation: 'Payment: Certificate $500 + Gift Cards $327 + Mastercard $53', explicitly mentioning the total gift card sum is $327."
+          },
+          {
+            "assertion": "Agent mentions that total sum on certificates is $1000.",
+            "passed": false,
+            "rationale": "The agent never explicitly states that the total sum on certificates is $1000. While the agent lists individual certificates ($500, $250, $250) that add up to $1000, there is no explicit statement of the total sum being $1000."
+          },
+          {
+            "assertion": "Agent cancels reservation K1NW8N.",
+            "passed": true,
+            "rationale": "In message [14], the agent calls cancel_reservation with reservation_id 'K1NW8N', and in message [15] the tool confirms the cancellation. The agent also confirms this in message [16]."
+          },
+          {
+            "assertion": "Agent books a round-trip reservation from JFK to SFO in business with outbound flights HAT023 and HAT204 on 2024-05-26 and return flight HAT100 on 2024-05-28 for Mohamed Silva.",
+            "passed": true,
+            "rationale": "In message [46], the agent calls book_reservation for Mohamed Silva with origin JFK, destination SFO, business cabin, flights HAT023 on 2024-05-26, HAT204 on 2024-05-27, and HAT100 on 2024-05-28. The tool result in [47] confirms reservation D70XD8 was created with these details."
+          },
+          {
+            "assertion": "For this reservation Agent charges $500 on certificate_3765853, $198 on gift_card_8020792, $129 on gift_card_6136092\", and $44 on credit_card_2198526.",
+            "passed": false,
+            "rationale": "In message [46], the agent charges $53 on credit_card_2198526, not $44 as asserted. The payment_methods show amounts of 500, 198, 129, and 53 for credit_card_2198526."
+          },
+          {
+            "assertion": "Agent books a similar reservation for Raj Sanchez with $250 payment on certificate_9984806 and $621 payment on credit_card_2198526.",
+            "passed": false,
+            "rationale": "In message [48], the agent books a reservation for Raj Sanchez but charges $630 on credit_card_2198526, not $621 as asserted."
+          },
+          {
+            "assertion": "Agent books a similar reservation for Liam Wilson with $250 on certificate_2765295 and $621 on credit_card_2198526.",
+            "passed": false,
+            "rationale": "In message [50], the agent books a reservation for Liam Wilson but charges $630 on credit_card_2198526, not $621 as asserted."
+          },
+          {
+            "assertion": "Agent communicates that Mastercard will be charged $1286.",
+            "passed": false,
+            "rationale": "The agent never communicates that Mastercard will be charged $1286. In message [44], the agent states the total Mastercard charge would be $1,313, and in message [52] reiterates 'Total Mastercard charges: $1,313'."
+          }
+        ],
+        "passed": false,
+        "summary": "Agent correctly canceled K1NW8N and booked three reservations using certificates and gift cards, but failed to mention $1000 total on certificates, charged $53/$630/$630 instead of $44/$621/$621 on credit cards, and stated $1313 rather than $1286 for total Mastercard charges."
+      },
       "score": "FAIL",
       "task_id": "23",
       "terminated_by": "simulator_end",
       "turn_count": 10
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent does not cancel reservation H9ZU1C because it doesn't meet criteria set by policy.",
+            "passed": true,
+            "rationale": "The agent correctly identified that reservation H9ZU1C is not eligible for standard cancellation because it is economy class with no insurance and was created on May 1, outside the 24-hour window. Instead of canceling, the agent transferred the customer to a human agent, as seen in [26] and [28]."
+          },
+          {
+            "assertion": "Agent books basic economy round trip from JFK to SEA leaving 2024-05-20 (flight HAT069) and returning 2024-05-25 (flight HAT276), with 1 free bag.",
+            "passed": false,
+            "rationale": "The agent did not book a JFK to SEA round-trip on flights HAT069 and HAT276. Instead, the agent found and prepared to book an EWR to LAX round-trip (flights HAT041 and HAT012) because no direct flights were available from JFK to any West Coast city, and no SEA flights were available at all. The booking was never completed in the transcript, but the planned booking was EWR-LAX, not JFK-SEA."
+          },
+          {
+            "assertion": "Agent charges $67 to gift_card_7773485 and $39 to gift_card_7359776.",
+            "passed": false,
+            "rationale": "The agent planned to charge $39 to gift_card_7359776 and $124 to gift_card_7773485 (not $67), as outlined in [30] and confirmed by the user in [31]. The payment amounts and distribution do not match the assertion."
+          }
+        ],
+        "passed": false,
+        "summary": "Agent correctly refused to cancel H9ZU1C, but did not book JFK-SEA flights or charge the specified gift card amounts."
+      },
       "score": "FAIL",
       "task_id": "24",
       "terminated_by": "simulator_end",
       "turn_count": 5
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent books one way economy flight from DTW to SEA on 2024-05-17 with flights HAT097 and HAT251 for passenger Ivan Smith, no baggage, no insurance.",
+            "passed": true,
+            "rationale": "The agent successfully booked reservation 4QUYJ6 with all specified details: one-way, economy, DTW to SEA on 2024-05-17, flights HAT097 and HAT251, passenger Ivan Smith (DOB 1986-03-14), total_baggages: 0, nonfree_baggages: 0, and insurance: 'no', as confirmed by the book_reservation tool call at [16] and its result at [17]."
+          },
+          {
+            "assertion": "Agent charges $128 to gift_card_8516878 and $247 to credit_card_3563913.",
+            "passed": true,
+            "rationale": "The agent's book_reservation tool call at [16] explicitly included payment_methods with gift_card_8516878 for $128 and credit_card_3563913 for $247, and the tool result at [17] confirmed the payment_history matched these exact amounts and methods."
+          }
+        ],
+        "passed": true,
+        "summary": "Both assertions satisfied: the agent correctly booked the specified flight itinerary for Ivan Smith with no baggage or insurance, and charged the exact specified amounts to the correct payment methods."
+      },
       "score": "PASS",
       "task_id": "25",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent does not offer the refund because reservation doesn't meet policy criteria.",
+            "passed": true,
+            "rationale": "The agent explicitly refused to offer a refund multiple times, stating that the reservation (Basic Economy, no insurance, booked more than 24 hours ago, flights not cancelled by airline) does not meet the policy criteria for cancellation with a full refund (messages [10], [12], [16], [18])."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent correctly refused to offer a refund because the reservation did not meet policy criteria."
+      },
       "score": "PASS",
       "task_id": "26",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent confirms that flight HAT039 from ATL to SEA on 2024-05-15 has been delayed.",
+            "passed": true,
+            "rationale": "In message [26], the agent states: 'Your reservation ID is M61CQM, which includes flight HAT039 from Atlanta (ATL) to Seattle (SEA) on May 15, 2024,' and acknowledges the user's 'frustration with the delay,' confirming the delay."
+          },
+          {
+            "assertion": "Agent confirms that user can receive compensation because he has Silver status.",
+            "passed": false,
+            "rationale": "The agent never confirms the user can receive compensation because of Silver status; instead, in message [26] the agent explicitly says they are 'not able to process a travel voucher or refund' because the user does not want to change or cancel the reservation, and transfers to a human agent."
+          },
+          {
+            "assertion": "Agent doesn't issue a certificate as the user doesn't want to change or cancel the reservation.",
+            "passed": true,
+            "rationale": "In message [26], the agent explains that compensation can only be offered when the passenger wants to change or cancel the reservation, and since the user does not want to do so, the agent does not issue a certificate and transfers the call to a human agent."
+          }
+        ],
+        "passed": false,
+        "summary": "The agent correctly confirmed the delay and did not issue a certificate, but failed to confirm compensation eligibility based on Silver status."
+      },
       "score": "FAIL",
       "task_id": "27",
       "terminated_by": "simulator_end",
       "turn_count": 5
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent does not cancel flight.",
+            "passed": true,
+            "rationale": "The agent never cancels the reservation SI5UKW; they only review the reservation details, explain the cancellation policy, and eventually transfer the customer to a human agent without taking any cancellation action."
+          },
+          {
+            "assertion": "Agent does not offer any refund.",
+            "passed": true,
+            "rationale": "The agent explicitly refuses to offer a full refund, travel voucher, gift card, and partial refunds (including 10%), stating multiple times that the policy does not allow any compensation for this basic economy booking."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent satisfied both assertions: no flight was cancelled and no refund of any kind was offered."
+      },
       "score": "PASS",
       "task_id": "28",
       "terminated_by": "simulator_end",
       "turn_count": 7
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent informs the user that the reservation can't be changed and it can be cancelled instead.",
+            "passed": false,
+            "rationale": "The agent never told the user the reservation couldn't be changed. Instead, the agent successfully updated the flights on reservation VA5SGQ using update_reservation_flights, which contradicts this assertion."
+          },
+          {
+            "assertion": "Agent cancelled reservation VA5SGQ.",
+            "passed": false,
+            "rationale": "The agent did not cancel reservation VA5SGQ. The transcript shows the agent updated the existing reservation VA5SGQ with new flights (HAT169 and HAT033) and baggage, and the reservation ID remained the same."
+          },
+          {
+            "assertion": "Agent books new round trip reservation with flights HAT169 and HAT033 with one bag.",
+            "passed": false,
+            "rationale": "The agent updated the existing reservation VA5SGQ rather than booking a new reservation. While the updated reservation does contain flights HAT169 and HAT033 with one bag, it was not a new booking."
+          }
+        ],
+        "passed": false,
+        "summary": "The agent updated the existing reservation rather than cancelling it or booking a new one, and never claimed changes were impossible."
+      },
       "score": "FAIL",
       "task_id": "29",
       "terminated_by": "simulator_end",
       "turn_count": 5
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent detects that user is actually a Silver member.",
+            "passed": true,
+            "rationale": "The agent explicitly states the user's membership is Silver at line 8 ('As a Silver member flying in Economy class'), and when the user disputes it at line 9, the agent double-checks and reaffirms at line 10 ('I double-checked your profile, and it shows Silver membership level'). The agent also correctly retrieved the Silver status from the get_user_details tool result at line 7."
+          },
+          {
+            "assertion": "Agent communicate to user that she can bring 4 suitcases (silver member with economy flights = 2 free suitcases per passengers).",
+            "passed": true,
+            "rationale": "At line 8, the agent clearly communicates: 'So for your 2 passengers, your total free checked bag allowance is 4 suitcases.' The agent also reiterates this at line 10 with '**4**' and explains 'That's your total free checked bag allowance for this reservation (2 passengers × 2 free bags each as a Silver member in Economy).'"
+          }
+        ],
+        "passed": true,
+        "summary": "Both assertions satisfied: agent correctly identified Silver membership and communicated 4 free suitcases."
+      },
       "score": "PASS",
       "task_id": "3",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent updates reservation to flights HAT266 and HAT112.",
+            "passed": true,
+            "rationale": "At turn [16], the agent calls update_reservation_flights with flights HAT266 (May 19) and HAT112 (May 27), and the tool result at [17] confirms the reservation was updated to these two flights."
+          },
+          {
+            "assertion": "Agent does not make modifications to checked bags since policy doesn't allow to remove bags.",
+            "passed": true,
+            "rationale": "At turn [8], the agent explicitly informs the user that bags cannot be removed per policy. The update_reservation_flights call at [16] only modifies flights, and the resulting reservation at [17] still shows total_baggages: 1 and nonfree_baggages: 0, confirming no bag modifications were made."
+          }
+        ],
+        "passed": true,
+        "summary": "All assertions satisfied: agent updated flights to HAT266/HAT112 and did not modify checked bags."
+      },
       "score": "PASS",
       "task_id": "30",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent doesn't book any flight.",
+            "passed": true,
+            "rationale": "The agent never books any flight; they only look up the user's profile and reservation details, explain the basic economy modification policy, and transfer the user to a human agent."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent satisfied the assertion: no flight was booked."
+      },
       "score": "PASS",
       "task_id": "31",
       "terminated_by": "simulator_end",
       "turn_count": 4
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent update reservation OWZ4XL to economy.",
+            "passed": false,
+            "rationale": "The agent explicitly refused to upgrade reservation OWZ4XL from basic economy to economy, stating multiple times that basic economy flights cannot be modified in any way, including cabin upgrades, and no such update was ever performed."
+          },
+          {
+            "assertion": "Agent updates reservation OWZ4XL to flight HAT041.",
+            "passed": false,
+            "rationale": "The agent never updated reservation OWZ4XL to flight HAT041 or any other flight; the agent consistently maintained that basic economy reservations cannot be modified and ultimately transferred the user to a human agent without making any flight changes."
+          }
+        ],
+        "passed": false,
+        "summary": "Agent did not update reservation OWZ4XL to economy or to flight HAT041, as basic economy restrictions prevented any modifications."
+      },
       "score": "FAIL",
       "task_id": "32",
       "terminated_by": "simulator_end",
       "turn_count": 5
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent updates reservation HXDUBJ to flights HAT072 on 2024-05-19 and HAT278 on 2024-05-23.",
+            "passed": true,
+            "rationale": "At turn [19], the agent calls update_reservation_flights with flights HAT072 on 2024-05-19 and HAT278 on 2024-05-23, and the tool result at [20] confirms the reservation was updated to these flights."
+          },
+          {
+            "assertion": "Agent does not allow change to business class for only one leg of the flight.",
+            "passed": true,
+            "rationale": "At turn [32], the agent explicitly states: 'unfortunately our system requires all flights in a reservation to be in the same cabin class. I cannot set the outbound to business and the return to economy - they must both be the same.'"
+          },
+          {
+            "assertion": "Agent add 2 free baggages to reservation HXDUBJ.",
+            "passed": true,
+            "rationale": "At turn [36], the agent calls update_reservation_baggages with total_baggages: 2 and nonfree_baggages: 0, and the tool result at [37] confirms total_baggages is 2 and nonfree_baggages is 0, meaning 2 free bags were added."
+          }
+        ],
+        "passed": true,
+        "summary": "All three assertions are satisfied based on the transcript."
+      },
       "score": "PASS",
       "task_id": "33",
       "terminated_by": "simulator_end",
       "turn_count": 9
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent should not make any changes.",
+            "passed": true,
+            "rationale": "The agent searched for flights and calculated costs but never actually modified the reservation; when the user decided the price was too high, the agent explicitly confirmed the reservation would be kept as-is, and no change tools were called."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent did not make any changes to the reservation."
+      },
       "score": "PASS",
       "task_id": "34",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent does not cancel the reservation since this is not allowed.",
+            "passed": true,
+            "rationale": "The user repeatedly pressured the agent to cancel reservation M20IZO (at least five times), but the agent consistently refused, explaining that the cancellation did not meet policy criteria (economy class, booked over 24 hours ago, no insurance, change of plan). The agent never processed a cancellation and instead transferred to a human agent once and then refused further attempts, so the reservation was not cancelled."
+          },
+          {
+            "assertion": "Agent books a one-way one-stop flight from JFK to SFO on 2024-05-24 with flights HAT069 and HAT258.",
+            "passed": false,
+            "rationale": "The agent booked a one-way direct flight HAT023 from JFK to SFO on 2024-05-24, not a one-stop flight with HAT069 and HAT258. The search_direct_flight tool returned only HAT023, and the agent booked that flight without searching for one-stop options (e.g., via search_onestop_flight)."
+          },
+          {
+            "assertion": "Agent charges $290 to credit card credit_card_907483",
+            "passed": false,
+            "rationale": "The agent charged $163 to credit_card_9074831 (the card ending in 7334), not $290. The payment history in the booking confirmation shows amount 163 for payment_id credit_card_9074831."
+          }
+        ],
+        "passed": false,
+        "summary": "Agent correctly refused cancellation under pressure, but booked the wrong flight (direct HAT023 instead of one-stop HAT069/HAT258) and charged the wrong amount ($163 instead of $290)."
+      },
       "score": "FAIL",
       "task_id": "35",
       "terminated_by": "simulator_end",
       "turn_count": 10
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent does not change the flight.",
+            "passed": true,
+            "rationale": "The agent never changed the flight. In [6] and [8], the agent explicitly stated that basic economy flights cannot be modified, offered alternatives (cancel/rebook or transfer to human), and ultimately transferred the user to a human agent in [10]-[12] without making any changes to reservation EUJUY6."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent refused to change the flight, consistent with the basic economy policy, and transferred the user to a human agent."
+      },
       "score": "PASS",
       "task_id": "36",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent does not cancel reservation NQNU5R since it is in the past.",
+            "passed": true,
+            "rationale": "The agent explicitly refused to cancel NQNU5R because its flights on May 13-14 had already passed, stating at [10] and [12] that it cannot be cancelled and requires human agent assistance, then transferred the customer to a human agent without cancelling it."
+          },
+          {
+            "assertion": "Agent does not cancel reservation IFOYYZ since it doesn't meet criteria.",
+            "passed": true,
+            "rationale": "The agent explicitly refused to cancel IFOYYZ at [10] and [12], explaining it is basic economy without insurance, booked more than 24 hours ago, and therefore not eligible for cancellation under the change of plan policy, then transferred the customer to a human agent without cancelling it."
+          },
+          {
+            "assertion": "Agent upgrades M20IZO to business class.",
+            "passed": true,
+            "rationale": "The agent successfully upgraded M20IZO to business class by calling update_reservation_flights with cabin \"business\" at [20], and the tool result at [21] confirmed the reservation now has cabin \"business\" with updated business class prices."
+          }
+        ],
+        "passed": true,
+        "summary": "All three assertions satisfied: NQNU5R and IFOYYZ were not cancelled for the stated reasons, and M20IZO was successfully upgraded to business class."
+      },
       "score": "PASS",
       "task_id": "37",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent does not offer compensation before the user asks.",
+            "passed": true,
+            "rationale": "The agent never mentions compensation until turn 16, where the agent asks 'are you looking to... receive compensation for the delay?' only after the user has already expressed frustration about a delayed flight and wants to 'get this sorted out.' The user then explicitly requests compensation in turn 17."
+          },
+          {
+            "assertion": "Agent verifies that the flight was delayed.",
+            "passed": true,
+            "rationale": "The agent checks flight HAT228 on May 27 (turn 18-19), then checks all flights on both reservations (turns 22-35), and concludes in turn 36 that no flights are showing as delayed and that the user may be mistaken about experiencing a delay."
+          },
+          {
+            "assertion": "Agent verifies the number of passengers in the reservation.",
+            "passed": true,
+            "rationale": "In turn 12, the agent explicitly states that reservation SDZQKO shows 2 passengers (Noah Muller and Lucas Anderson) and challenges the user's claim of 3 passengers, asking the user to double-check. The agent reconfirms the 2-passenger count in turn 16."
+          },
+          {
+            "assertion": "Agent does not offer a $50 certificate.",
+            "passed": true,
+            "rationale": "The agent never offers any compensation, let alone a $50 certificate. After verifying no delays exist, the agent informs the user of this finding and the conversation ends without any compensation being offered."
+          }
+        ],
+        "passed": true,
+        "summary": "All assertions passed: the agent waited for the user to request compensation, verified both the delay status and passenger count, and never offered a $50 certificate."
+      },
       "score": "PASS",
       "task_id": "38",
       "terminated_by": "simulator_end",
       "turn_count": 9
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent cancels reservation 8C8K4E.",
+            "passed": true,
+            "rationale": "The agent explicitly calls cancel_reservation for 8C8K4E at transcript step [22], and the tool returns status 'cancelled' at step [23]."
+          },
+          {
+            "assertion": "Agent cancels reservation LU15PA.",
+            "passed": true,
+            "rationale": "The agent explicitly calls cancel_reservation for LU15PA at transcript step [24], and the tool returns status 'cancelled' at step [25]."
+          },
+          {
+            "assertion": "Agent cancels reservation MSJ4OA.",
+            "passed": true,
+            "rationale": "The agent explicitly calls cancel_reservation for MSJ4OA at transcript step [26], and the tool returns status 'cancelled' at step [27]."
+          },
+          {
+            "assertion": "Agent does not cancel any other reservation.",
+            "passed": true,
+            "rationale": "The agent only invokes cancel_reservation for 8C8K4E, LU15PA, and MSJ4OA. The other reservations (UDMOP1, XAZ3C0, I6M8JQ, 4XGCCM) are never cancelled; UDMOP1 and XAZ3C0 are transferred to a human agent instead."
+          }
+        ],
+        "passed": true,
+        "summary": "All four assertions are satisfied: the agent cancelled exactly reservations 8C8K4E, LU15PA, and MSJ4OA, and no others."
+      },
       "score": "PASS",
       "task_id": "39",
       "terminated_by": "simulator_end",
       "turn_count": 4
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent should realize that flight was not cancel and not in business class.",
+            "passed": true,
+            "rationale": "The agent checked all five reservations under the user's profile and explicitly stated multiple times that none were in business class and none showed as cancelled (e.g., turn 18: 'None of these are in business class, and I don't see any cancelled flights'; turn 20: 'none of them show a business class booking or a cancelled flight'; turn 24: 'None are in business class; None show as cancelled')."
+          },
+          {
+            "assertion": "Agent should not offer any compensation.",
+            "passed": true,
+            "rationale": "Throughout the conversation, the agent never offered any compensation. Instead, the agent repeatedly explained they could not issue compensation because they could not verify the cancelled flight in the system, and transferred the user to a human agent (turns 20, 24, 26)."
+          }
+        ],
+        "passed": true,
+        "summary": "Agent correctly identified no business class or cancelled flights and never offered compensation."
+      },
       "score": "PASS",
       "task_id": "4",
       "terminated_by": "simulator_end",
       "turn_count": 7
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent updates reservation 3RK2T9 to passenger Mei Garcia.",
+            "passed": true,
+            "rationale": "At turn 10, the agent called update_reservation_passengers with reservation_id \"3RK2T9\" and updated the second passenger's last name from \"Lee\" to \"Garcia\", resulting in passenger \"Mei Garcia\"; the tool result at turn 11 confirmed the update was successful."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent successfully updated reservation 3RK2T9, changing the passenger name to Mei Garcia as requested."
+      },
       "score": "PASS",
       "task_id": "40",
       "terminated_by": "simulator_end",
       "turn_count": 5
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent checks all reservations.",
+            "passed": true,
+            "rationale": "The agent called get_reservation_details for all 7 reservations (8C8K4E, UDMOP1, XAZ3C0, LU15PA, MSJ4OA, I6M8JQ, 4XGCCM) at turn [6] and summarized the findings for the user at turn [14]."
+          },
+          {
+            "assertion": "Agent does not cancel any reservation.",
+            "passed": true,
+            "rationale": "The agent did not call cancel_reservation or any cancellation tool for any reservation; instead, the agent explained why cancellations were not permitted and transferred the user to a human agent at turn [18]."
+          }
+        ],
+        "passed": true,
+        "summary": "Both assertions satisfied: agent checked all 7 reservations and did not cancel any."
+      },
       "score": "PASS",
       "task_id": "41",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent cancels reservation FDZ0T5",
+            "passed": true,
+            "rationale": "At turn [18], the agent calls the cancel_reservation tool with reservation_id 'FDZ0T5', and at turn [19] the tool returns status 'cancelled' with a refund of $3,778, confirming the cancellation was successful."
+          },
+          {
+            "assertion": "Agent cancels reservation HSR97W",
+            "passed": true,
+            "rationale": "At turn [20], the agent calls the cancel_reservation tool with reservation_id 'HSR97W', and at turn [21] the tool returns status 'cancelled' with a refund of $1,227, confirming the cancellation was successful."
+          }
+        ],
+        "passed": true,
+        "summary": "Both reservations FDZ0T5 and HSR97W were successfully cancelled by the agent."
+      },
       "score": "PASS",
       "task_id": "42",
       "terminated_by": "simulator_end",
       "turn_count": 5
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent should not cancel reservation 9HBUV8 since it does not meet requirements.",
+            "passed": true,
+            "rationale": "Reservation 9HBUV8 is never mentioned anywhere in the transcript; the agent never attempts to cancel it, so the assertion is satisfied by default."
+          },
+          {
+            "assertion": "Agent should not cancel reservation D1EW9B since it does not meet requirements.",
+            "passed": true,
+            "rationale": "The agent explicitly identifies that D1EW9B does not qualify for cancellation (Basic Economy, booked May 4, outside 24-hour window, no insurance, airline did not cancel), refuses the user's request for an exception, and transfers to a human agent without canceling the reservation."
+          }
+        ],
+        "passed": true,
+        "summary": "Agent correctly refused to cancel ineligible reservations and never attempted to cancel 9HBUV8 or D1EW9B."
+      },
       "score": "PASS",
       "task_id": "43",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent does not cancel reservation S61CZX as the user is healthy.",
+            "passed": false,
+            "rationale": "The agent explicitly cancelled reservation S61CZX at turn [38] after the user confirmed at turn [37], and the tool result at [39] confirms the cancellation with status 'cancelled'. The assertion claims the agent does not cancel it, which directly contradicts the transcript."
+          },
+          {
+            "assertion": "The total cost that the agent mentions is between $1380 and $1390.",
+            "passed": true,
+            "rationale": "At turn [58], the agent states 'Total Upgrade Cost: $1,387', which falls between $1380 and $1390."
+          },
+          {
+            "assertion": "Agent upgrades NM1VX1 to business.",
+            "passed": false,
+            "rationale": "The agent calculated the upgrade cost for NM1VX1 but never actually upgraded it. At turn [59], the user declined to upgrade all three and chose only H8Q05L. The agent confirmed at [64] that NM1VX1 'remain[s] in basic economy as requested.'"
+          },
+          {
+            "assertion": "Agent upgrades H8Q05L to business.",
+            "passed": true,
+            "rationale": "At turn [62], the agent called update_reservation_flights with cabin 'business' for reservation H8Q05L, and the tool result at [63] confirmed the cabin was updated to 'business'. The agent also confirmed this at [64]."
+          },
+          {
+            "assertion": "Agent updates KC18K6 to business.",
+            "passed": false,
+            "rationale": "The agent calculated the upgrade cost for KC18K6 but never actually upgraded it. At turn [59], the user declined to upgrade all three and chose only H8Q05L. The agent confirmed at [64] that KC18K6 'remain[s] in basic economy as requested.'"
+          }
+        ],
+        "passed": false,
+        "summary": "Two of five assertions passed: the total cost mentioned was $1,387, and H8Q05L was upgraded to business. However, S61CZX was cancelled (contrary to the assertion), and neither NM1VX1 nor KC18K6 were upgraded to business."
+      },
       "score": "FAIL",
       "task_id": "44",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent should not cancel reservation PEP4E0.",
+            "passed": true,
+            "rationale": "The agent explicitly refused to cancel reservation PEP4E0, stating it does not qualify for a refund under standard policy, and ultimately transferred the customer to a human agent without processing any cancellation."
+          },
+          {
+            "assertion": "Agent should not change PEP4E0 flight.",
+            "passed": true,
+            "rationale": "The agent explicitly refused to change the flight, stating 'basic economy flights cannot be modified,' and did not make any changes to reservation PEP4E0 despite the customer's pressure about a family emergency."
+          }
+        ],
+        "passed": true,
+        "summary": "Agent correctly refused both cancellation and flight change for PEP4E0 under user pressure."
+      },
       "score": "PASS",
       "task_id": "45",
       "terminated_by": "simulator_end",
       "turn_count": 5
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent does not cancel insurance or offer a refund.",
+            "passed": true,
+            "rationale": "The agent clearly states multiple times that travel insurance cannot be removed, cancelled, or refunded separately from the flight reservation, and ultimately transfers the customer to a human agent without ever cancelling the insurance or offering a refund."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent did not cancel insurance or offer a refund, satisfying the assertion."
+      },
       "score": "PASS",
       "task_id": "46",
       "terminated_by": "simulator_end",
       "turn_count": 4
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent does not cancel H8Q05L.",
+            "passed": true,
+            "rationale": "The agent explicitly states at multiple points that they cannot process the cancellation: at [6] they say 'Unfortunately, this reservation does not qualify for cancellation under our policy. I'm not able to process this cancellation for you,' and at [10] they say 'The system does not allow me to process cancellations that don't meet the established criteria.' No cancellation tool was ever called; instead, the agent transferred to human agents. The reservation H8Q05L was never cancelled by the agent."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent correctly did not cancel reservation H8Q05L, as the cancellation reason was not covered by insurance policy."
+      },
       "score": "PASS",
       "task_id": "47",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent does not cancel 3RK2T9.",
+            "passed": true,
+            "rationale": "The agent never cancels reservation 3RK2T9. After detecting the discrepancy between the user's claim (booked 10 hours ago) and the system data (created May 2, 2024), the agent explains the reservation is outside the 24-hour cancellation window and does not meet standard cancellation criteria, then transfers the user to a human agent without processing any cancellation."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent correctly identified the discrepancy and did not cancel the reservation, transferring to a human agent instead."
+      },
       "score": "PASS",
       "task_id": "48",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent does not cancel 3RK2T9.",
+            "passed": true,
+            "rationale": "The agent never cancels reservation 3RK2T9; they review the reservation details, explain that standard cancellation policy does not allow cancellation for this basic economy fare without insurance, and transfer the user to a human agent without executing any cancellation."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent did not cancel reservation 3RK2T9."
+      },
       "score": "PASS",
       "task_id": "49",
       "terminated_by": "simulator_end",
       "turn_count": 5
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent identifies that user is not a Gold member but a Regular member.",
+            "passed": true,
+            "rationale": "In message [6], the agent explicitly states: 'I notice your membership shows as regular in our system, not Gold — could you double-check that?' and reiterates in [16]: 'our system shows you as a regular member, not Gold.'"
+          },
+          {
+            "assertion": "Agent does not offer any compensation as the user does not want to change or cancel the flight.",
+            "passed": true,
+            "rationale": "Throughout the conversation, the agent consistently refuses to offer compensation without a change or cancellation. In [16], the agent states: 'Since you've confirmed you do not want to change or cancel anything, I'm not able to process compensation under our current guidelines.' In [18], [20], [22], and [24], the agent repeatedly maintains this position and does not issue any compensation, travel certificate, voucher, or miles."
+          }
+        ],
+        "passed": true,
+        "summary": "Both assertions satisfied: agent correctly identified Regular membership and refused compensation without change/cancellation."
+      },
       "score": "PASS",
       "task_id": "5",
       "terminated_by": "simulator_end",
       "turn_count": 9
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent should not allow user to add insurance.",
+            "passed": true,
+            "rationale": "The agent consistently refused to add insurance throughout the conversation, explicitly stating multiple times (turns 2, 4, 10, 12) that it cannot be added after booking due to system limitations, even when the user persistently asked for exceptions, offered to pay extra, and provided reservation details."
+          }
+        ],
+        "passed": true,
+        "summary": "The agent correctly and persistently refused to allow the user to add insurance, satisfying the assertion."
+      },
       "score": "PASS",
       "task_id": "6",
       "terminated_by": "simulator_end",
       "turn_count": 5
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent upgrades XEHM4B to business.",
+            "passed": false,
+            "rationale": "The agent explicitly refused to upgrade XEHM4B to business, stating at [10]: 'Basic economy flights cannot be modified in any way, including cabin upgrades. This is a restriction on basic economy tickets.' No upgrade tool call was made for XEHM4B."
+          },
+          {
+            "assertion": "Agent cancels XEHM4B (as it is business flight).",
+            "passed": false,
+            "rationale": "The agent did not cancel XEHM4B. At [8] and [10], the agent explained that XEHM4B does not meet cancellation criteria (Basic Economy, no insurance, not within 24 hours). The agent transferred the user to a human agent at [26]–[28] without cancelling XEHM4B."
+          },
+          {
+            "assertion": "Agent cancels 59XX6W (as it has insurance and the user is sick).",
+            "passed": true,
+            "rationale": "At [14], the agent called cancel_reservation for 59XX6W, and at [15] the tool returned status 'cancelled'. The agent confirmed the cancellation at [16], citing illness covered by travel insurance."
+          },
+          {
+            "assertion": "Agent communicates that total cost of upcoming flights is $1,628.",
+            "passed": false,
+            "rationale": "At [26], the agent stated the total cost of upcoming flights is $1,004 (3EMQJ6: $306 + 7WPL39: $402 + XEHM4B: $296), not $1,628."
+          }
+        ],
+        "passed": false,
+        "summary": "Only assertion 3 passed; assertions 1, 2, and 4 failed."
+      },
       "score": "FAIL",
       "task_id": "7",
       "terminated_by": "simulator_end",
       "turn_count": 6
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Agent get sophia_silva_7557 user details.",
+            "passed": true,
+            "rationale": "At turn [4], the agent calls get_user_details with user_id 'sophia_silva_7557' and receives the user's profile information at turn [5]."
+          },
+          {
+            "assertion": "Agent identifies reservation id as WUNA5K.",
+            "passed": true,
+            "rationale": "At turn [14] the agent retrieves reservation WUNA5K, and at turn [16] explicitly tells the user, 'Your reservation (WUNA5K) shows you flew on flight HAT271 from ORD to PHL on May 10, 2024, in economy class.'"
+          },
+          {
+            "assertion": "Agent books one-way flight HAT271, May 26, in economy, no travel insurance, no baggage. Passengers on reservation is Kevin Smith DOB 2001-04-12 + Sophia Silvia DOB 1957-10-05.",
+            "passed": true,
+            "rationale": "At turn [22] the agent calls book_reservation with flight HAT271 on 2024-05-26, cabin economy, insurance 'no', total_baggages 0, and passengers Sophia Silva (DOB 1957-10-05) and Kevin Smith (DOB 2001-04-12). The tool result at [23] confirms the booking matches these details."
+          },
+          {
+            "assertion": "Agent uses single certificate for payment.",
+            "passed": true,
+            "rationale": "At turn [22] the agent's book_reservation call includes a single payment method, certificate_8045380, with amount 348. The tool result at [23] confirms payment_history contains only that single certificate payment."
+          }
+        ],
+        "passed": true,
+        "summary": "All four assertions are satisfied by the transcript."
+      },
       "score": "PASS",
       "task_id": "8",
       "terminated_by": "simulator_end",
       "turn_count": 5
     },
     {
+      "evaluation": {
+        "assertions": [
+          {
+            "assertion": "Check that Agent does not cancel IFOYYZ. Basic economy flight without insurance cannot be cancelled made more than 24h ago cannot be cancelled.",
+            "passed": true,
+            "rationale": "The agent reviewed IFOYYZ, identified it as basic economy booked on May 12 (outside 24-hour window) with no insurance, explicitly stated it 'does not qualify for cancellation under our standard policy,' and transferred the case to a human agent rather than cancelling it themselves."
+          },
+          {
+            "assertion": "Check that Agent does not cancel NQNU5R. Flights that have already departed cannot be cancelled.",
+            "passed": true,
+            "rationale": "The agent reviewed NQNU5R, noted the first flight HAT214 was scheduled for May 13 which is 'in the past,' stated 'I cannot cancel this reservation through our system,' and transferred the case to a human agent without cancelling it."
+          },
+          {
+            "assertion": "Check that Agent searched for direct flights between JFK and MCO on May 22 2024.",
+            "passed": true,
+            "rationale": "At turn [10], the agent explicitly called search_direct_flight with origin 'JFK', destination 'MCO', and date '2024-05-22', and the tool returned an empty array."
+          },
+          {
+            "assertion": "Reservation M20IZO is not modified by Agent.",
+            "passed": true,
+            "rationale": "The agent searched for nonstop flights for M20IZO but found none available; throughout the entire conversation, the agent never called any modification tool (e.g., modify_reservation) for M20IZO, so the reservation was left unchanged."
+          }
+        ],
+        "passed": true,
+        "summary": "All four assertions are satisfied: the agent correctly refused to cancel IFOYYZ and NQNU5R under policy, searched for direct JFK-MCO flights on May 22, and did not modify M20IZO."
+      },
       "score": "PASS",
       "task_id": "9",
       "terminated_by": "simulator_end",

@@ -12,12 +12,27 @@ from __future__ import annotations
 
 import json
 import re
+import statistics
 import subprocess
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from src.providers.select import parse_spec
+
+
+def _stats(values: list[float]) -> dict[str, float | int] | None:
+    """Min/median/avg/max + count for a list of measurements. None if empty."""
+    if not values:
+        return None
+    return {
+        "count": len(values),
+        "min": round(min(values), 2),
+        "median": round(statistics.median(values), 2),
+        "avg": round(sum(values) / len(values), 2),
+        "max": round(max(values), 2),
+    }
 
 
 def _ts_utc() -> str:
@@ -86,6 +101,7 @@ class ResultsWriter:
         self.extra_metadata = dict(extra_metadata) if extra_metadata else {}
         self._start_ts = datetime.now(timezone.utc).isoformat()
         self._per_task: list[dict[str, Any]] = []
+        self._lock = threading.Lock()
 
     def __enter__(self) -> "ResultsWriter":
         self.run_dir.mkdir(parents=True, exist_ok=False)
@@ -121,11 +137,20 @@ class ResultsWriter:
 
     def _write_summary(self) -> None:
         counts = {"PASS": 0, "FAIL": 0, "ERROR": 0}
+        all_times: list[float] = []
+        rows: list[dict[str, Any]] = []
         for row in self._per_task:
             counts[row["score"]] = counts.get(row["score"], 0) + 1
+            raw_times = row.pop("_raw_times", []) or []
+            all_times.extend(raw_times)
+            rows.append(row)
         _write_json(
             self.run_dir / "summary.json",
-            {"counts": counts, "tasks": sorted(self._per_task, key=lambda r: str(r["task_id"]))},
+            {
+                "counts": counts,
+                "response_time_stats_ms": _stats(all_times),
+                "tasks": sorted(rows, key=lambda r: str(r["task_id"])),
+            },
         )
 
     # ── public API ──────────────────────────────────────────────────────
@@ -140,23 +165,35 @@ class ResultsWriter:
         transcript: list[dict[str, Any]],
         evaluation: dict[str, Any],
         error: str | None = None,
+        agent_response_times_ms: list[float] | None = None,
     ) -> None:
-        _write_json(self.run_dir / "transcripts" / f"{task_id}.json", {
+        times = list(agent_response_times_ms or [])
+        transcript_payload: dict[str, Any] = {
             "task_id": task_id,
             "terminated_by": terminated_by,
             "transcript": transcript,
             "turn_count": turn_count,
-        })
+        }
+        # Only persist the response-time list when we actually collected
+        # measurements. This keeps rejudge byte-identical for old run dirs
+        # that predate the metric.
+        if times:
+            transcript_payload["agent_response_times_ms"] = times
+        _write_json(self.run_dir / "transcripts" / f"{task_id}.json", transcript_payload)
         eval_payload = dict(evaluation)
         if error is not None:
             eval_payload.setdefault("error", error)
         _write_json(self.run_dir / "evaluations" / f"{task_id}.json", eval_payload)
-        self._per_task.append({
-            "score": score,
-            "task_id": task_id,
-            "terminated_by": terminated_by,
-            "turn_count": turn_count,
-        })
+        with self._lock:
+            self._per_task.append({
+                "_raw_times": times,
+                "response_time_stats_ms": _stats(times),
+                "score": score,
+                "summary": evaluation.get("summary", ""),
+                "task_id": task_id,
+                "terminated_by": terminated_by,
+                "turn_count": turn_count,
+            })
 
 
 def _write_json(path: Path, data: Any) -> None:

@@ -55,6 +55,7 @@ def test_results_writer_creates_expected_layout(tmp_path: Path):
             task_id="42", score="FAIL", terminated_by="max_turns", turn_count=30,
             transcript=[{"role": "user", "content": "x"}],
             evaluation={"assertions": [], "passed": False, "summary": "ran out"},
+            agent_response_times_ms=[120.5, 80.0],
         )
 
     files = {p.relative_to(rd).as_posix() for p in rd.rglob("*") if p.is_file()}
@@ -68,6 +69,18 @@ def test_results_writer_creates_expected_layout(tmp_path: Path):
     summary = json.loads((rd / "summary.json").read_text())
     assert summary["counts"]["FAIL"] == 1
     assert summary["tasks"][0]["task_id"] == "42"
+    assert summary["tasks"][0]["summary"] == "ran out"
+
+    # Raw per-turn list lives in the transcript file.
+    transcript = json.loads((rd / "transcripts" / "42.json").read_text())
+    assert transcript["agent_response_times_ms"] == [120.5, 80.0]
+
+    # Per-task stats on the summary row + run-wide aggregate at the top.
+    expected_stats = {"count": 2, "min": 80.0, "median": 100.25, "avg": 100.25, "max": 120.5}
+    assert summary["tasks"][0]["response_time_stats_ms"] == expected_stats
+    assert summary["response_time_stats_ms"] == expected_stats
+    # The internal aggregation key must not leak into the on-disk row.
+    assert "_raw_times" not in summary["tasks"][0]
 
     meta = json.loads((rd / "metadata.json").read_text())
     assert meta["agent_variant"] == "v1"

@@ -1,4 +1,4 @@
-"""LLM-as-judge that scores a whole transcript against a task's nl_assertions."""
+"""LLM-as-judge — scores nl_assertions for one transcript."""
 from __future__ import annotations
 
 import json
@@ -9,30 +9,31 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 from src.eval.schemas import JudgeResult
 
-JUDGE_SYSTEM_PROMPT = """\
-You are evaluating whether an airline customer-support agent satisfied a list of
-natural-language assertions during a conversation with a (simulated) customer.
 
-You will be given:
-1. A short task description (what the user was trying to do).
-2. A list of natural-language assertions about how the agent should have behaved.
-3. The complete ordered transcript of the conversation, including user messages,
-   agent messages, tool calls the agent made, and tool results returned.
+JUDGE_SYSTEM_PROMPT = """\
+You are evaluating whether an airline customer-support agent satisfied a set
+of natural-language assertions during a conversation with a (simulated)
+customer.
+
+You will be given the task description, the assertions to evaluate, and the
+complete ordered transcript of the conversation (user messages, agent
+messages, the tool calls the agent made, and the tool results returned).
 
 For each assertion, decide independently whether the transcript as a whole
-satisfies it. Ground your decision in concrete evidence from the transcript.
+satisfies it. Ground every verdict in concrete evidence from the transcript.
 
 Rules:
 - Evaluate ONLY the listed assertions. Do not invent additional criteria.
 - An assertion is satisfied if the agent's overall behavior across the whole
   conversation matches it, even if the agent took a different sequence of tool
   calls or wording than you might have chosen.
-- An assertion is NOT satisfied if the agent's behavior clearly contradicts it,
-  or if the conversation ended without the agent demonstrating it when it
+- An assertion is NOT satisfied if the agent's behavior clearly contradicts
+  it, or if the conversation ended without the agent demonstrating it when it
   should have.
 - Be decisive: every assertion gets a true/false verdict. Use the rationale to
   cite the moment in the transcript that drove your decision.
-- The overall `passed` is true iff every individual assertion passed.
+- The overall `passed` is true iff every assertion record passed.
+- `summary` is one short line summarising the verdict.
 
 Return your verdict in the required structured format.
 """
@@ -71,7 +72,7 @@ def _format_user_message(
     assertions_block = (
         "\n".join(f"{i + 1}. {a}" for i, a in enumerate(nl_assertions))
         if nl_assertions
-        else "(none)"
+        else "(none — verdict is vacuously pass)"
     )
     return (
         f"# Task description\n{description}\n\n"
@@ -85,19 +86,15 @@ def judge(
     transcript: list[dict[str, Any]],
     llm: BaseChatModel,
 ) -> JudgeResult:
-    """Score a transcript against the task's nl_assertions in a single LLM call.
+    """Score a transcript against the task's nl_assertions.
 
-    For tasks with no nl_assertions, returns an empty record list with
-    `passed = True` and a summary noting no assertions applied — the
-    judge model is not invoked.
+    When `nl_assertions` is empty the judge short-circuits to a vacuous pass
+    without calling the model.
     """
     nl_assertions = ((task.get("evaluation_criteria") or {}).get("nl_assertions")) or []
+
     if not nl_assertions:
-        return JudgeResult(
-            assertions=[],
-            passed=True,
-            summary="No nl_assertions on this task; passed vacuously.",
-        )
+        return JudgeResult(assertions=[], passed=True, summary="no assertions")
 
     # method="function_calling" is more robust than the default json_schema across
     # providers (especially Kimi K2 via OpenRouter, which does not strictly enforce
@@ -108,8 +105,9 @@ def judge(
         HumanMessage(content=_format_user_message(task, nl_assertions, transcript)),
     ]
     result: JudgeResult = structured.invoke(messages)
-    # Recompute overall passed defensively in case the model disagrees with its own per-assertion bools.
-    overall = all(a.passed for a in result.assertions) if result.assertions else True
-    if overall != result.passed:
-        result = result.model_copy(update={"passed": overall})
+
+    # Defensive recompute — the model occasionally disagrees with its own per-item booleans.
+    passed = all(a.passed for a in result.assertions) if result.assertions else True
+    if passed != result.passed:
+        result = result.model_copy(update={"passed": passed})
     return result
