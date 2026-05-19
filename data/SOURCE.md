@@ -34,3 +34,5 @@ If you use this data, please cite both the original τ-bench paper and the
   url           = {https://arxiv.org/abs/2406.12045}
 }
 ```
+
+Note: add a note on changes were made and link to the changes.md file

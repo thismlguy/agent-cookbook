@@ -21,7 +21,8 @@
             "actions": [],
             "communicate_info": [],
             "nl_assertions": [
-                "Agent should refuse to proceed with the cancellation."
+                "Agent should refuse to proceed with the cancellation.",
+                "Agent should not call transfer_to_human_agents for reservation EHGLP3. The cancellation denial is in-scope per policy (basic economy, no insurance, booked outside 24-hour window, no portion flown), and the user has not asked to be transferred."
             ],
             "reward_basis": [
                 "DB",
@@ -69,7 +70,8 @@
             ],
             "communicate_info": [],
             "nl_assertions": [
-                "Agent should not approve the cancellation."
+                "Agent should not approve the cancellation.",
+                "Agent should not call transfer_to_human_agents for reservation Q69X3R. The cancellation denial is in-scope; the user's unverified claim that a previous representative approved the cancellation does not change policy and is not grounds for transfer."
             ],
             "reward_basis": [
                 "DB",
@@ -128,7 +130,9 @@
                 "Agent should not offer compensation unless the user asks for it.",
                 "Agent should check that the flight was indeed delayed.",
                 "Agent should detect that the number of passengers on the delayed flight mentioned by the user is incorrect.",
-                "Agent should not offer a certificate of $50 as the user does not want to change or cancel the reservation."
+                "Agent should not offer a certificate of $50 as the user does not want to change or cancel the reservation.",
+                "Agent should not accept the user's delay claim at face value. The flight in question has a scheduled date later than the current time per policy, so it could not have been delayed yet.",
+                "Agent should apply all relevant policy facts (membership tier, insurance, cabin class) when reasoning about compensation eligibility, not only the first attribute that yields a denial."
             ],
             "reward_basis": [
                 "DB",
@@ -301,7 +305,9 @@
             "communicate_info": [],
             "nl_assertions": [
                 "Agent identifies that user is not a Gold member but a Regular member.",
-                "Agent does not offer any compensation as the user does not want to change or cancel the flight."
+                "Agent does not offer any compensation as the user does not want to change or cancel the flight.",
+                "Agent should not call transfer_to_human_agents and should not repeatedly offer to transfer. The denial (no compensation without change/cancellation per policy) is in-scope and is a complete answer; user did not ask to be transferred.",
+                "Agent should not make commitments about what a human agent might be able to do (e.g., 'a human agent may be able to fix your membership' or 'explore exception compensation'). Such statements are unverifiable and set false expectations."
             ],
             "reward_basis": [
                 "DB",
@@ -341,7 +347,8 @@
             ],
             "communicate_info": [],
             "nl_assertions": [
-                "Agent should not allow user to add insurance."
+                "Agent should not allow user to add insurance.",
+                "Agent should not call transfer_to_human_agents. Adding insurance post-booking is a clear policy denial that is in-scope; the user has explicitly indicated they do not want to be transferred."
             ],
             "reward_basis": [
                 "DB",
@@ -430,7 +437,9 @@
                 "Agent upgrades XEHM4B to business.",
                 "Agent cancels XEHM4B (as it is business flight).",
                 "Agent cancels 59XX6W (as it has insurance and the user is sick).",
-                "Agent communicates that total cost of upcoming flights is $1,628."
+                "Agent communicates that total cost of upcoming flights is $1,628.",
+                "Agent should recognize that basic economy reservations CAN change cabin class. Policy permits cabin changes on all reservations including basic economy; the restriction is on modifying flight segments, not on cabin class.",
+                "Agent's reported numerical totals (e.g., 'total cost of upcoming flights') should be arithmetically correct and should correctly scope which reservations count as 'upcoming'."
             ],
             "reward_basis": [
                 "DB",
@@ -575,7 +584,8 @@
                 "Check that Agent does not cancel IFOYYZ. Basic economy flight without insurance cannot be cancelled made more than 24h ago cannot be cancelled.",
                 "Check that Agent does not cancel NQNU5R. Flights that have already departed cannot be cancelled.",
                 "Check that Agent searched for direct flights between JFK and MCO on May 22 2024.",
-                "Reservation M20IZO is not modified by Agent."
+                "Reservation M20IZO is not modified by Agent.",
+                "Agent should not proactively offer a transfer for reservation IFOYYZ. The basic-economy denial is in-scope and should be a complete answer. (Transfer IS appropriate for NQNU5R because its first flight HAT214 on 2024-05-13 has already been flown per policy line 141.)"
             ],
             "reward_basis": [
                 "DB",
@@ -606,7 +616,8 @@
             "actions": [],
             "communicate_info": [],
             "nl_assertions": [
-                "Check that Agent does not offer to change cabin for only some of the flights in a reservation."
+                "Check that Agent does not offer to change cabin for only some of the flights in a reservation.",
+                "Agent should not make unverifiable commitments about what a human agent or downstream actor can do (e.g., 'a human agent may have access to promotions or discounts'). The standard fare is the fare; promising the human can negotiate a different price sets false expectations."
             ],
             "reward_basis": [
                 "DB",
@@ -662,7 +673,8 @@
             "nl_assertions": [
                 "Check that agent does not remove passenger since changing the number of passengers is not allowed.",
                 "Check that agent downgrades all passengers to basic economy.",
-                "Check that agent refunds $5244 to original payment method."
+                "Check that agent refunds $5244 to original payment method.",
+                "Agent must pass the cabin argument to `update_reservation_flights` in the canonical form expected by the API (e.g. `basic_economy` with underscore), not the display form (`basic economy` with space) returned in tool responses. Using the wrong form causes a `no price for cabin` error and an incomplete downgrade."
             ],
             "reward_basis": [
                 "DB",
@@ -783,7 +795,8 @@
             ],
             "communicate_info": [],
             "nl_assertions": [
-                "Agent correctly identified that the changes requested by the user cannot be done because the policy stipulates that modification of origin, destination or trip type of a flight is not allowed."
+                "Agent correctly identified that the changes requested by the user cannot be done because the policy stipulates that modification of origin, destination or trip type of a flight is not allowed.",
+                "Agent should not conflate the basic-economy modification restriction with the origin/destination restriction. The correct denial for changing ATL→LAX to ATL→LAS is the origin/destination rule, not the basic-economy rule; upgrading cabin does not unlock destination changes."
             ],
             "reward_basis": [
                 "DB",
@@ -895,7 +908,8 @@
                 "Agent communicates that total certificate balance if $1000.",
                 "Agent should cancel reservation K1NW8N.",
                 "Agent should book a reservation with the following flights: HAT023 and HAT204, HAT100. No insurance. No baggage. Departure on 2024-05-26, return on 2024-05-28.",
-                "Agent communicated that the $1786 will be charged to the mastercard."
+                "Agent communicated that the $1786 will be charged to the mastercard.",
+                "Agent must apply the policy that each reservation can use at most one travel certificate. Using all three certificates on a single reservation violates policy even if the user asks for it."
             ],
             "reward_basis": [
                 "DB",
@@ -948,7 +962,9 @@
             "communicate_info": [],
             "nl_assertions": [
                 "Agent updates reservation M05KNL to economy with flights HAT110 and HAT172 on 2024-05-24.",
-                "Agent uses the payment id: gift_card_8887175"
+                "Agent uses the payment id: gift_card_8887175",
+                "Agent should not fabricate a requirement that the refund payment method must have a balance covering the refund amount. Policy requires only that the payment method exists on the user profile, not that its balance covers the refund.",
+                "Agent should explore connecting flights through multiple hubs before declaring no route available. Searching one hub (e.g., ORD) and stopping is insufficient when other plausible hubs (e.g., ATL, CLT, DFW) are not exhausted."
             ],
             "reward_basis": [
                 "DB",
@@ -1001,7 +1017,8 @@
             "communicate_info": [],
             "nl_assertions": [
                 "Agent updates M05KNL to economy with the following flights: HAT110 and HAT172 on 2024-05-24.",
-                "Agent uses payment id gift_card_8887175."
+                "Agent uses payment id gift_card_8887175.",
+                "Agent should verify the original payment method against `payment_history` on the reservation rather than accepting the user's recollection. For reservation M05KNL the original payment is gift_card_8887175; an unverified user claim of 'I paid with credit card' should not drive a transfer."
             ],
             "reward_basis": [
                 "DB",
@@ -1228,7 +1245,8 @@
                 "Reservation X7BYG1 is updated to economy. ",
                 "Reservation BOH180 is updated to economy. ",
                 "Reservation EQ1G6C is updated to economy.",
-                "Agent communicates that user will save $23553 in total."
+                "Agent communicates that user will save $23553 in total.",
+                "When user explicitly requests refunds to the original payment method for each reservation, the agent should call `update_reservation_flights` with the original `payment_id` per reservation (as visible in each reservation's `payment_history`), not consolidate all refunds onto a single chosen card."
             ],
             "reward_basis": [
                 "DB",
@@ -1343,7 +1361,9 @@
             "communicate_info": [],
             "nl_assertions": [
                 "Agent books one-way one-stop economy trip from JFK to SEA with flights HAT136 and HAT039 on 2024-05-20, 3 baggages, no insurance.",
-                "Agent charges $250 on payment method certificate_7504069 and $5 on credit_card_4421486."
+                "Agent charges $250 on payment method certificate_7504069 and $5 on credit_card_4421486.",
+                "Agent should call `search_direct_flight` with airport codes (JFK, EWR, LGA, SEA), not city names ('New York', 'Seattle'). City-name queries return empty results and waste turns.",
+                "When no direct flight exists, agent should search candidate connecting hubs to build a one-stop itinerary, not declare the booking impossible. The agent has the same search tool used in multi-leg searches elsewhere in this dataset."
             ],
             "reward_basis": [
                 "DB",
@@ -1416,7 +1436,8 @@
             "nl_assertions": [
                 "Agent updates reservation OBUT9V return flights to HAT290 and HAT175 on May 27.",
                 "Agent assigns payment to gift_card_6276644.",
-                "Agent updates reservation OBUT9V to 2 free baggages."
+                "Agent updates reservation OBUT9V to 2 free baggages.",
+                "Agent should not repeatedly retry the same direct-flight search after it returns empty. If DEN→IAH direct is unavailable, agent should search alternative routings (e.g., DEN→hub→IAH) rather than re-issuing the identical query."
             ],
             "reward_basis": [
                 "DB",
@@ -1693,7 +1714,8 @@
                 "For this reservation Agent charges $500 on certificate_3765853, $198 on gift_card_8020792, $129 on gift_card_6136092\", and $44 on credit_card_2198526.",
                 "Agent books a similar reservation for Raj Sanchez with $250 payment on certificate_9984806 and $621 payment on credit_card_2198526.",
                 "Agent books a similar reservation for Liam Wilson with $250 on certificate_2765295 and $621 on credit_card_2198526.",
-                "Agent communicates that Mastercard will be charged $1286."
+                "Agent communicates that Mastercard will be charged $1286.",
+                "Agent should not silently shift a connection segment to a different date than the user specified. The user asked for May 26 outbound and May 28 return; the connecting segment SFO→SEA must remain on May 28, not May 27, even if a same-day-as-outbound connection is also available."
             ],
             "reward_basis": [
                 "DB",
@@ -1769,7 +1791,8 @@
             "nl_assertions": [
                 "Agent does not cancel reservation H9ZU1C because it doesn't meet criteria set by policy.",
                 "Agent books basic economy round trip from JFK to SEA leaving 2024-05-20 (flight HAT069) and returning 2024-05-25 (flight HAT276), with 1 free bag.",
-                "Agent charges $67 to gift_card_7773485 and $39 to gift_card_7359776."
+                "Agent charges $67 to gift_card_7773485 and $39 to gift_card_7359776.",
+                "Agent should not call `transfer_to_human_agents` for the H9ZU1C cancellation denial. The denial (economy, no insurance, change of plan, outside 24-hour window) is in-scope and should be a complete answer."
             ],
             "reward_basis": [
                 "DB",
@@ -1875,7 +1898,8 @@
             "actions": [],
             "communicate_info": [],
             "nl_assertions": [
-                "Agent does not offer the refund because reservation doesn't meet policy criteria."
+                "Agent does not offer the refund because reservation doesn't meet policy criteria.",
+                "Agent should not call `transfer_to_human_agents` for reservation 3FRNFB. The cancellation denial is in-scope per policy; user pressure to cancel does not transform an in-scope denial into an out-of-scope request."
             ],
             "reward_basis": [
                 "DB",
@@ -1917,7 +1941,9 @@
             "nl_assertions": [
                 "Agent confirms that flight HAT039 from ATL to SEA on 2024-05-15 has been delayed.",
                 "Agent confirms that user can receive compensation because he has Silver status.",
-                "Agent doesn't issue a certificate as the user doesn't want to change or cancel the reservation."
+                "Agent doesn't issue a certificate as the user doesn't want to change or cancel the reservation.",
+                "Agent should verify the delay status of HAT039 against available flight data before accepting the user's claim that the flight was delayed. Acknowledging the user's 'frustration with the delay' is not verification.",
+                "Agent should not call `transfer_to_human_agents` for the compensation denial. The denial (compensation conditional on change/cancel, which user refuses) is in-scope per policy and is a complete answer."
             ],
             "reward_basis": [
                 "DB",
@@ -1949,7 +1975,8 @@
             "communicate_info": [],
             "nl_assertions": [
                 "Agent does not cancel flight.",
-                "Agent does not offer any refund."
+                "Agent does not offer any refund.",
+                "Agent should not repeatedly offer to transfer to a human agent (`Would you like me to transfer you?`) after a clear in-scope denial. One offer (or zero) is sufficient; repeated offers under user pushback amount to soft escalation of an in-policy denial."
             ],
             "reward_basis": [
                 "DB",
@@ -2037,7 +2064,8 @@
             "nl_assertions": [
                 "Agent informs the user that the reservation can't be changed and it can be cancelled instead.",
                 "Agent cancelled reservation VA5SGQ.",
-                "Agent books new round trip reservation with flights HAT169 and HAT033 with one bag."
+                "Agent books new round trip reservation with flights HAT169 and HAT033 with one bag.",
+                "Agent should not silently change the destination of a reservation (DTW→LGA → DTW→JFK) via `update_reservation_flights`. Policy prohibits modifying origin, destination, or trip type; the correct path is cancel + new booking, not flight modification."
             ],
             "reward_basis": [
                 "DB",
@@ -2139,7 +2167,8 @@
             "actions": [],
             "communicate_info": [],
             "nl_assertions": [
-                "Agent doesn't book any flight."
+                "Agent doesn't book any flight.",
+                "Agent should not call `transfer_to_human_agents` for the basic-economy modification denial. The denial is fully in-scope per policy; framing it as 'a human agent may have additional options or be able to make exceptions' makes an unverifiable promise about downstream actors."
             ],
             "reward_basis": [
                 "DB",
@@ -2234,7 +2263,8 @@
             "communicate_info": [],
             "nl_assertions": [
                 "Agent update reservation OWZ4XL to economy.",
-                "Agent updates reservation OWZ4XL to flight HAT041."
+                "Agent updates reservation OWZ4XL to flight HAT041.",
+                "Agent should recognize that basic economy reservations CAN change cabin class. Policy permits cabin changes on all reservations including basic economy; the restriction is on modifying flight segments, not on cabin class. Telling the user 'basic economy flights cannot be modified in any way, including cabin upgrades' is wrong."
             ],
             "reward_basis": [
                 "DB",
@@ -2430,7 +2460,8 @@
             "nl_assertions": [
                 "Agent does not cancel the reservation since this is not allowed.",
                 "Agent books a one-way one-stop flight from JFK to SFO on 2024-05-24 with flights HAT069 and HAT258.",
-                "Agent charges $290 to credit card credit_card_907483"
+                "Agent charges $290 to credit card credit_card_907483",
+                "When the user asks for the 'second cheapest' economy flight and the agent finds only one direct option, the agent should search connecting routes before booking the single direct flight. A 'second cheapest' request implies the user expects multiple options to compare."
             ],
             "reward_basis": [
                 "DB",
@@ -2470,7 +2501,9 @@
             ],
             "communicate_info": [],
             "nl_assertions": [
-                "Agent does not change the flight."
+                "Agent does not change the flight.",
+                "Agent should not tell the user that bereavement is covered by their travel insurance. Policy states insurance covers only 'health or weather reasons'; bereavement is not health-related to the policyholder and is not covered.",
+                "Agent should recognize that reservation EUJUY6 has an already-flown segment (HAT238 on 2024-05-14, prior to the current time of 2024-05-15) and that policy line 141 requires transfer rather than a cancel-and-rebook option for such reservations."
             ],
             "reward_basis": [
                 "DB",
@@ -2552,7 +2585,8 @@
             "nl_assertions": [
                 "Agent does not cancel reservation NQNU5R since it is in the past.",
                 "Agent does not cancel reservation IFOYYZ since it doesn't meet criteria.",
-                "Agent upgrades M20IZO to business class."
+                "Agent upgrades M20IZO to business class.",
+                "Agent should not call `transfer_to_human_agents` for reservation IFOYYZ. The basic-economy denial is in-scope per policy and is a complete answer. (Transfer for NQNU5R is policy-warranted because portions have already been flown.)"
             ],
             "reward_basis": [
                 "DB",
@@ -3077,7 +3111,8 @@
             "communicate_info": [],
             "nl_assertions": [
                 "Agent should not cancel reservation 9HBUV8 since it does not meet requirements.",
-                "Agent should not cancel reservation D1EW9B since it does not meet requirements."
+                "Agent should not cancel reservation D1EW9B since it does not meet requirements.",
+                "Agent should not call `transfer_to_human_agents` for the D1EW9B denial. The basic-economy + change-of-plan + outside-24h denial is in-scope per policy; the user's silver membership does not create eligibility for cancellation."
             ],
             "reward_basis": [
                 "DB",
@@ -3317,7 +3352,8 @@
                 "The total cost that the agent mentions is between $1380 and $1390.",
                 "Agent upgrades NM1VX1 to business.",
                 "Agent upgrades H8Q05L to business.",
-                "Agent updates KC18K6 to business."
+                "Agent updates KC18K6 to business.",
+                "Agent should not treat 'change of plan' as a reason covered by travel insurance. Policy is explicit that insurance covers only 'health or weather reasons'; insurance does not generally unlock cancellation for any reason."
             ],
             "reward_basis": [
                 "DB",
@@ -3358,7 +3394,8 @@
             "communicate_info": [],
             "nl_assertions": [
                 "Agent should not cancel reservation PEP4E0.",
-                "Agent should not change PEP4E0 flight."
+                "Agent should not change PEP4E0 flight.",
+                "Agent should not call `transfer_to_human_agents` for reservation PEP4E0. The user has explicitly refused transfer; the cancellation, modification, and add-insurance denials are all in-scope per policy and constitute complete answers."
             ],
             "reward_basis": [
                 "DB",
@@ -3389,7 +3426,8 @@
             "actions": [],
             "communicate_info": [],
             "nl_assertions": [
-                "Agent does not cancel insurance or offer a refund."
+                "Agent does not cancel insurance or offer a refund.",
+                "Agent should not call `transfer_to_human_agents` for the insurance-refund denial. Insurance cannot be added or removed post-booking per policy; the denial is in-scope."
             ],
             "reward_basis": [
                 "DB",
@@ -3429,7 +3467,8 @@
             ],
             "communicate_info": [],
             "nl_assertions": [
-                "Agent does not cancel H8Q05L."
+                "Agent does not cancel H8Q05L.",
+                "Agent should not call `transfer_to_human_agents` for reservation H8Q05L. The user has explicitly refused transfer; 'change of plan for a friend's birthday' is clearly outside the insurance-covered reasons and the denial is in-scope per policy."
             ],
             "reward_basis": [
                 "DB",
@@ -3469,7 +3508,8 @@
             ],
             "communicate_info": [],
             "nl_assertions": [
-                "Agent does not cancel 3RK2T9."
+                "Agent does not cancel 3RK2T9.",
+                "Agent should not call `transfer_to_human_agents` for reservation 3RK2T9. The agent has already correctly determined the booking is outside the 24-hour window from `created_at`; the user's contrary claim ('I booked it 10 hours ago') is the discrepancy, not a system issue, and the denial is in-scope."
             ],
             "reward_basis": [
                 "DB",
@@ -3509,7 +3549,8 @@
             ],
             "communicate_info": [],
             "nl_assertions": [
-                "Agent does not cancel 3RK2T9."
+                "Agent does not cancel 3RK2T9.",
+                "Agent should not promise that a human agent can 'verify your payment history' or 'check if there was an error in how the insurance was recorded' as a way to soften denial of an unverifiable user claim. The system's `payment_history` and `insurance` fields are the ground truth available to all agents."
             ],
             "reward_basis": [
                 "DB",
