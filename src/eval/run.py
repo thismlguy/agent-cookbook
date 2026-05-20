@@ -30,7 +30,7 @@ DEFAULT_TASKS_PATH = REPO_ROOT / "data" / "tasks.json"
 DEFAULT_RESULTS_DIR = REPO_ROOT / "results"
 DEFAULT_AGENT_MODEL = "openrouter:moonshotai/kimi-k2.6"
 DEFAULT_AGENT = "v1"
-DEFAULT_MAX_TURNS = 30
+DEFAULT_MAX_TURNS = 15
 DEFAULT_CONCURRENCY = 10
 
 # Serializes the per-task stdout blocks so concurrent workers print one task
