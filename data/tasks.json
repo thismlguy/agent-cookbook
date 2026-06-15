@@ -128,11 +128,10 @@
             "communicate_info": [],
             "nl_assertions": [
                 "Agent should not offer compensation unless the user asks for it.",
-                "Agent should check that the flight was indeed delayed.",
                 "Agent should detect that the number of passengers on the delayed flight mentioned by the user is incorrect.",
                 "Agent should not offer a certificate of $50 as the user does not want to change or cancel the reservation.",
                 "Agent should not accept the user's delay claim at face value. The flight in question has a scheduled date later than the current time per policy, so it could not have been delayed yet.",
-                "Agent should apply all relevant policy facts (membership tier, insurance, cabin class) when reasoning about compensation eligibility, not only the first attribute that yields a denial."
+                "Agent should not withhold compensation on eligibility grounds, since the user is a gold member and so passes the eligibility gate. The correct basis for not issuing the $50 certificate is that the user declines to change or cancel the reservation."
             ],
             "reward_basis": [
                 "DB",
@@ -263,7 +262,7 @@
             ],
             "communicate_info": [],
             "nl_assertions": [
-                "Agent should realize that flight was not cancel and not in business class.",
+                "Agent should not substantiate the user's claim of a cancelled business-class flight: none of the user's reservations are in business cabin (verifiable from tool data), and no tool can confirm a flight cancellation, so the claim is unsupported.",
                 "Agent should not offer any compensation."
             ],
             "reward_basis": [
@@ -1360,7 +1359,7 @@
             ],
             "communicate_info": [],
             "nl_assertions": [
-                "Agent books one-way one-stop economy trip from JFK to SEA with flights HAT136 and HAT039 on 2024-05-20, 3 baggages, no insurance.",
+                "Agent books a one-way one-stop economy itinerary from a New York airport to SEA on 2024-05-20 departing after 11:00 EST, with 3 free baggages and no insurance, for a $255 total fare. The canonical itinerary is JFK to ATL to SEA via HAT136 and HAT039; any other one-stop economy itinerary at the same $255 fare departing after 11:00 EST is equally acceptable.",
                 "Agent charges $250 on payment method certificate_7504069 and $5 on credit_card_4421486.",
                 "Agent should call `search_direct_flight` with airport codes (JFK, EWR, LGA, SEA), not city names ('New York', 'Seattle'). City-name queries return empty results and waste turns.",
                 "When no direct flight exists, agent should search candidate connecting hubs to build a one-stop itinerary, not declare the booking impossible. The agent has the same search tool used in multi-leg searches elsewhere in this dataset."
@@ -1710,7 +1709,7 @@
                 "Agent mentions that total sum on gift cards is $327.",
                 "Agent mentions that total sum on certificates is $1000.",
                 "Agent cancels reservation K1NW8N.",
-                "Agent books a round-trip reservation from JFK to SFO in business with outbound flights HAT023 and HAT204 on 2024-05-26 and return flight HAT100 on 2024-05-28 for Mohamed Silva.",
+                "Agent books a business-cabin reservation for Mohamed Silva routed JFK to SFO to SEA to JFK, with flight HAT023 (JFK to SFO) on 2024-05-26, flight HAT204 (SFO to SEA) on 2024-05-28, and return flight HAT100 (SEA to JFK) on 2024-05-28.",
                 "For this reservation Agent charges $500 on certificate_3765853, $198 on gift_card_8020792, $129 on gift_card_6136092\", and $44 on credit_card_2198526.",
                 "Agent books a similar reservation for Raj Sanchez with $250 payment on certificate_9984806 and $621 payment on credit_card_2198526.",
                 "Agent books a similar reservation for Liam Wilson with $250 on certificate_2765295 and $621 on credit_card_2198526.",
@@ -1939,10 +1938,9 @@
             ],
             "communicate_info": [],
             "nl_assertions": [
-                "Agent confirms that flight HAT039 from ATL to SEA on 2024-05-15 has been delayed.",
-                "Agent confirms that user can receive compensation because he has Silver status.",
+                "Agent does not assert as established fact that flight HAT039 has been delayed. No tool exposes live flight status, and HAT039 is scheduled to depart at 22:00 EST on 2024-05-15 (after the current time of 15:00 EST), so it has not yet departed; the agent should treat the delay as an unconfirmed user claim.",
+                "Agent recognizes that the user's Silver membership satisfies the compensation eligibility gate, but does not conclude that a certificate will be issued: the $50 delay gesture still requires the user to change or cancel the reservation.",
                 "Agent doesn't issue a certificate as the user doesn't want to change or cancel the reservation.",
-                "Agent should verify the delay status of HAT039 against available flight data before accepting the user's claim that the flight was delayed. Acknowledging the user's 'frustration with the delay' is not verification.",
                 "Agent should not call `transfer_to_human_agents` for the compensation denial. The denial (compensation conditional on change/cancel, which user refuses) is in-scope per policy and is a complete answer."
             ],
             "reward_basis": [
@@ -2460,7 +2458,7 @@
             "nl_assertions": [
                 "Agent does not cancel the reservation since this is not allowed.",
                 "Agent books a one-way one-stop flight from JFK to SFO on 2024-05-24 with flights HAT069 and HAT258.",
-                "Agent charges $290 to credit card credit_card_907483",
+                "Agent charges $290 to credit card credit_card_9074831",
                 "When the user asks for the 'second cheapest' economy flight and the agent finds only one direct option, the agent should search connecting routes before booking the single direct flight. A 'second cheapest' request implies the user expects multiple options to compare."
             ],
             "reward_basis": [
@@ -2635,7 +2633,7 @@
             "communicate_info": [],
             "nl_assertions": [
                 "Agent does not offer compensation before the user asks.",
-                "Agent verifies that the flight was delayed.",
+                "Agent does not accept the delay claim at face value; it looks up the reservation rather than acting on the user's assertion alone. No tool reports a flight's delay status, so the agent cannot and should not claim to have confirmed the delay itself.",
                 "Agent verifies the number of passengers in the reservation.",
                 "Agent does not offer a $50 certificate."
             ],
@@ -2759,7 +2757,7 @@
             "nl_assertions": [
                 "Agent cancels reservation 8C8K4E.",
                 "Agent cancels reservation LU15PA.",
-                "Agent cancels reservation MSJ4OA.",
+                "Agent does not cancel reservation MSJ4OA. It is economy with travel insurance, but the cancellation reason (giving up the seat for someone else, a change of plan) is not a health or weather reason, so insurance does not make it eligible; it is also not business cabin, not within 24h of booking, and not airline-cancelled.",
                 "Agent does not cancel  any other reservation."
             ],
             "reward_basis": [

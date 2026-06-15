@@ -81,3 +81,38 @@ Scored alongside `nl_assertions` but not folded into the main pass/fail signal. 
 
 - **T1 revised (was: "Batched info-gathering: when the agent needs N pieces of info to proceed, it asks for them in one turn, not one-per-turn.")** — original wording let the judge pass any case where only one piece of info was needed per turn, even when the agent could have anticipated all required identifiers upfront. Sharpened to focus on whether the agent drips info across consecutive turns vs. asks for everything it knows it will need at the start.
 - **T2 revised (was: "No unsolicited policy exposition: the agent states the outcome to the user, not the rulebook. Quoting policy criteria as numbered/bulleted lists fails this check.")** — original wording caused the judge to flag any bulleted/numbered content in agent output (including user-facing options and data summaries). Sharpened to fail only when the agent recites eligibility/qualification criteria or policy clauses as a list. User-facing option lists, data summaries, and action plans now pass even with bullets.
+
+## Evaluation sanity audit (2026-06-15) — assertion correctness pass
+
+Full pass over all 50 tasks' `nl_assertions`, auditing each for three properties: **satisfiable** with the actual 10-tool surface, **correct** per `policy.md`, and **internally consistent** with the task's own data. Method: four category auditors (cancellation / compensation / modification / booking) cross-referenced each assertion against `policy.md` and `db.json`, then each flagged change was re-verified directly against `db.json` before applying. The judge requires *all* of a task's assertions to pass (`src/eval/judge.py:110`), so a single unsatisfiable or wrong assertion silently fails an otherwise-correct run.
+
+**Key structural finding:** no tool exposes a flight's live status. `search_direct_flight` returns only `available`-status flights (`src/agents/v0/tools.py:122`); `get_reservation_details` carries no per-flight delay/cancellation status. So any assertion demanding the agent "verify the flight was delayed/cancelled against flight data" is **unsatisfiable by construction** — the agent can only reason about a flight's *date* vs the current time (2024-05-15 15:00 EST). These assertions were the dominant defect and the biggest source of false-negative task failures.
+
+### Changes applied
+
+| Task | Assertion | Class | Change |
+|---|---|---|---|
+| 35 | "Agent charges $290 to credit card credit_card_907483" | BUGGY (truncated id) | id corrected to `credit_card_9074831` (the value in the user's profile / ground-truth action). A literal-match judge failed correct runs. |
+| 23 | A3: "...outbound flights HAT023 and HAT204 on 2024-05-26..." | BUGGY (wrong date) | HAT204 (SFO→SEA) is on 2024-05-28, not 05-26 — A3 contradicted A8 ("SFO→SEA must remain on May 28"). Rewritten with correct per-leg dates and the true JFK→SFO→SEA→JFK routing. |
+| 39 | A2: "Agent cancels reservation MSJ4OA." | WRONG-PER-POLICY | MSJ4OA is economy + insurance, but the user's reason is "give up the seat" (change of plan), not health/weather — so it is **not** cancellable. Asserting a cancel contradicted the task's own purpose ("only cancel flights eligible for refunds"). Flipped to "does not cancel," with the policy reason stated. |
+| 2 | A1: "Agent should check that the flight was indeed delayed." | UNVERIFIABLE | **Removed.** No tool reports delay status; the verifiable version (temporal date check) already exists as A4, so A1 was redundant *and* impossible. |
+| 2 | A5: "...apply all relevant policy facts (membership tier, insurance, cabin class)..." | OVER-SPECIFIED | The user is gold (passes the eligibility gate), so the controlling reason for withholding the $50 cert is the change/cancel refusal, not eligibility. Rewritten to check that the agent does **not** deny on eligibility grounds. |
+| 4 | A0: "Agent should realize that flight was not cancel and not in business class." | UNVERIFIABLE (partial) | "Not cancelled" is not tool-verifiable. Rewritten to the verifiable proxy: no business-cabin reservation exists (checkable) and a cancellation cannot be confirmed, so the claim is unsupported. |
+| 27 | A0: "Agent confirms that flight HAT039 ... has been delayed." | UNVERIFIABLE | Rewritten: agent must NOT assert HAT039 is delayed as fact; HAT039 departs 22:00 EST (after current 15:00 EST) so it hasn't departed — treat as an unconfirmed claim. |
+| 27 | A1: "Agent confirms that user can receive compensation because he has Silver status." | WRONG-PER-POLICY | Silver only passes the *eligibility gate*; the $50 delay cert still requires a change/cancel (which the user refuses). A1 contradicted A2. Rewritten to reflect the gate-vs-payout distinction. |
+| 27 | A3: "Agent should verify the delay status of HAT039 against available flight data..." | UNVERIFIABLE | **Removed.** Demands an impossible tool action (task `notes` even says "action to check delay should be added" — but no such tool exists). Temporal handling now covered by rewritten A0. |
+| 38 | A1: "Agent verifies that the flight was delayed." | UNVERIFIABLE | Rewritten: agent must not accept the delay claim at face value (look up the reservation), but cannot claim to confirm the delay itself — no tool reports it. |
+| 20 | A0: "...with flights HAT136 and HAT039 on 2024-05-20..." | OVER-SPECIFIED | At least two one-stop itineraries tie at the optimal $255 fare (JFK→ATL→SEA and EWR→DFW→SEA). Relaxed to accept any $255 one-stop economy itinerary departing after 11:00 EST; the canonical HAT136/HAT039 route is named as the example. Payment assertion (A1) is unchanged — the $255→$250+$5 split is invariant across the ties. |
+
+Net: 164 → 162 assertions (2 unverifiable removed), 9 rewritten/corrected.
+
+### Flagged but NOT changed (needs a decision or is out of assertion scope)
+
+- **Task 44 A4** ("Agent updates KC18K6 to business"): the task *instruction* says upgrade flights "≤3 hours including layovers," but KC18K6's total elapsed time is ~7h (3h + 2h legs + 2h layover) while the ground-truth action upgrades it — implying the intended rule is *per-segment* ≤3h. The ambiguity is in the task instruction, not the assertion. Recommend clarifying the instruction's duration definition.
+- **Tasks 11 ($5244) / 18 ($23553)** dollar assertions are the *passenger-multiplied* customer-facing figures and are correct as written, but `update_reservation_flights` records a *per-flight* (non-multiplied) delta in `payment_history` (1748 / 14965). Documented so the gap isn't mistaken for a math error.
+- **Task 7 A4 ($1,628)**: correct under the natural reading, but the value is order-dependent (it shifts if the agent upgrades XEHM4B to business before reporting "current cost"). Left as-is; flagged as mildly fragile.
+- **Task 12 A1**: grammatically garbled but checks the right rule (uniform cabin across passengers). Cosmetic; left as-is.
+
+### Recommendation (tooling, not assertions)
+
+The recurring unverifiable-delay pattern is the eval's clearest signal that the **tool surface is missing a `get_flight_status(flight_number, date)` (or reservation-flight live status)**. With it, the "confirm the facts before compensation" policy (`policy.md:159`) becomes genuinely checkable and the rewritten temporal-proxy assertions could return to true status verification. This is a v2 (tooling/architecture) change, not a prompting or assertion change — and it is the strongest data-driven motivation for v2.
