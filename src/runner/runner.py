@@ -1,6 +1,7 @@
 """Drive one sim-user ↔ agent conversation end-to-end for a single task."""
 from __future__ import annotations
 
+import re
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Literal
@@ -9,11 +10,36 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 
 from src.agents import get_variant
+from src.agents.v2.pending_actions import (
+    execute_pending_action,
+    render_post_execute_message,
+)
 from src.config import DB_PATH
 from src.domain.store import Store
 from src.sim import UserTurn, make_simulator
 
-TerminatedBy = Literal["simulator_end", "max_turns", "error"]
+# Match `<confirmation_card action_id="..." kind="..."/>` regardless of
+# attribute order or whitespace.
+_CARD_RE = re.compile(
+    r"<confirmation_card\s+(?P<attrs>[^>]*?)/>",
+    re.IGNORECASE,
+)
+_ATTR_RE = re.compile(r"(\w+)\s*=\s*\"([^\"]*)\"")
+
+
+def _extract_card(text: str) -> dict[str, str] | None:
+    """Return {action_id, kind} if `text` contains a confirmation_card tag, else None."""
+    if not text:
+        return None
+    m = _CARD_RE.search(text)
+    if not m:
+        return None
+    attrs = dict(_ATTR_RE.findall(m.group("attrs")))
+    if "action_id" not in attrs:
+        return None
+    return {"action_id": attrs["action_id"], "kind": attrs.get("kind", "")}
+
+TerminatedBy = Literal["simulator_end", "transferred", "max_turns", "error"]
 
 
 @dataclass
@@ -103,7 +129,7 @@ def run_task(
     agent_id: str,
     agent_llm: BaseChatModel,
     sim_llm: BaseChatModel,
-    max_turns: int = 30,
+    max_turns: int = 15,
     on_event: Callable[[TurnEvent], None] | None = None,
     invoke_config: dict[str, Any] | None = None,
 ) -> RunResult:
@@ -130,12 +156,34 @@ def run_task(
             break
 
         user_turn: UserTurn = simulator(history)
-        user_msg = HumanMessage(content=user_turn.text)
+        user_text = user_turn.text
+
+        # v2 confirmation-card protocol: if the most recent agent reply
+        # had a <confirmation_card/> tag AND the sim echoed it verbatim,
+        # treat that as "accept": run the pending action and substitute
+        # the templated post-execute message for the echo.
+        last_agent_text = ""
+        for m in reversed(history):
+            if isinstance(m, AIMessage):
+                last_agent_text = _stringify(m.content)
+                break
+        prior_card = _extract_card(last_agent_text)
+        if prior_card is not None and _extract_card(user_text) is not None:
+            echoed = _extract_card(user_text)
+            if echoed and echoed["action_id"] == prior_card["action_id"]:
+                pa = store.pending_actions.get(prior_card["action_id"])
+                if pa is not None:
+                    exec_result = execute_pending_action(
+                        prior_card["action_id"], store
+                    )
+                    user_text = render_post_execute_message(pa, exec_result, store)
+
+        user_msg = HumanMessage(content=user_text)
         history.append(user_msg)
 
         if user_turn.kind == "end":
             if on_event:
-                on_event(TurnEvent(turn=turn, user=user_turn.text, ended=True))
+                on_event(TurnEvent(turn=turn, user=user_text, ended=True))
             terminated_by = "simulator_end"
             break
 
@@ -150,11 +198,29 @@ def run_task(
             on_event(
                 TurnEvent(
                     turn=turn,
-                    user=user_turn.text,
+                    user=user_text,
                     agent=_agent_final_text(new_msgs),
                     tool_calls=_extract_tool_events(new_msgs),
                 )
             )
+
+        # If the agent escalated this turn, stop driving the conversation —
+        # the simulator has nothing useful left to add and burns turns/tokens
+        # roleplaying a hold queue. The agent has already emitted its
+        # standard "YOU ARE BEING TRANSFERRED..." message inside this same
+        # invoke (the ReAct loop continues until a final AIMessage with no
+        # tool_calls).
+        if any(
+            isinstance(m, AIMessage)
+            and any(
+                (tc.get("name") if isinstance(tc, dict) else getattr(tc, "name", None))
+                == "transfer_to_human_agents"
+                for tc in (getattr(m, "tool_calls", None) or [])
+            )
+            for m in new_msgs
+        ):
+            terminated_by = "transferred"
+            break
 
     transcript = [_serialize_message(m) for m in history]
     return RunResult(

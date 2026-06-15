@@ -19,6 +19,8 @@ Orientation for AI coding agents working in this repo. Keep it short — link ou
 | v0 (baseline ReAct) agent architecture | [src/agents/v0/architecture.md](src/agents/v0/architecture.md) |
 | v1 (XML-structured prompt) — what changed and why | [src/agents/v1/architecture.md](src/agents/v1/architecture.md) |
 | Prompt-design principles applied in v1 | [src/agents/v1/prompting-best-practices.md](src/agents/v1/prompting-best-practices.md) |
+| v2 (orchestrator + specialists, pending-action store) | [src/agents/v2/architecture.md](src/agents/v2/architecture.md) |
+| v2 end-to-end test plan | [src/agents/v2/testing.md](src/agents/v2/testing.md) |
 | Project intent / workshop framing | [openspec/SOUL.md](openspec/SOUL.md) |
 | Spec-driven change proposals | [openspec/changes/](openspec/changes/) |
 | What the Chainlit user sees on launch | [chainlit.md](chainlit.md) |
@@ -38,6 +40,7 @@ Orientation for AI coding agents working in this repo. Keep it short — link ou
 uv run chainlit run app.py                                # chat UI
 uv run python -m src.eval.run                             # full eval (v1, default model, 10 in parallel)
 uv run python -m src.eval.run --agent v1 --task-id 0      # single task on v1
+uv run python -m src.eval.run --agent v2 --task-id 0      # v2 (orchestrator + specialists)
 uv run python -m src.eval.run --rejudge-from results/<id> # re-judge an existing run
 uv run pytest tests/ -v                                   # tests
 ```

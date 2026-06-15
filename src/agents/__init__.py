@@ -8,6 +8,7 @@ from langgraph.graph.state import CompiledStateGraph
 
 from src.agents.v0.graph import make_agent as _v0_make_agent
 from src.agents.v1.graph import make_agent as _v1_make_agent
+from src.agents.v2.graph import make_agent as _v2_make_agent
 from src.domain.store import Store
 
 AgentFactory = Callable[[Store, BaseChatModel], CompiledStateGraph]
@@ -15,8 +16,7 @@ AgentFactory = Callable[[Store, BaseChatModel], CompiledStateGraph]
 VARIANTS: dict[str, AgentFactory] = {
     "v0": _v0_make_agent,
     "v1": _v1_make_agent,
-    # v2 — orchestrator + specialist subagents — design lives in
-    # src/agents/v2/architecture.md; implementation pending.
+    "v2": _v2_make_agent,  # orchestrator + specialist subagents
 }
 
 
