@@ -64,9 +64,9 @@ uv run python -m src.eval.run \
 # debug a single task end-to-end
 uv run python -m src.eval.run --task-id 0
 
-# pick an agent variant (v1, v2, or v3 — orchestrator + specialists with a
-# pending-action store; see src/agents/v3/architecture.md)
-uv run python -m src.eval.run --agent v3 --task-id 0
+# pick an agent variant (v0, v1, or v2 — orchestrator + specialists with a
+# pending-action store; see src/agents/v2/architecture.md)
+uv run python -m src.eval.run --agent v2 --task-id 0
 ```
 
 Each run writes a directory like
