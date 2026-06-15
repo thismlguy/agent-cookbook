@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent books a one-way one-stop economy itinerary from a New York airport to SEA on 2024-05-20 departing after 11:00 EST, with 3 free baggages and no insurance, for a $255 total fare. The canonical itinerary is JFK to ATL to SEA via HAT136 and HAT039; any other one-stop economy itinerary at the same $255 fare departing after 11:00 EST is equally acceptable.",
+      "passed": false,
+      "rationale": "The agent never booked any flight. After multiple failed attempts to find direct flights and confirming no one-stop itinerary was assembled, the agent transferred the customer to a human agent at [30] and the conversation ended in holding, never completing a booking."
+    },
+    {
+      "assertion": "Agent charges $250 on payment method certificate_7504069 and $5 on credit_card_4421486.",
+      "passed": false,
+      "rationale": "No charges were made. The agent never initiated any payment processing; the conversation ended with the customer on hold waiting for a human agent after no flight was booked."
+    },
+    {
+      "assertion": "Agent should call `search_direct_flight` with airport codes (JFK, EWR, LGA, SEA), not city names ('New York', 'Seattle'). City-name queries return empty results and waste turns.",
+      "passed": false,
+      "rationale": "The agent violated this requirement repeatedly. At [2], [10], [14], and [52], the agent called `search_direct_flight` with city names: 'New York' and 'Seattle' at [2], 'New York' and 'Seattle' at [10], 'New York' and 'Seattle' at [14], and 'LaGuardia' and 'Seattle' at [52]. All returned empty results. The agent never used the airport codes JFK, EWR, LGA, or SEA in any search_direct_flight call."
+    },
+    {
+      "assertion": "When no direct flight exists, agent should search candidate connecting hubs to build a one-stop itinerary, not declare the booking impossible. The agent has the same search tool used in multi-leg searches elsewhere in this dataset.",
+      "passed": false,
+      "rationale": "When direct flights returned empty results, the agent declared at [8] that it lacked 'a tool to search for connecting flights' and at [28] reiterated it could 'only search for direct flights.' Rather than attempt to search candidate connecting hubs (like ATL) using the available search_direct_flight tool to build a one-stop itinerary, the agent surrendered and transferred to a human agent at [30], contradicting the expectation that the same search tool can be used for multi-leg searches."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent failed all four assertions: did not book a flight, did not charge any payment, used city names instead of airport codes for searches (wasting multiple turns), and did not attempt to search connecting hubs to build a one-stop itinerary when direct flights were unavailable."
+}

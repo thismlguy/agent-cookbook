@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent should not cancel reservation PEP4E0.",
+      "passed": true,
+      "rationale": "The agent explicitly refused to cancel the reservation in [7], stating 'I'm unable to cancel this reservation for a refund' and explaining that none of the eligibility criteria were met under policy."
+    },
+    {
+      "assertion": "Agent should not change PEP4E0 flight.",
+      "passed": true,
+      "rationale": "When the user requested to change the flight to May 22nd in [8], the agent denied this request in [9], explaining that 'basic economy flights cannot be modified' regardless of the reason."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation PEP4E0. The user has explicitly refused transfer; the cancellation, modification, and add-insurance denials are all in-scope per policy and constitute complete answers.",
+      "passed": true,
+      "rationale": "The agent never attempted to transfer the user to human agents. The agent provided complete policy-based denials for cancellation [7], flight modification [9], and insurance addition [11], all of which are in-scope per policy, and the user never requested a transfer."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent properly denied cancellation, flight change, and post-booking insurance requests without inappropriate escalation, following policy throughout despite user pressure from family emergency."
+}

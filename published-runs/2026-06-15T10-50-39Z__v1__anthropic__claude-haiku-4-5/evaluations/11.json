@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that agent does not remove passenger since changing the number of passengers is not allowed.",
+      "passed": true,
+      "rationale": "The agent explicitly stated in message [2] that 'the number of passengers cannot be changed on a reservation' and refused to remove Sophia. The tool response in [15] confirms all 3 passengers remain: James Patel, James Sanchez, and Sophia Johansson."
+    },
+    {
+      "assertion": "Check that agent downgrades all passengers to basic economy.",
+      "passed": true,
+      "rationale": "The agent successfully downgraded all passengers to basic economy. The tool call in [14] used 'basic_economy' (correct canonical form), and the response in [15] confirms the cabin is now 'basic_economy' with all 3 passengers retained."
+    },
+    {
+      "assertion": "Check that agent refunds $5244 to original payment method.",
+      "passed": false,
+      "rationale": "The agent refunded $1,748 (shown in [16]) to the original payment method, not $5,244. The agent calculated and offered a $950 refund in [12], but the actual refund processed was $1,748 as shown in the tool response [15]. Neither amount matches the assertion requirement of $5,244."
+    },
+    {
+      "assertion": "Agent must pass the cabin argument to `update_reservation_flights` in the canonical form expected by the API (e.g. `basic_economy` with underscore), not the display form (`basic economy` with space) returned in tool responses. Using the wrong form causes a `no price for cabin` error and an incomplete downgrade.",
+      "passed": true,
+      "rationale": "The agent correctly passed 'basic_economy' (with underscore) as the cabin argument in the tool call at [14], which is the canonical form required by the API. The tool successfully processed this and returned updated pricing, confirming the correct form was used."
+    }
+  ],
+  "passed": false,
+  "summary": "Three of four assertions passed. Agent did not remove passengers, successfully downgraded all to basic economy using correct API form, but refunded $1,748 instead of the required $5,244."
+}

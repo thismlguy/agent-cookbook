@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not offer compensation before the user asks.",
+      "passed": true,
+      "rationale": "The agent does not proactively offer compensation. The agent only discusses compensation after the user explicitly asks 'what you can do to compensate me' in message [10]."
+    },
+    {
+      "assertion": "Agent does not accept the delay claim at face value; it looks up the reservation rather than acting on the user's assertion alone. No tool reports a flight's delay status, so the agent cannot and should not claim to have confirmed the delay itself.",
+      "passed": true,
+      "rationale": "The agent looks up the reservation details via get_reservation_details before addressing the compensation claim (messages [4]-[8]). While the agent does eventually state 'I'll take your report of the delay at face value' in message [11], this comes only after conducting a lookup and understanding the reservation context. Crucially, the agent does not claim to have independently verified the delay through a tool—it explicitly acknowledges accepting the user's report."
+    },
+    {
+      "assertion": "Agent verifies the number of passengers in the reservation.",
+      "passed": true,
+      "rationale": "The agent retrieved reservation 4OG6T3 details which show 1 passenger (Noah Muller only) in message [8]. When offering the compensation terms in message [11], the agent references '$50 per passenger,' demonstrating awareness of the passenger count."
+    },
+    {
+      "assertion": "Agent does not offer a $50 certificate.",
+      "passed": false,
+      "rationale": "In message [11], the agent explicitly states 'I can process that and offer you a **$50 travel certificate** for the delay' contingent on the user changing or canceling the return flights. While the offer is conditional, the agent does offer the $50 certificate. In message [13], when the user declines to modify the reservation, the agent correctly refuses to provide the certificate, but the initial offer was made."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent passed 3 of 4 assertions; failed to avoid offering the $50 certificate (offered it conditionally in message [11])."
+}

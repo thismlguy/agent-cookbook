@@ -1,0 +1,18 @@
+{
+  "agent_variant": "v1",
+  "api_keys_used": [
+    "ANTHROPIC_API_KEY",
+    "LANGFUSE_BASE_URL",
+    "LANGFUSE_PUBLIC_KEY",
+    "LANGFUSE_SECRET_KEY"
+  ],
+  "end_ts": "2026-06-15T10:57:51.743597+00:00",
+  "git_sha": "01d4e1cc6509f4e24922aecb92d372a2c1d48f2c",
+  "judge_model": "anthropic:claude-haiku-4-5",
+  "max_turns": 30,
+  "model": "anthropic:claude-haiku-4-5",
+  "run_id": "2026-06-15T10-50-39Z__v1__anthropic__claude-haiku-4-5",
+  "sim_model": "anthropic:claude-haiku-4-5",
+  "start_ts": "2026-06-15T10:50:39.413482+00:00",
+  "task_count": 50
+}

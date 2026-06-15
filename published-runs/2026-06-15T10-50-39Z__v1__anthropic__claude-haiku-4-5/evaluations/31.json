@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent doesn't book any flight.",
+      "passed": false,
+      "rationale": "In messages [20-21], the agent called update_reservation_flights and successfully processed a flight change to HAT033 on May 16, and the tool confirmed the reservation was updated with the new flight booked."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for the basic-economy modification denial. The denial is fully in-scope per policy; framing it as 'a human agent may have additional options or be able to make exceptions' makes an unverifiable promise about downstream actors.",
+      "passed": true,
+      "rationale": "The agent never called transfer_to_human_agents at any point in the conversation. Since the flight change was allowed (not denied), there was no basic-economy modification denial to handle, so this assertion is satisfied."
+    }
+  ],
+  "passed": false,
+  "summary": "Assertion 1 failed: agent successfully booked a flight. Assertion 2 passed: no transfer to human agents occurred."
+}

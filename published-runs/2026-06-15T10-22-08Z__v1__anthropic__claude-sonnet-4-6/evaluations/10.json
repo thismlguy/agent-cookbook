@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that Agent does not offer to change cabin for only some of the flights in a reservation.",
+      "passed": true,
+      "rationale": "When the user asked about upgrading only the outbound flights to business while keeping return flights in economy, the agent correctly refused this request and explained that 'Cabin class must be uniform across all flights in a reservation.'"
+    },
+    {
+      "assertion": "Agent should not make unverifiable commitments about what a human agent or downstream actor can do (e.g., 'a human agent may have access to promotions or discounts'). The standard fare is the fare; promising the human can negotiate a different price sets false expectations.",
+      "passed": true,
+      "rationale": "The agent never made any claims about human agents having access to special promotions, discounts, or the ability to negotiate different prices. All pricing presented was based on available flight searches and current standard fares."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly enforced uniform cabin requirements and avoided making unverifiable commitments about pricing negotiation or human agent capabilities."
+}

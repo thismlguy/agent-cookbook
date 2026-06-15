@@ -1,0 +1,36 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent communicates that total gift card balance is $327.",
+      "passed": true,
+      "rationale": "In message [6], the agent states 'Gift Card ending in 8020792: $198.00' and 'Gift Card ending in 6136092: $129.00', and the user confirms in [7] 'that's $327 in gift cards total,' which the agent accepts without correction."
+    },
+    {
+      "assertion": "Agent communicates that total certificate balance if $1000.",
+      "passed": true,
+      "rationale": "In message [6], the agent lists three certificates totaling $1000: Certificate 3765853 ($500), Certificate 9984806 ($250), and Certificate 2765295 ($250). The user confirms in [7] '$1000 in certificates total' without correction from the agent."
+    },
+    {
+      "assertion": "Agent should cancel reservation K1NW8N.",
+      "passed": false,
+      "rationale": "The agent never cancels reservation K1NW8N. The agent acknowledges the reservation, discusses it, and transfers to a human agent, but no cancellation tool is called and the agent does not explicitly state they are canceling it. The conversation ends with the reservation still active pending human agent action."
+    },
+    {
+      "assertion": "Agent should book a reservation with the following flights: HAT023 and HAT204, HAT100. No insurance. No baggage. Departure on 2024-05-26, return on 2024-05-28.",
+      "passed": false,
+      "rationale": "The agent never books any reservation. The agent identifies HAT023 as the outbound flight but transfers to a human agent before completing a booking. The human agent would be responsible for booking the specific flights mentioned in the assertion, but no booking occurs in this conversation."
+    },
+    {
+      "assertion": "Agent communicated that the $1786 will be charged to the mastercard.",
+      "passed": false,
+      "rationale": "The agent never calculates or communicates that $1786 will be charged to the Mastercard. In message [32], the user asks the agent to note payment preferences for the human agent to handle, but the AI agent does not perform the payment calculation or specify the Mastercard charge amount."
+    },
+    {
+      "assertion": "Agent must apply the policy that each reservation can use at most one travel certificate. Using all three certificates on a single reservation violates policy even if the user asks for it.",
+      "passed": false,
+      "rationale": "The agent never mentions or enforces the one-certificate-per-reservation policy. In message [32], the user states they want to use certificates first ($1000 total, which comprises all three certificates), and the agent in [33] simply notes this for the human agent without flagging that using all three certificates violates the policy. The agent should have objected to applying multiple certificates to a single reservation."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent successfully communicated payment balances but failed to cancel the reservation, complete the booking, calculate the Mastercard charge, and enforce the one-certificate-per-reservation policy."
+}

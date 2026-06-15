@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent checks all reservations.",
+      "passed": true,
+      "rationale": "In message [6], the agent called get_reservation_details for all 7 reservations (8C8K4E, UDMOP1, XAZ3C0, LU15PA, MSJ4OA, I6M8JQ, 4XGCCM), and reviewed their details in message [14]."
+    },
+    {
+      "assertion": "Agent does not cancel any reservation.",
+      "passed": true,
+      "rationale": "The agent explicitly denied the cancellation request in messages [14] and [16], stating that UDMOP1 does not qualify for cancellation under policy. No cancel_reservation tool was called at any point in the conversation."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent checked all 7 reservations and correctly refused to cancel any of them per policy."
+}
