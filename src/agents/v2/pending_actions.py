@@ -142,6 +142,10 @@ class PendingModifyFlights(_PendingBase):
     cabin: Literal["basic_economy", "economy", "business"]
     flights: list[FlightRef]
     payment_id: str
+    # Charge (>0) or refund (<0) vs the reservation's current price, computed by
+    # the specialist at eligibility time so the card can show the cost before the
+    # write. The write tool recomputes the authoritative delta independently.
+    price_delta: int = 0
 
     def execute(self, store: Store) -> dict[str, Any]:
         from src.agents.v0.tools import make_tools as _v1_make_tools
@@ -164,6 +168,9 @@ class PendingModifyBaggage(_PendingBase):
     total_baggages: int
     nonfree_baggages: int
     payment_id: str
+    # Charge for added paid bags vs the reservation's current paid-bag count,
+    # computed by the specialist at eligibility time (see PendingModifyFlights).
+    price_delta: int = 0
 
     def execute(self, store: Store) -> dict[str, Any]:
         from src.agents.v0.tools import make_tools as _v1_make_tools
@@ -350,6 +357,72 @@ def render_post_execute_message(
     return f"Confirmed {pa.kind} on action {pa.action_id}."  # pragma: no cover
 
 
+def render_card_summary(pa: PendingAction, store: Store) -> str:
+    """Human-readable PRE-execute proposal for a pending action.
+
+    This is what the confirmation card renders for the user (and what the eval
+    runner shows the simulator) BEFORE they accept — it must surface the cost so
+    a user with a price threshold can decide. Distinct from
+    `render_post_execute_message`, which describes an action that already ran.
+    Unlike that function, the `book` summary renders the FULL payment split.
+    """
+    r = store.reservations.get(getattr(pa, "reservation_id", "")) if pa.kind != "book" else None
+
+    if pa.kind == "book":
+        total = sum(pm.amount for pm in pa.payment_methods)
+        split = "; ".join(
+            f"${pm.amount} to {_payment_label(store, pa.user_id, pm.payment_id)}"
+            for pm in pa.payment_methods
+        )
+        return (
+            f"[Confirmation requested] Book {pa.origin}→{pa.destination} on "
+            f"{_flights_summary(pa.flights)}, {pa.cabin}, {len(pa.passengers)} "
+            f"passenger(s). Total ${total} ({split})."
+        )
+
+    if pa.kind == "cancel":
+        route = f"{r.origin}→{r.destination}" if r else "?"
+        return (
+            f"[Confirmation requested] Cancel reservation {pa.reservation_id} "
+            f"({route}); any refund returns to your original payment methods."
+        )
+
+    if pa.kind == "modify_flights":
+        pm_label = _payment_label(store, r.user_id if r else None, pa.payment_id)
+        cost = _delta_phrase(pa.price_delta, pm_label)
+        return (
+            f"[Confirmation requested] Change reservation {pa.reservation_id} to "
+            f"{pa.cabin} on {_flights_summary(pa.flights)}; {cost}."
+        )
+
+    if pa.kind == "modify_baggage":
+        pm_label = _payment_label(store, r.user_id if r else None, pa.payment_id)
+        cost = _delta_phrase(pa.price_delta, pm_label)
+        return (
+            f"[Confirmation requested] Update baggage on reservation "
+            f"{pa.reservation_id}: {pa.total_baggages} bags "
+            f"({pa.nonfree_baggages} paid); {cost}."
+        )
+
+    if pa.kind == "modify_passengers":
+        names = ", ".join(f"{p.first_name} {p.last_name}" for p in pa.passengers)
+        return (
+            f"[Confirmation requested] Update passengers on reservation "
+            f"{pa.reservation_id}: {names}; no charge."
+        )
+
+    return f"[Confirmation requested] {pa.kind} on reservation {getattr(pa, 'reservation_id', '?')}."  # pragma: no cover
+
+
+def _delta_phrase(delta: int, pm_label: str) -> str:
+    """'$80 charged to ...' / '$80 refunded to ...' / 'no price change'."""
+    if delta > 0:
+        return f"${delta} charged to {pm_label}"
+    if delta < 0:
+        return f"${abs(delta)} refunded to {pm_label}"
+    return "no price change"
+
+
 # Re-exported so other v2 modules can construct rows without a circular import path.
 __all__ = [
     "FlightRef",
@@ -364,4 +437,5 @@ __all__ = [
     "execute_pending_action",
     "new_action_id",
     "render_post_execute_message",
+    "render_card_summary",
 ]

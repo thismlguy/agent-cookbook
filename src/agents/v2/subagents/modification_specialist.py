@@ -26,6 +26,35 @@ from src.agents.v2.subagents.schemas import (
 from src.domain.store import Store
 
 
+def _legs_total(store: Store, legs, cabin: str) -> int | None:
+    """Sum the cabin price of each leg from the flights DB; None if any is
+    missing (date unavailable / no price for the cabin). Each leg needs
+    `.flight_number` and `.date`."""
+    total = 0
+    for leg in legs:
+        flight = store.flights.get(leg.flight_number)
+        if flight is None:
+            return None
+        ds = flight.dates.get(leg.date)
+        if ds is None or ds.prices is None:
+            return None
+        price = getattr(ds.prices, cabin, None)
+        if price is None:
+            return None
+        total += int(price)
+    return total
+
+
+def _flights_delta(store: Store, reservation, new_legs, cabin: str) -> int:
+    """Charge(+)/refund(-) for swapping `reservation`'s flights to `new_legs` at
+    `cabin`, vs its current per-leg prices. 0 if new prices can't be resolved."""
+    new_total = _legs_total(store, new_legs, cabin)
+    if new_total is None:
+        return 0
+    old_total = sum(int(leg.price) for leg in reservation.flights)
+    return new_total - old_total
+
+
 def modification_specialist(
     input: ModificationInput, store: Store
 ) -> SpecialistResponse:
@@ -66,6 +95,7 @@ def modification_specialist(
             cabin=r.cabin,  # cabin change uses sub-kind "cabin"; here cabin stays
             flights=list(input.new_flights),
             payment_id=input.payment_id,
+            price_delta=_flights_delta(store, r, input.new_flights, r.cabin),
         )
         store.pending_actions[pa.action_id] = pa
         return ReadyToAct(action_id=pa.action_id)
@@ -94,6 +124,7 @@ def modification_specialist(
                 for leg in r.flights
             ],
             payment_id=input.payment_id,
+            price_delta=_flights_delta(store, r, r.flights, input.new_cabin),
         )
         store.pending_actions[pa.action_id] = pa
         return ReadyToAct(action_id=pa.action_id)
@@ -118,6 +149,7 @@ def modification_specialist(
             total_baggages=int(input.total_baggages),
             nonfree_baggages=int(input.nonfree_baggages),
             payment_id=input.payment_id,
+            price_delta=(int(input.nonfree_baggages) - r.nonfree_baggages) * 50,
         )
         store.pending_actions[pa.action_id] = pa
         return ReadyToAct(action_id=pa.action_id)
