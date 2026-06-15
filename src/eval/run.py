@@ -214,6 +214,7 @@ def _rejudge_one_task(
                 "summary": "source transcript was empty; rejudge skipped.",
             },
             error="source transcript was empty",
+            intents=task.get("intents") or [],
         )
         _flush_task_block(header, [], f"task {task_id}: ERROR — source transcript empty; skipped", error=True)
         return "ERROR"
@@ -230,6 +231,7 @@ def _rejudge_one_task(
             transcript=saved_transcript,
             evaluation=verdict.model_dump(),
             agent_response_times_ms=saved_times,
+            intents=task.get("intents") or [],
         )
         _flush_task_block(
             header,
@@ -251,6 +253,7 @@ def _rejudge_one_task(
             },
             error=tb,
             agent_response_times_ms=saved_times,
+            intents=task.get("intents") or [],
         )
         _flush_task_block(header, [], f"task {task_id}: ERROR — {e}", error=True)
         return "ERROR"
@@ -301,6 +304,7 @@ def _run_one_task(
             transcript=run_result.transcript,
             evaluation=verdict.model_dump(),
             agent_response_times_ms=run_result.agent_response_times_ms,
+            intents=task.get("intents") or [],
         )
         _flush_task_block(
             header,
@@ -321,6 +325,7 @@ def _run_one_task(
                 "summary": "error during run/judge",
             },
             error=tb,
+            intents=task.get("intents") or [],
         )
         _flush_task_block(header, event_lines, f"task {task_id}: ERROR — {e}", error=True)
         return "ERROR"

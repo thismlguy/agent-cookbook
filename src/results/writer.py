@@ -137,10 +137,14 @@ class ResultsWriter:
 
     def _write_summary(self) -> None:
         counts = {"PASS": 0, "FAIL": 0, "ERROR": 0}
+        counts_by_intent: dict[str, dict[str, int]] = {}
         all_times: list[float] = []
         rows: list[dict[str, Any]] = []
         for row in self._per_task:
             counts[row["score"]] = counts.get(row["score"], 0) + 1
+            for intent in row.get("intents") or []:
+                bucket = counts_by_intent.setdefault(intent, {"PASS": 0, "FAIL": 0, "ERROR": 0})
+                bucket[row["score"]] = bucket.get(row["score"], 0) + 1
             raw_times = row.pop("_raw_times", []) or []
             all_times.extend(raw_times)
             rows.append(row)
@@ -148,6 +152,7 @@ class ResultsWriter:
             self.run_dir / "summary.json",
             {
                 "counts": counts,
+                "counts_by_intent": counts_by_intent,
                 "response_time_stats_ms": _stats(all_times),
                 "tasks": sorted(rows, key=lambda r: str(r["task_id"])),
             },
@@ -166,6 +171,7 @@ class ResultsWriter:
         evaluation: dict[str, Any],
         error: str | None = None,
         agent_response_times_ms: list[float] | None = None,
+        intents: list[str] | None = None,
     ) -> None:
         times = list(agent_response_times_ms or [])
         transcript_payload: dict[str, Any] = {
@@ -187,6 +193,7 @@ class ResultsWriter:
         with self._lock:
             self._per_task.append({
                 "_raw_times": times,
+                "intents": list(intents or []),
                 "response_time_stats_ms": _stats(times),
                 "score": score,
                 "summary": evaluation.get("summary", ""),

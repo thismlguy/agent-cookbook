@@ -1,6 +1,7 @@
-"""Orchestrator tool surface for v3 — exactly 8 LLM-callable tools.
+"""Orchestrator tool surface for v3 — exactly 9 LLM-callable tools.
 
-Read tools (3):     get_user_details, get_reservation_details, search_route
+Read tools (4):     get_user_details, get_reservation_details, search_route,
+                    get_baggage_allowance
 Specialist tools (4): check_{booking,modification,cancellation,compensation}_eligibility
 Escape (1):          transfer_to_human_agents
 
@@ -35,8 +36,17 @@ def _err(msg: str) -> str:
     return f"Error: {msg}"
 
 
+# Free baggage allowance per passenger, indexed by (membership, cabin).
+# Source: data/policy.md <booking> "Free baggage allowance" table.
+_BAGGAGE_TABLE: dict[str, dict[str, int]] = {
+    "regular": {"basic_economy": 0, "economy": 1, "business": 2},
+    "silver":  {"basic_economy": 1, "economy": 2, "business": 3},
+    "gold":    {"basic_economy": 2, "economy": 3, "business": 4},
+}
+
+
 def make_tools(store: Store) -> list[StructuredTool]:
-    """Build the 8 v3 orchestrator tools bound to a Store instance."""
+    """Build the 9 v3 orchestrator tools bound to a Store instance."""
 
     @tool
     def get_user_details(user_id: str) -> Any:
@@ -134,6 +144,52 @@ def make_tools(store: Store) -> list[StructuredTool]:
                     )
         return stops
 
+    @tool
+    def get_baggage_allowance(reservation_id: str) -> Any:
+        """Compute the policy-defined free baggage allowance for a reservation.
+
+        Use this for any user question about how many bags they can bring,
+        free vs paid bags, or what their baggage limit is. The allowance is
+        a deterministic function of (membership, cabin, passenger_count)
+        per the airline's policy table — do NOT compute it yourself.
+
+        Returns:
+          {
+            "reservation_id": "...",
+            "membership": "regular" | "silver" | "gold",
+            "cabin": "basic_economy" | "economy" | "business",
+            "passenger_count": int,
+            "free_per_passenger": int,
+            "free_total": int,
+            "current_total_baggages": int,    # already on the reservation
+            "current_nonfree_baggages": int,
+            "paid_extra_per_bag_usd": 50
+          }
+        """
+        r = store.reservations.get(reservation_id)
+        if r is None:
+            return _err(f"reservation '{reservation_id}' not found")
+        user = store.users.get(r.user_id)
+        if user is None:
+            return _err(f"user '{r.user_id}' on reservation not found")
+        per_pax = _BAGGAGE_TABLE.get(user.membership, {}).get(r.cabin)
+        if per_pax is None:
+            return _err(
+                f"no baggage rule for membership='{user.membership}', cabin='{r.cabin}'"
+            )
+        n_pax = len(r.passengers)
+        return {
+            "reservation_id": reservation_id,
+            "membership": user.membership,
+            "cabin": r.cabin,
+            "passenger_count": n_pax,
+            "free_per_passenger": per_pax,
+            "free_total": per_pax * n_pax,
+            "current_total_baggages": r.total_baggages,
+            "current_nonfree_baggages": r.nonfree_baggages,
+            "paid_extra_per_bag_usd": 50,
+        }
+
     @tool(args_schema=BookingInput)
     def check_booking_eligibility(**kwargs: Any) -> Any:
         """Check whether a proposed booking is eligible under policy.
@@ -217,6 +273,7 @@ def make_tools(store: Store) -> list[StructuredTool]:
         get_user_details,
         get_reservation_details,
         search_route,
+        get_baggage_allowance,
         check_booking_eligibility,
         check_modification_eligibility,
         check_cancellation_eligibility,
