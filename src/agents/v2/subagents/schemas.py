@@ -80,7 +80,9 @@ class BookingInput(BaseModel):
     1 ≤ passengers ≤ 5; cabin uniform across all flights; payment mix
     ≤1 travel certificate + ≤1 credit card + ≤3 gift cards; all
     payment_ids on user profile; payment_methods sum equals
-    (flights × passengers) + $50 × nonfree_baggages + $30 × passengers (if insurance).
+    (flights × passengers) + $50 × paid_bags + $30 × passengers (if insurance),
+    where paid_bags = max(0, total_baggages − free_allowance) is derived by the
+    specialist from the membership×cabin table (NOT supplied by you).
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -136,8 +138,14 @@ class BookingInput(BaseModel):
         ),
     )
     nonfree_baggages: int = Field(
+        default=0,
         ge=0,
-        description="Number of paid bags ($50 each). 0 if all bags are within the free allowance.",
+        description=(
+            "Advisory only — the specialist RECOMPUTES the paid-bag count from "
+            "(membership, cabin, passengers, total_baggages) and ignores this "
+            "value. You do not need to get the free-allowance math right; just "
+            "report total_baggages."
+        ),
     )
     insurance: Literal["yes", "no"] = Field(
         description=(

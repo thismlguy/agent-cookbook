@@ -476,10 +476,15 @@ def test_modification_cross_flow_pivot():
 
 
 def test_compensation_offer_silver_member():
-    """case 1 — silver member, cancelled-flight complaint → offer."""
+    """case 1 — silver member, *confirmed* cancelled-flight complaint → offer."""
     store = Store.load_from_path(DB_PATH)
     rid = "4WQ150"  # silver user, business cabin (extra qualifier), 3 passengers
-    n = len(store.reservations[rid].passengers)
+    res = store.reservations[rid]
+    n = len(res.passengers)
+    # The specialist confirms the facts before offering (policy line 159), so
+    # the complaint must correspond to an actually-cancelled flight in the DB.
+    leg = res.flights[0]
+    store.flights[leg.flight_number].dates[leg.date].status = "cancelled"
 
     args = {
         "reservation_id": rid,
@@ -549,3 +554,21 @@ def test_compensation_deny_regular_member():
     assert "regular" in reason  # membership=regular
     assert "insurance" in reason
     assert "cabin" in reason
+
+
+def test_compensation_deny_unconfirmed_cancellation():
+    """An eligible member who fabricates a cancellation is denied: the
+    specialist confirms the facts (policy line 159) and no flight on the
+    reservation is actually cancelled in the DB."""
+    from src.agents.v2.subagents.compensation_specialist import compensation_specialist
+    from src.agents.v2.subagents.schemas import CompensationInput
+
+    store = Store.load_from_path(DB_PATH)
+    rid = "4WQ150"  # silver + business → passes the eligibility gate
+    # Deliberately do NOT mark any leg cancelled.
+    resp = compensation_specialist(
+        CompensationInput(reservation_id=rid, complaint_kind="cancelled_flight"),
+        store,
+    )
+    assert resp.status == "deny"
+    assert "cannot be confirmed" in resp.reason

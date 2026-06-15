@@ -23,6 +23,10 @@ from src.agents.v2.subagents import (
     compensation_specialist,
     modification_specialist,
 )
+from src.agents.v2.subagents.baggage import (
+    EXTRA_BAG_FEE_USD,
+    free_allowance_per_passenger,
+)
 from src.agents.v2.subagents.schemas import (
     BookingInput,
     CancellationInput,
@@ -34,15 +38,6 @@ from src.domain.store import Store
 
 def _err(msg: str) -> str:
     return f"Error: {msg}"
-
-
-# Free baggage allowance per passenger, indexed by (membership, cabin).
-# Source: data/policy.md <booking> "Free baggage allowance" table.
-_BAGGAGE_TABLE: dict[str, dict[str, int]] = {
-    "regular": {"basic_economy": 0, "economy": 1, "business": 2},
-    "silver":  {"basic_economy": 1, "economy": 2, "business": 3},
-    "gold":    {"basic_economy": 2, "economy": 3, "business": 4},
-}
 
 
 def make_tools(store: Store) -> list[StructuredTool]:
@@ -172,7 +167,7 @@ def make_tools(store: Store) -> list[StructuredTool]:
         user = store.users.get(r.user_id)
         if user is None:
             return _err(f"user '{r.user_id}' on reservation not found")
-        per_pax = _BAGGAGE_TABLE.get(user.membership, {}).get(r.cabin)
+        per_pax = free_allowance_per_passenger(user.membership, r.cabin)
         if per_pax is None:
             return _err(
                 f"no baggage rule for membership='{user.membership}', cabin='{r.cabin}'"
@@ -187,7 +182,7 @@ def make_tools(store: Store) -> list[StructuredTool]:
             "free_total": per_pax * n_pax,
             "current_total_baggages": r.total_baggages,
             "current_nonfree_baggages": r.nonfree_baggages,
-            "paid_extra_per_bag_usd": 50,
+            "paid_extra_per_bag_usd": EXTRA_BAG_FEE_USD,
         }
 
     @tool(args_schema=BookingInput)

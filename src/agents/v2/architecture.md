@@ -687,6 +687,18 @@ convention because from the orchestrator's perspective it's
 indistinguishable from one (typed input, structured output, owns its
 policy section).
 
+> **Implementation note — fact confirmation.** The shipped specialist adds
+> one step the sketch above omits: before *offering*, it confirms the
+> complaint against the DB (policy: "Always confirms the facts before
+> offering compensation"). A `cancelled_flight` offer requires a leg whose
+> stored status is `cancelled`; a `delayed_flight` offer requires a flight
+> that has actually departed (no tool exposes live status, so a future
+> flight cannot have been delayed). This guards against a *fabricated*
+> complaint from an otherwise-eligible member. Crucially the check sits only
+> on the offer path — it never replaces the existing deny reasons (e.g.
+> "delay gesture requires a change/cancel first"), so the orchestrator's
+> phrasing for those cases is unchanged.
+
 ### Where the LLM does the work
 
 The orchestrator's LLM does the parts that need fuzzy reasoning:

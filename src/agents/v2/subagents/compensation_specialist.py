@@ -16,6 +16,7 @@ Amounts:
 """
 from __future__ import annotations
 
+from src.agents.v2.subagents.cancellation_specialist import _flight_already_flown
 from src.agents.v2.subagents.schemas import (
     CompensationDeny,
     CompensationInput,
@@ -23,6 +24,31 @@ from src.agents.v2.subagents.schemas import (
     CompensationResponse,
 )
 from src.domain.store import Store
+
+
+def _has_cancelled_leg(store: Store, reservation) -> bool:
+    """True iff any flight on the reservation is marked cancelled in the DB."""
+    for leg in reservation.flights:
+        flight = store.flights.get(leg.flight_number)
+        if flight is None:
+            continue
+        ds = flight.dates.get(leg.date)
+        if ds is not None and ds.status == "cancelled":
+            return True
+    return False
+
+
+def _any_leg_departed(store: Store, reservation) -> bool:
+    """True iff any flight on the reservation has actually departed.
+
+    No tool exposes live flight status, so a delay can only be *confirmed*
+    once a flight has departed (status flying/landed, or its scheduled time
+    is in the past). A future flight cannot have been delayed.
+    """
+    return any(
+        _flight_already_flown(store, leg.flight_number, leg.date)
+        for leg in reservation.flights
+    )
 
 
 def compensation_specialist(
@@ -57,6 +83,16 @@ def compensation_specialist(
     qualifier_str = ", ".join(qualifiers)
 
     if input.complaint_kind == "cancelled_flight":
+        # Confirm the facts before offering (policy: "Always confirms the facts
+        # before offering compensation"). A fabricated cancellation has no
+        # cancelled leg in our records.
+        if not _has_cancelled_leg(store, r):
+            return CompensationDeny(
+                reason=(
+                    f"no flight in reservation {input.reservation_id} is cancelled "
+                    "in our records; the cancellation claim cannot be confirmed"
+                )
+            )
         return CompensationOffer(
             amount=100 * n,
             reason=(
@@ -70,6 +106,16 @@ def compensation_specialist(
                 reason=(
                     "delayed-flight gesture requires the user to also change "
                     "or cancel the reservation; not yet done"
+                )
+            )
+        # Confirm the delay before offering: a flight that has not departed yet
+        # cannot have been delayed.
+        if not _any_leg_departed(store, r):
+            return CompensationDeny(
+                reason=(
+                    f"no flight in reservation {input.reservation_id} has departed yet "
+                    "(scheduled times are after the current time); the reported "
+                    "delay cannot be confirmed"
                 )
             )
         return CompensationOffer(

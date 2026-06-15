@@ -16,6 +16,10 @@ from src.agents.v2.pending_actions import (
     PendingBook,
     new_action_id,
 )
+from src.agents.v2.subagents.baggage import (
+    EXTRA_BAG_FEE_USD,
+    free_allowance_per_passenger,
+)
 from src.agents.v2.subagents.schemas import (
     BookingInput,
     Deny,
@@ -80,8 +84,20 @@ def booking_specialist(input: BookingInput, store: Store) -> SpecialistResponse:
             )
         total_price += int(price) * len(input.passengers)
 
-    # baggage: $50 per non-free bag; insurance: $30 per passenger
-    total_price += 50 * int(input.nonfree_baggages)
+    # Baggage pricing is policy-DERIVED, not taken from the LLM. The free
+    # allowance is a function of (membership, cabin, passenger_count); any bag
+    # beyond it is a $50 paid bag. We compute the paid-bag count here so the
+    # orchestrator cannot undercharge by miscounting free bags — book_reservation
+    # itself does no baggage pricing, so this is the only guard. The LLM's
+    # `nonfree_baggages` input is advisory and intentionally ignored.
+    free_per_pax = free_allowance_per_passenger(user.membership, input.cabin)
+    if free_per_pax is None:
+        return Deny(
+            reason=f"no baggage rule for membership='{user.membership}', cabin='{input.cabin}'"
+        )
+    free_total = free_per_pax * len(input.passengers)
+    paid_bags = max(0, int(input.total_baggages) - free_total)
+    total_price += EXTRA_BAG_FEE_USD * paid_bags
     if input.insurance == "yes":
         total_price += 30 * len(input.passengers)
 
@@ -105,7 +121,7 @@ def booking_specialist(input: BookingInput, store: Store) -> SpecialistResponse:
         passengers=list(input.passengers),
         payment_methods=list(input.payment_methods),
         total_baggages=int(input.total_baggages),
-        nonfree_baggages=int(input.nonfree_baggages),
+        nonfree_baggages=paid_bags,
         insurance=input.insurance,
     )
     store.pending_actions[pa.action_id] = pa
