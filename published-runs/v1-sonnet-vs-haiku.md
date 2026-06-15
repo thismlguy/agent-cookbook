@@ -80,6 +80,33 @@ closes — they are a *structural* ceiling. They cluster into three buckets:
 Plus scattered rule-application slips (T13 rule conflation, T37 cancelling an
 ineligible reservation, T38 offering a cert the precondition forbids).
 
+## Response latency
+
+Per-response wall-clock, from each run's `summary.json` → `response_time_stats_ms`
+(milliseconds per agent response turn). Sonnet ran with `--effort medium
+--thinking adaptive`; Haiku ran plain (no effort/thinking support) — that
+difference is the main driver of the gap below.
+
+| Metric (per response) | **Sonnet 4.6** | **Haiku 4.5** |
+|---|---:|---:|
+| Average | **10,950 ms** (~10.9 s) | **3,011 ms** (~3.0 s) |
+| Median | **5,112 ms** (~5.1 s) | **2,254 ms** (~2.3 s) |
+| Min | 1,291 ms | 890 ms |
+| Max | 174,761 ms (~175 s) | 15,383 ms (~15 s) |
+| Responses measured | 319 | 533 |
+
+- **Average:** Sonnet is ~3.6× slower (+7.9 s/response). **Median:** ~2.3×
+  slower (+2.9 s). The median gap is far smaller than the average gap, so
+  Sonnet's mean is pulled up by a few very slow turns.
+- **Tail:** Sonnet's worst turn (~175 s) is an order of magnitude above Haiku's
+  (~15 s) — extended thinking on hard turns.
+- **Turn count:** Haiku logged 533 responses vs Sonnet's 319 for the same 50
+  tasks. Haiku is faster *per turn* but chattier, taking more (often
+  unsuccessful) turns per task.
+
+Net: Haiku is meaningfully faster per response, but pays for it with roughly half
+the task pass rate (28% vs 62%).
+
 ## Failure profile by theme
 
 Failed assertions, bucketed (Sonnet had 28 failed; Haiku had 74):
