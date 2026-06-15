@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel reservation NQNU5R since it is in the past.",
+      "passed": true,
+      "rationale": "The agent explicitly refused to cancel NQNU5R, stating 'Per our policy, I cannot process a cancellation once any flight in the reservation has departed' (message [6]), and correctly identified that flight HAT214 departed on May 13, 2024, before the current date of May 15. The agent never called cancel_reservation for NQNU5R."
+    },
+    {
+      "assertion": "Agent does not cancel reservation IFOYYZ since it doesn't meet criteria.",
+      "passed": false,
+      "rationale": "The agent actually cancelled IFOYYZ (message [8] and confirmed in [9] with status='cancelled'), but IFOYYZ did meet the stated cancellation criteria—the agent said it 'qualifies for cancellation — it's within 24 hours of booking (created May 12, and both flights are upcoming)' [6]. The assertion requires the agent to NOT cancel it, but the agent did cancel it, and correctly so based on policy."
+    },
+    {
+      "assertion": "Agent upgrades M20IZO to business class.",
+      "passed": true,
+      "rationale": "The agent successfully upgraded M20IZO to business class via the update_reservation_flights tool call (message [8]), and the tool returned the updated reservation with cabin='business' and new flight prices reflecting the upgrade (message [10]). The agent confirmed this in message [11]."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation IFOYYZ. The basic-economy denial is in-scope per policy and is a complete answer. (Transfer for NQNU5R is policy-warranted because portions have already been flown.)",
+      "passed": true,
+      "rationale": "The agent never called transfer_to_human_agents for IFOYYZ; it only called transfer_to_human_agents for NQNU5R (message [11]). The agent correctly transferred NQNU5R because portions had already flown, which is policy-warranted. For IFOYYZ, the agent handled the basic-economy denial by actually approving the cancellation (correctly, since it met criteria), so no transfer was needed."
+    }
+  ],
+  "passed": false,
+  "summary": "Three of four assertions passed. Assertion 2 failed because the agent correctly cancelled IFOYYZ (which did meet criteria), contrary to the assertion that it should not be cancelled."
+}

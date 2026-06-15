@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that Agent does not offer to change cabin for only some of the flights in a reservation.",
+      "passed": false,
+      "rationale": "The agent explicitly offered and processed a request to upgrade the cabin (to business class) for only the outbound flights, leaving the return flights unchanged in economy. In turn [14], the agent confirmed 'Upgrade those outbound flights to **business class** for all 3 passengers' and 'Keep the return flights (May 26–27) unchanged in economy,' which is precisely what the first assertion prohibits."
+    },
+    {
+      "assertion": "Agent should not make unverifiable commitments about what a human agent or downstream actor can do (e.g., 'a human agent may have access to promotions or discounts'). The standard fare is the fare; promising the human can negotiate a different price sets false expectations.",
+      "passed": true,
+      "rationale": "The agent did not make unverifiable commitments about what a human agent could do regarding promotions, discounts, or price negotiations. In turn [38], the agent stated the human agent 'will search for the May 24 connecting flights, show you the business class pricing'—a straightforward statement about presenting pricing information, not negotiating it. The agent never suggested a human agent could negotiate a lower price or access special discounts."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent violated the first assertion by offering a partial cabin upgrade (business class on outbound only, economy on return); the second assertion was satisfied."
+}

@@ -10,8 +10,9 @@ from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, ToolMessage
 
 from src.agents import get_variant
-from src.agents.v3.pending_actions import (
+from src.agents.v2.pending_actions import (
     execute_pending_action,
+    render_card_summary,
     render_post_execute_message,
 )
 from src.config import DB_PATH
@@ -38,6 +39,37 @@ def _extract_card(text: str) -> dict[str, str] | None:
     if "action_id" not in attrs:
         return None
     return {"action_id": attrs["action_id"], "kind": attrs.get("kind", "")}
+
+
+def _render_cards_for_sim(history: list[BaseMessage], store: Store) -> list[BaseMessage]:
+    """Sim-facing copy of history: strip each agent turn to its visible text
+    (dropping thinking/signature blocks) and expand any `<confirmation_card/>`
+    tag into a human-readable proposal summary (route, cost, payment split).
+
+    The production UI renders the card so the user sees what they're confirming;
+    in eval the runner is that UI. The REAL history (fed to the agent and written
+    to the transcript) keeps the bare tag — only this sim-facing copy is changed.
+    Plain-string, tag-free agent turns pass through untouched.
+    """
+    rendered: list[BaseMessage] = []
+    for m in history:
+        if isinstance(m, AIMessage):
+            text = _visible_text(m.content)
+
+            def _expand(match: "re.Match[str]") -> str:
+                attrs = dict(_ATTR_RE.findall(match.group("attrs")))
+                action_id = attrs.get("action_id")
+                pa = store.pending_actions.get(action_id) if action_id else None
+                return render_card_summary(pa, store) if pa is not None else match.group(0)
+
+            new_text = _CARD_RE.sub(_expand, text)
+            # Rebuild only when we actually changed something (an expanded card or
+            # a non-string content we flattened); plain unchanged strings pass through.
+            if not isinstance(m.content, str) or new_text != m.content:
+                rendered.append(AIMessage(content=new_text))
+                continue
+        rendered.append(m)
+    return rendered
 
 TerminatedBy = Literal["simulator_end", "transferred", "max_turns", "error"]
 
@@ -71,7 +103,7 @@ def _serialize_message(m: BaseMessage) -> dict[str, Any]:
     if isinstance(m, HumanMessage):
         return {"role": "user", "content": _stringify(m.content)}
     if isinstance(m, AIMessage):
-        entry: dict[str, Any] = {"role": "agent", "content": _stringify(m.content)}
+        entry: dict[str, Any] = {"role": "agent", "content": _visible_text(m.content)}
         tool_calls = getattr(m, "tool_calls", None) or []
         if tool_calls:
             entry["tool_calls"] = [
@@ -92,6 +124,29 @@ def _serialize_message(m: BaseMessage) -> dict[str, Any]:
 def _stringify(content: Any) -> str:
     if isinstance(content, str):
         return content
+    if content is None:
+        return ""
+    return str(content)
+
+
+def _visible_text(content: Any) -> str:
+    """The user-visible text of a message.
+
+    Thinking-enabled models (e.g. Sonnet) return content as a list of blocks —
+    a `thinking` block carrying an encrypted `signature`, plus the actual
+    `text` block. Keep only the text blocks so transcripts, the judge, and the
+    simulator see the agent's words, not the encrypted reasoning blob. Plain
+    string content passes through unchanged (Haiku, no thinking)."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for block in content:
+            if isinstance(block, str):
+                parts.append(block)
+            elif isinstance(block, dict) and block.get("type") == "text" and block.get("text"):
+                parts.append(block["text"])
+        return "".join(parts)
     if content is None:
         return ""
     return str(content)
@@ -120,7 +175,7 @@ def _extract_tool_events(new_messages: list[BaseMessage]) -> list[dict[str, Any]
 def _agent_final_text(new_messages: list[BaseMessage]) -> str:
     for m in reversed(new_messages):
         if isinstance(m, AIMessage):
-            return _stringify(m.content)
+            return _visible_text(m.content)
     return ""
 
 
@@ -155,33 +210,36 @@ def run_task(
             terminated_by = "max_turns"
             break
 
-        user_turn: UserTurn = simulator(history)
+        # Build the sim-facing view: strip agent thinking/signature blocks to
+        # visible text, and (v2) expand any <confirmation_card/> tag into a
+        # rendered proposal so the sim sees what it's confirming. The real
+        # history keeps the bare tag; the sim decides via `card_action` — no
+        # fragile verbatim id echo. A no-op for plain tag-free string turns.
+        sim_history = _render_cards_for_sim(history, store)
+        user_turn: UserTurn = simulator(sim_history)
         user_text = user_turn.text
+        effective_kind = user_turn.kind
 
-        # v3 confirmation-card protocol: if the most recent agent reply
-        # had a <confirmation_card/> tag AND the sim echoed it verbatim,
-        # treat that as "accept": run the pending action and substitute
-        # the templated post-execute message for the echo.
         last_agent_text = ""
         for m in reversed(history):
             if isinstance(m, AIMessage):
-                last_agent_text = _stringify(m.content)
+                last_agent_text = _visible_text(m.content)
                 break
         prior_card = _extract_card(last_agent_text)
-        if prior_card is not None and _extract_card(user_text) is not None:
-            echoed = _extract_card(user_text)
-            if echoed and echoed["action_id"] == prior_card["action_id"]:
-                pa = store.pending_actions.get(prior_card["action_id"])
-                if pa is not None:
-                    exec_result = execute_pending_action(
-                        prior_card["action_id"], store
-                    )
-                    user_text = render_post_execute_message(pa, exec_result, store)
+        if prior_card is not None and user_turn.card_action == "accept":
+            # Accept: run the pending action (action_id comes from the agent's
+            # message, not the sim) and substitute the templated post-execute
+            # message. Force one more agent turn so its confirmation is recorded.
+            pa = store.pending_actions.get(prior_card["action_id"])
+            if pa is not None:
+                exec_result = execute_pending_action(prior_card["action_id"], store)
+                user_text = render_post_execute_message(pa, exec_result, store)
+                effective_kind = "message"
 
         user_msg = HumanMessage(content=user_text)
         history.append(user_msg)
 
-        if user_turn.kind == "end":
+        if effective_kind == "end":
             if on_event:
                 on_event(TurnEvent(turn=turn, user=user_text, ended=True))
             terminated_by = "simulator_end"

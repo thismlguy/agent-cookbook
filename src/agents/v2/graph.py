@@ -1,14 +1,18 @@
-"""Airline agent variant `v2` — LangGraph ReAct agent with framing+policy system prompt.
+"""Airline agent variant `v2` — orchestrator over specialist subagents.
 
-Structurally identical to v1. The only difference is the system prompt, which
-adds a short framing layer in front of the verbatim policy. See
-`prompting-best-practices.md` for the references behind the framing.
+The orchestrator is a LangGraph ReAct agent with an 8-tool surface
+(3 reads + 4 specialist eligibility checks + transfer). Write
+operations are not on the LLM's tool surface; they execute via
+`execute_pending_action` invoked by the UI/runner after the user
+confirms a `<confirmation_card>` tag.
+
+See `src/agents/v2/architecture.md` for the full design.
 """
 from __future__ import annotations
 
 from langchain_core.language_models import BaseChatModel
 from langgraph.graph.state import CompiledStateGraph
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 
 from src.agents.v2.prompt import load_system_prompt
 from src.agents.v2.tools import make_tools
@@ -16,11 +20,11 @@ from src.domain.store import Store
 
 
 def make_agent(store: Store, llm: BaseChatModel) -> CompiledStateGraph:
-    """Build the v2 airline agent bound to this Store and chat model."""
+    """Build the v2 airline orchestrator bound to this Store and chat model."""
     tools = make_tools(store)
-    return create_react_agent(
+    return create_agent(
         model=llm,
         tools=tools,
-        prompt=load_system_prompt(),
+        system_prompt=load_system_prompt(),
         name="airline-agent-v2",
     )

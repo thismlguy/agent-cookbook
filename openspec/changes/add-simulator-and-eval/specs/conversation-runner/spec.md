@@ -46,5 +46,5 @@ The runner SHALL accept an optional event callback that is invoked on each turn 
 The runner SHALL construct the agent for a task via the agent-variants registry using the run's `--agent` id, and SHALL NOT reference any variant-specific implementation directly.
 
 #### Scenario: Variant id drives instantiation
-- **WHEN** the runner is asked to run a task with `agent_id == "v1"`
-- **THEN** the agent is instantiated by looking up `"v1"` in the variants registry and invoking the registered factory
+- **WHEN** the runner is asked to run a task with `agent_id == "v0"`
+- **THEN** the agent is instantiated by looking up `"v0"` in the variants registry and invoking the registered factory

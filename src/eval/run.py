@@ -62,6 +62,20 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--limit", type=int, default=None, help="run only the first N tasks (after --task-id filter)")
     p.add_argument("--max-turns", type=int, default=DEFAULT_MAX_TURNS, help="conversation turn cap")
     p.add_argument(
+        "--effort",
+        default=None,
+        choices=["low", "medium", "high", "max"],
+        help="agent reasoning effort (output_config.effort). Anthropic Sonnet/Opus only; "
+        "Haiku rejects it. Applies to the agent model, not the simulator or judge.",
+    )
+    p.add_argument(
+        "--thinking",
+        default=None,
+        choices=["adaptive"],
+        help="enable agent extended thinking (adaptive). Pair with --effort to control depth. "
+        "Applies to the agent model only.",
+    )
+    p.add_argument(
         "--concurrency",
         type=int,
         default=DEFAULT_CONCURRENCY,
@@ -281,7 +295,8 @@ def _run_one_task(
     )
 
     try:
-        agent_llm = build_chat_model(args.model)
+        thinking = {"type": args.thinking} if args.thinking else None
+        agent_llm = build_chat_model(args.model, effort=args.effort, thinking=thinking)
         sim_llm = build_chat_model(sim_spec)
         judge_llm = build_chat_model(judge_spec)
 
@@ -334,13 +349,24 @@ def _run_one_task(
 # ────────────────────────── main ──────────────────────────
 
 
-def _print_summary(counts: dict[str, int]) -> None:
+def _print_summary(counts: dict[str, int], assertion_counts: dict[str, Any] | None = None) -> None:
     print("\n=== summary ===")
+    total_tasks = counts.get("PASS", 0) + counts.get("FAIL", 0) + counts.get("ERROR", 0)
     print(
-        f"nl_assertions  PASS: {counts.get('PASS', 0)}  "
+        f"tasks          PASS: {counts.get('PASS', 0)}  "
         f"FAIL: {counts.get('FAIL', 0)}  "
         f"ERROR: {counts.get('ERROR', 0)}"
+        + (f"   ({counts.get('PASS', 0)}/{total_tasks})" if total_tasks else "")
     )
+    if assertion_counts and assertion_counts.get("total"):
+        rate = assertion_counts.get("pass_rate")
+        print(
+            f"assertions     PASS: {assertion_counts['passed']}  "
+            f"FAIL: {assertion_counts['failed']}  "
+            f"({assertion_counts['passed']}/{assertion_counts['total']}"
+            + (f", {rate:.1%}" if rate is not None else "")
+            + ")"
+        )
 
 
 def _init_langfuse_from_env(model_id_for_config: str) -> None:
@@ -429,7 +455,7 @@ def _main_rejudge(args: argparse.Namespace) -> int:
                 score = fut.result()
                 counts[score] = counts.get(score, 0) + 1
 
-    _print_summary(counts)
+    _print_summary(counts, writer.assertion_counts())
     print(f"results written to: {run_dir}")
     return 0 if counts["FAIL"] == 0 and counts["ERROR"] == 0 else 1
 
@@ -500,7 +526,7 @@ def main(argv: list[str] | None = None) -> int:
                 score = fut.result()
                 counts[score] = counts.get(score, 0) + 1
 
-    _print_summary(counts)
+    _print_summary(counts, writer.assertion_counts())
     print(f"results written to: {run_dir}")
     return 0 if counts["FAIL"] == 0 and counts["ERROR"] == 0 else 1
 

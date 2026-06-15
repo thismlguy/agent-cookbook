@@ -101,6 +101,8 @@ class ResultsWriter:
         self.extra_metadata = dict(extra_metadata) if extra_metadata else {}
         self._start_ts = datetime.now(timezone.utc).isoformat()
         self._per_task: list[dict[str, Any]] = []
+        self._assert_passed = 0
+        self._assert_total = 0
         self._lock = threading.Lock()
 
     def __enter__(self) -> "ResultsWriter":
@@ -135,6 +137,22 @@ class ResultsWriter:
     def _write_metadata(self, *, end_ts: str | None, task_count: int | None) -> None:
         _write_json(self.run_dir / "metadata.json", self._metadata(end_ts=end_ts, task_count=task_count))
 
+    def assertion_counts(self) -> dict[str, Any]:
+        """Aggregate per-assertion pass/fail across all tasks.
+
+        Complements the task-level `counts` (which is all-or-nothing: a task
+        passes only if every assertion passes). The assertion-level pass rate
+        is a finer-grained signal — it shows partial credit on tasks that miss
+        one of several checks.
+        """
+        passed, total = self._assert_passed, self._assert_total
+        return {
+            "passed": passed,
+            "failed": total - passed,
+            "total": total,
+            "pass_rate": round(passed / total, 4) if total else None,
+        }
+
     def _write_summary(self) -> None:
         counts = {"PASS": 0, "FAIL": 0, "ERROR": 0}
         counts_by_intent: dict[str, dict[str, int]] = {}
@@ -152,6 +170,7 @@ class ResultsWriter:
             self.run_dir / "summary.json",
             {
                 "counts": counts,
+                "assertion_counts": self.assertion_counts(),
                 "counts_by_intent": counts_by_intent,
                 "response_time_stats_ms": _stats(all_times),
                 "tasks": sorted(rows, key=lambda r: str(r["task_id"])),
@@ -190,9 +209,16 @@ class ResultsWriter:
         if error is not None:
             eval_payload.setdefault("error", error)
         _write_json(self.run_dir / "evaluations" / f"{task_id}.json", eval_payload)
+        assertions = evaluation.get("assertions") or []
+        n_passed = sum(1 for a in assertions if a.get("passed"))
+        n_total = len(assertions)
         with self._lock:
+            self._assert_passed += n_passed
+            self._assert_total += n_total
             self._per_task.append({
                 "_raw_times": times,
+                "assertions_passed": n_passed,
+                "assertions_total": n_total,
                 "intents": list(intents or []),
                 "response_time_stats_ms": _stats(times),
                 "score": score,

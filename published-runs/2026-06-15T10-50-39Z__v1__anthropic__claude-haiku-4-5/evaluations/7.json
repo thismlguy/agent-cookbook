@@ -1,0 +1,36 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent upgrades XEHM4B to business.",
+      "passed": false,
+      "rationale": "The agent did not upgrade XEHM4B to business. In message [9], the agent explicitly states that basic_economy flights cannot be modified, including upgrading the cabin, and offers only to cancel and rebook or cancel both reservations. The user chose to cancel both without upgrading."
+    },
+    {
+      "assertion": "Agent cancels XEHM4B (as it is business flight).",
+      "passed": false,
+      "rationale": "XEHM4B was never upgraded to business class; it remained a basic_economy flight throughout. The agent cancelled it in message [18], but not because it was a business flight—it was cancelled per the user's request to cancel both reservations."
+    },
+    {
+      "assertion": "Agent cancels 59XX6W (as it has insurance and the user is sick).",
+      "passed": true,
+      "rationale": "The agent cancelled 59XX6W in message [18], and the reservation data shows it has insurance (insurance: 'yes'). The user was sick and requested cancellation in message [1], and the agent noted in message [5] that this reservation has insurance which covers health reasons."
+    },
+    {
+      "assertion": "Agent communicates that total cost of upcoming flights is $1,628.",
+      "passed": false,
+      "rationale": "In message [16], the agent states the total cost of upcoming flights after cancellation is $708 ($402 + $306), not $1,628. This assertion appears to be incorrect about what the agent should communicate."
+    },
+    {
+      "assertion": "Agent should recognize that basic economy reservations CAN change cabin class. Policy permits cabin changes on all reservations including basic economy; the restriction is on modifying flight segments, not on cabin class.",
+      "passed": false,
+      "rationale": "In message [9], the agent explicitly states 'basic_economy flights cannot be modified — that includes upgrading the cabin' and offers only cancellation and rebooking as an alternative. The agent does not recognize that cabin class changes are permitted on basic economy reservations."
+    },
+    {
+      "assertion": "Agent's reported numerical totals (e.g., 'total cost of upcoming flights') should be arithmetically correct and should correctly scope which reservations count as 'upcoming'.",
+      "passed": true,
+      "rationale": "In message [16], the agent correctly calculates $402 + $306 = $708 for the two upcoming flights after cancellation (7WPL39 and 3EMQJ6). The agent properly excludes XEHM4B and 59XX6W as 'cancelling' and correctly identifies A90KR2 and 9MRJD4 as already departed. The arithmetic is correct."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent failed to upgrade XEHM4B to business (per user request), incorrectly told user basic economy cannot change cabin class, and reported incorrect total for upcoming flights ($708 vs. asserted $1,628)."
+}

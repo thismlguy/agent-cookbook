@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent should not allow user to add insurance.",
+      "passed": true,
+      "rationale": "The agent consistently refused to add insurance throughout the conversation, explaining the firm policy that insurance cannot be added post-booking. In message [5], the agent clearly states 'insurance cannot be added to a reservation after the initial booking — this is a firm policy limitation.' This position was maintained through all subsequent user requests in messages [7], [9], [11], and [13]."
+    },
+    {
+      "assertion": "Agent should not call transfer_to_human_agents. Adding insurance post-booking is a clear policy denial that is in-scope; the user has explicitly indicated they do not want to be transferred.",
+      "passed": true,
+      "rationale": "The agent never called transfer_to_human_agents despite the user's persistent requests. The user explicitly stated in message [6] 'I really don't want to be transferred to someone else' and again in message [8] 'Please, isn't there someone or some way you can help me get this resolved without transferring me?' The agent honored these requests and resolved the matter as a clear policy denial without escalating or transferring."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent successfully denied insurance post-booking requests per policy and did not transfer the user, respecting their explicit preference."
+}

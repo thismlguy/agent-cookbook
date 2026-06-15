@@ -24,3 +24,12 @@ class UserTurn(BaseModel):
     text: str = Field(
         description="What the user says on this turn. For 'end', a brief closing remark."
     )
+    card_action: Literal["accept", "reject"] | None = Field(
+        default=None,
+        description=(
+            "Set ONLY when the agent's latest reply presents a proposed action "
+            "for your confirmation (a '[Confirmation requested]' summary). Use "
+            "'accept' to confirm it or 'reject' to decline. Leave null when "
+            "there is no proposal on the table."
+        ),
+    )

@@ -22,9 +22,9 @@ class Store:
         self.flights: dict[str, Flight] = {}
         self.users: dict[str, User] = {}
         self.reservations: dict[str, Reservation] = {}
-        # v3 pending-action store. Typed as `dict[str, Any]` here so this
-        # base module doesn't depend on v3 internals; v3 code constructs
-        # the concrete `PendingAction` rows. Unused by v1/v2.
+        # v2 pending-action store. Typed as `dict[str, Any]` here so this
+        # base module doesn't depend on v2 internals; v2 code constructs
+        # the concrete `PendingAction` rows. Unused by v0/v1.
         self.pending_actions: dict[str, Any] = {}
         self.reset()
 

@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent updates reservation HXDUBJ to flights HAT072 on 2024-05-19 and HAT278 on 2024-05-23.",
+      "passed": true,
+      "rationale": "The agent successfully updated the reservation HXDUBJ with flights HAT072 departing 2024-05-19 and HAT278 departing 2024-05-23, confirmed in tool result [17] which shows these flights now in the reservation."
+    },
+    {
+      "assertion": "Agent does not allow change to business class for only one leg of the flight.",
+      "passed": true,
+      "rationale": "The user said 'Since I can't do business for both legs within my budget' in [21], indicating they attempted to upgrade only one leg but understood it wasn't permitted. The agent presented the full cabin upgrade cost ($408 for both legs) as the only option and did not offer a single-leg business upgrade."
+    },
+    {
+      "assertion": "Agent add 2 free baggages to reservation HXDUBJ.",
+      "passed": true,
+      "rationale": "The agent successfully added 2 checked bags to the reservation at no charge in [24], confirmed by tool result [25] which shows total_baggages: 2 and nonfree_baggages: 0, indicating the 2 bags were covered by the gold membership free allowance."
+    }
+  ],
+  "passed": true,
+  "summary": "All three assertions passed: flights updated to HAT072 (2024-05-19) and HAT278 (2024-05-23), business class upgrade limited to both legs only, and 2 free bags added."
+}

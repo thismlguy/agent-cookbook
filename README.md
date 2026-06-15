@@ -64,9 +64,9 @@ uv run python -m src.eval.run \
 # debug a single task end-to-end
 uv run python -m src.eval.run --task-id 0
 
-# pick an agent variant (v1, v2, or v3 — orchestrator + specialists with a
-# pending-action store; see src/agents/v3/architecture.md)
-uv run python -m src.eval.run --agent v3 --task-id 0
+# pick an agent variant (v0, v1, or v2 — orchestrator + specialists with a
+# pending-action store; see src/agents/v2/architecture.md)
+uv run python -m src.eval.run --agent v2 --task-id 0
 ```
 
 Each run writes a directory like
@@ -139,7 +139,7 @@ data/                   tau2-bench airline dataset (db.json, policy.md, tasks.js
 src/
   config.py             env loading + strict precheck
   domain/               typed entities + in-memory mutable store
-  agents/               agent variants — v1/ is the current ReAct agent
+  agents/               agent variants — v0/ is the flat ReAct baseline, v1/ is the current (XML-structured) agent
   providers/            provider/model selection (init_chat_model + openrouter alias)
   sim/                  LLM-driven user simulator
   runner/               sim ↔ agent conversation runner

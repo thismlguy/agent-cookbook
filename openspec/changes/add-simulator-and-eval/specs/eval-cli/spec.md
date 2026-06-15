@@ -4,8 +4,8 @@
 The evaluation CLI SHALL be invokable as `uv run python -m src.eval.run` and SHALL be the single entrypoint for running an agent variant + provider combination against the task set.
 
 #### Scenario: Module invocation
-- **WHEN** a user runs `uv run python -m src.eval.run --agent v1 --model openrouter:moonshotai/kimi-k2-6`
-- **THEN** the CLI loads `data/tasks.json`, runs every task through the conversation runner with the v1 agent on the Kimi K2.6 model, judges each transcript, and writes a results directory
+- **WHEN** a user runs `uv run python -m src.eval.run --agent v0 --model openrouter:moonshotai/kimi-k2-6`
+- **THEN** the CLI loads `data/tasks.json`, runs every task through the conversation runner with the v0 agent on the Kimi K2.6 model, judges each transcript, and writes a results directory
 
 ### Requirement: CLI runs all tasks in tasks.json by default
 The CLI SHALL load `data/tasks.json` inline (no separate task loader module) and execute every task in file order. There SHALL be no curated demo subset and no `tasks_demo.json` file in this change.
@@ -16,7 +16,7 @@ The CLI SHALL load `data/tasks.json` inline (no separate task loader module) and
 
 ### Requirement: CLI accepts agent, provider, and model flags
 The CLI SHALL accept the following flags:
-- `--agent <id>` (default `v1`): variant id resolved against the agent-variants registry.
+- `--agent <id>` (default `v0`): variant id resolved against the agent-variants registry.
 - `--model <provider:model>` (default `openrouter:moonshotai/kimi-k2-6`): agent's chat model spec.
 - `--sim-model <provider:model>` (optional): simulator's chat model spec; defaults to `--model`.
 - `--judge-model <provider:model>` (optional): judge's chat model spec; defaults to `--model`.

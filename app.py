@@ -7,8 +7,8 @@ other sessions. Tool calls are rendered in the Chainlit UI via
 LangchainTracer; the whole session corresponds to a single Langfuse
 trace tagged with the Chainlit session id.
 
-Select an agent variant with `AIRLINE_AGENT_VARIANT=v1|v2|v3` (default `v1`).
-v3 emits `<confirmation_card>` tags before writes; this UI renders them
+Select an agent variant with `AIRLINE_AGENT_VARIANT=v0|v1|v2` (default `v1`).
+v2 emits `<confirmation_card>` tags before writes; this UI renders them
 as Accept/Cancel buttons and binds Accept to `execute_pending_action`.
 """
 from __future__ import annotations
@@ -22,7 +22,7 @@ from chainlit.langchain.callbacks import LangchainTracer
 from langchain_core.messages import AIMessage, HumanMessage
 
 from src.agents import get_variant
-from src.agents.v3.pending_actions import (
+from src.agents.v2.pending_actions import (
     execute_pending_action,
     render_post_execute_message,
 )
@@ -134,7 +134,7 @@ async def _drive_agent_with_history(history: list) -> None:
     final = new_messages[-1]
     text = getattr(final, "content", "") or ""
     if text:
-        if AGENT_VARIANT == "v3":
+        if AGENT_VARIANT == "v2":
             await _send_agent_reply(text)
         else:
             await cl.Message(content=text).send()

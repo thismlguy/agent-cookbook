@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent update reservation OWZ4XL to economy.",
+      "passed": true,
+      "rationale": "In message [22-23], the agent successfully updated reservation OWZ4XL's cabin from basic_economy to economy using the update_reservation_flights tool. The tool response confirms the cabin is now 'economy'."
+    },
+    {
+      "assertion": "Agent updates reservation OWZ4XL to flight HAT041.",
+      "passed": true,
+      "rationale": "In message [26-27], the agent updated reservation OWZ4XL to flight HAT041 (EWR → LAX nonstop). The tool response confirms the reservation now contains flight HAT041 as the sole flight segment on May 21."
+    },
+    {
+      "assertion": "Agent should recognize that basic economy reservations CAN change cabin class. Policy permits cabin changes on all reservations including basic economy; the restriction is on modifying flight segments, not on cabin class. Telling the user 'basic economy flights cannot be modified in any way, including cabin upgrades' is wrong.",
+      "passed": true,
+      "rationale": "In message [13], the agent explicitly states: 'A cabin upgrade is allowed even on basic economy reservations. And once upgraded to economy, the flight change restriction would no longer apply.' This demonstrates correct understanding that the policy permits cabin class changes on basic economy reservations, with restrictions only on flight segments. The agent's reasoning is sound and correct."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent successfully updated OWZ4XL to economy cabin and HAT041 flight, and correctly understood that basic economy reservations can upgrade cabin class."
+}
