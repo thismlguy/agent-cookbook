@@ -4,8 +4,8 @@
 The eval CLI SHALL create a new directory under `results/` for every run, named such that the agent variant, provider, model, and timestamp are visible in the directory name without opening it.
 
 #### Scenario: Directory name embeds key facets
-- **WHEN** a run completes for agent `v1` on `openrouter:moonshotai/kimi-k2-6` starting at UTC `2026-05-13T18:42:01Z`
-- **THEN** the results directory is named `results/2026-05-13T18-42-01Z__v1__openrouter__moonshotai-kimi-k2-6/` (with filesystem-unsafe characters collapsed)
+- **WHEN** a run completes for agent `v0` on `openrouter:moonshotai/kimi-k2-6` starting at UTC `2026-05-13T18:42:01Z`
+- **THEN** the results directory is named `results/2026-05-13T18-42-01Z__v0__openrouter__moonshotai-kimi-k2-6/` (with filesystem-unsafe characters collapsed)
 
 #### Scenario: No collisions between concurrent runs
 - **WHEN** two runs are started within the same second with identical agent/model

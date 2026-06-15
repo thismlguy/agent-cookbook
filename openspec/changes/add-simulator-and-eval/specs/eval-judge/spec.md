@@ -14,7 +14,7 @@ For this change, the judge SHALL evaluate each `nl_assertion` in `evaluation_cri
 - **WHEN** the judge runs on a transcript whose agent took a different action sequence from `evaluation_criteria.actions`
 - **THEN** the judge's verdict depends only on the `nl_assertions`, not on which tools were called
 
-#### Scenario: communicate_info is not asserted on in v1
+#### Scenario: communicate_info is not asserted on in v0
 - **WHEN** the judge runs on a task whose `evaluation_criteria.communicate_info` is non-empty
 - **THEN** the judge's verdict ignores the `communicate_info` items and depends only on the `nl_assertions`
 

@@ -135,7 +135,7 @@ data/                   tau2-bench airline dataset (db.json, policy.md, tasks.js
 src/
   config.py             env loading + strict precheck
   domain/               typed entities + in-memory mutable store
-  agents/               agent variants — v1/ is the current ReAct agent
+  agents/               agent variants — v0/ is the flat ReAct baseline, v1/ is the current (XML-structured) agent
   providers/            provider/model selection (init_chat_model + openrouter alias)
   sim/                  LLM-driven user simulator
   runner/               sim ↔ agent conversation runner

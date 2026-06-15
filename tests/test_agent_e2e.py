@@ -100,7 +100,9 @@ async def test_agent_full_react_loop_with_mocked_openrouter(monkeypatch):
         )
 
         llm = build_chat_model(f"openrouter:{cfg.model_id}")
-        agent = get_variant("v1")(store, llm)
+        # v0 is the flat-markdown-policy baseline this loop test asserts on
+        # (`# Airline Agent Policy` header). v1 wraps the policy in XML.
+        agent = get_variant("v0")(store, llm)
         result = await agent.ainvoke(
             {"messages": [HumanMessage(content="Who is mia_li_3668?")]}
         )

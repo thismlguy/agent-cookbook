@@ -251,7 +251,7 @@ The single most-confused decision in the whole policy. Memorize:
 
 ---
 
-## 7. Where each tree maps to v1's tools
+## 7. Where each tree maps to v0's tools
 
 | Tree | Read tools | Write tools |
 |---|---|---|
@@ -272,6 +272,6 @@ A gap worth noting: **there is no tool to actually issue a compensation certific
 
 When designing the prompt: each tree's decision points map to either prompt-statable rules or tool/validator logic. The policy currently puts all rules in prose; the tree makes clear which rules are simple (booleans → fits in prompt) vs which are reasoning chains (better as a validator tool).
 
-When designing v3 (tools/process layer): the explicit decision points in trees 3a, 3b, 4, and 5 are good candidates for a `validate_action` tool — programmatic eligibility checks the agent can call rather than re-derive in prose.
+When designing v2 (tools/process layer): the explicit decision points in trees 3a, 3b, 4, and 5 are good candidates for a `validate_action` tool — programmatic eligibility checks the agent can call rather than re-derive in prose.
 
-When designing the workshop: tree 6 (transfer-vs-deny) is the single most-misapplied rule in v1 and v2. Worth a slide of its own.
+When designing the workshop: tree 6 (transfer-vs-deny) is the single most-misapplied rule in v0 and v1. Worth a slide of its own.

@@ -14,6 +14,7 @@ import os
 
 from langchain.chat_models import init_chat_model
 from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import SystemMessage
 from langchain_openai import ChatOpenAI
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
@@ -56,7 +57,13 @@ def _build_openrouter(model: str, **kwargs) -> ChatOpenAI:
     )
 
 
-def build_chat_model(spec: str, **kwargs) -> BaseChatModel:
+def build_chat_model(
+    spec: str,
+    *,
+    effort: str | None = None,
+    thinking: dict | None = None,
+    **kwargs,
+):
     """Build a LangChain chat model from a `<provider>:<model>` spec.
 
     `kwargs` are forwarded to the underlying constructor. Recognized
@@ -64,9 +71,54 @@ def build_chat_model(spec: str, **kwargs) -> BaseChatModel:
       - `openrouter:<model>` → `ChatOpenAI` on `https://openrouter.ai/api/v1`;
         Kimi K2.x is pinned to Moonshot with reasoning disabled.
       - any other prefix → delegated to LangChain's `init_chat_model`.
+
+    Anthropic-only knobs (ignored for `openrouter:*`):
+      - `effort`: shorthand for `output_config.effort` ("low"/"medium"/
+        "high"/"max"). Sonnet 4.6 and Opus-tier only; Haiku 4.5 rejects it.
+      - `thinking`: e.g. `{"type": "adaptive"}` for adaptive thinking.
+
+    Prompt caching is applied separately at the system-prompt level — see
+    `cache_system_prompt` — because the direct Anthropic transport caches
+    via block-level `cache_control`, not a top-level request param.
     """
     provider, model = parse_spec(spec)
     if provider == "openrouter":
         return _build_openrouter(model, **kwargs)
+
+    # Anthropic requires max_tokens; the constructor default (None → 1024)
+    # is too small once thinking is on, so set a ceiling here. It bounds,
+    # not targets, output — non-thinking behavior is unchanged.
+    kwargs.setdefault("max_tokens", DEFAULT_MAX_TOKENS)
+    if effort is not None:
+        kwargs["effort"] = effort
+    if thinking is not None:
+        kwargs["thinking"] = thinking
+
     # init_chat_model accepts "anthropic:claude-...", "openai:gpt-...", etc.
     return init_chat_model(spec, **kwargs)
+
+
+def is_anthropic(llm) -> bool:
+    """True if `llm` is a direct Anthropic chat model (ChatAnthropic)."""
+    return getattr(llm, "_llm_type", None) == "anthropic-chat"
+
+
+def cache_system_prompt(prompt: str, llm):
+    """Wrap a system prompt so its prefix is prompt-cached, if `llm` supports it.
+
+    On the direct Anthropic transport, attaching `cache_control` to the
+    system text block caches everything rendered before the conversation —
+    tools (rendered first) plus the system prompt. That stable prefix is
+    re-sent on every turn of the ReAct loop, so caching it is the dominant
+    cost lever (cache reads bill at ~0.1x).
+
+    Returns a structured `SystemMessage` for Anthropic, or the bare string
+    unchanged for any other provider (whose content format would reject the
+    cache_control block). Note the Anthropic cache minimum is ~2K tokens for
+    Sonnet 4.6 — shorter prefixes silently won't cache (no error).
+    """
+    if not is_anthropic(llm):
+        return prompt
+    return SystemMessage(
+        content=[{"type": "text", "text": prompt, "cache_control": {"type": "ephemeral"}}]
+    )

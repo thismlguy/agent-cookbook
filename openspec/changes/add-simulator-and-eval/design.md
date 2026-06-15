@@ -7,9 +7,9 @@ The foundational change `add-airline-domain-and-agent` shipped: in-memory mutabl
 ## Goals / Non-Goals
 
 **Goals:**
-- A workshop attendee can run `uv run python -m src.eval.run --agent v1 --model openrouter:moonshotai/kimi-k2-6` and see all 50 tasks run end-to-end with a live transcript stream and a final pass/fail summary.
+- A workshop attendee can run `uv run python -m src.eval.run --agent v0 --model openrouter:moonshotai/kimi-k2-6` and see all 50 tasks run end-to-end with a live transcript stream and a final pass/fail summary.
 - The same attendee can rerun with `--model anthropic:claude-sonnet-4-5` (or any other supported provider) and *compare* the two runs by diffing the on-disk results directories.
-- Future agent variants land under `src/agents/v2/`, `src/agents/v3/` without touching v1 or the runner/evaluator.
+- Future agent variants land under `src/agents/v1/`, `src/agents/v2/` without touching v0 or the runner/evaluator.
 - Every run produces a self-contained directory under `results/` with enough metadata to reproduce it.
 - Every conversation also appears in Langfuse with metadata that lets the workshop dashboard filter by agent variant and provider.
 
@@ -18,7 +18,7 @@ The foundational change `add-airline-domain-and-agent` shipped: in-memory mutabl
 - No tool-call / action-sequence assertions.
 - No task loader as a separate module — the eval CLI reads `tasks.json` directly.
 - No curated `tasks_demo.json` subset — every run is the full 50.
-- No multi-provider abstraction beyond what `init_chat_model` already gives us; we don't need per-provider feature parity (e.g. extended thinking) for v1.
+- No multi-provider abstraction beyond what `init_chat_model` already gives us; we don't need per-provider feature parity (e.g. extended thinking) for v0.
 - No persistence layer for agent state, no concurrency in the runner.
 
 ## Decisions
@@ -27,13 +27,13 @@ The foundational change `add-airline-domain-and-agent` shipped: in-memory mutabl
 
 **2. Structured output is enforced via LangChain's `with_structured_output`.** The simulator's `init_chat_model(...).with_structured_output(UserTurn)` returns the parsed pydantic object directly, so the runner never has to parse free-form text for an end sentinel. *Alternative considered:* a `##END##` sentinel string in a plain text message. Rejected — fragile and inconsistent across providers.
 
-**3. Agent variants under `src/agents/v<N>/` with a registry.** The existing code moves from `src/agent/` to `src/agents/v1/` unchanged. Each variant directory exports `make_agent(store, llm) -> CompiledGraph`. `src/agents/__init__.py` maintains `VARIANTS: dict[str, Callable]` mapping variant id to factory. The CLI's `--agent <id>` looks up here. *Alternative considered:* class hierarchy with inheritance. Rejected — variants will differ in prompts/tools/wiring in ways that benefit from copy-paste and divergence, not shared base classes. The whole point is to make variants *easy to compare*, which means easy to fully read side-by-side.
+**3. Agent variants under `src/agents/v<N>/` with a registry.** The existing code moves from `src/agent/` to `src/agents/v0/` unchanged. Each variant directory exports `make_agent(store, llm) -> CompiledGraph`. `src/agents/__init__.py` maintains `VARIANTS: dict[str, Callable]` mapping variant id to factory. The CLI's `--agent <id>` looks up here. *Alternative considered:* class hierarchy with inheritance. Rejected — variants will differ in prompts/tools/wiring in ways that benefit from copy-paste and divergence, not shared base classes. The whole point is to make variants *easy to compare*, which means easy to fully read side-by-side.
 
 **4. Provider selection via LangChain `init_chat_model` with an `openrouter:` alias.** `init_chat_model("anthropic:claude-sonnet-4-5")`, `init_chat_model("openai:gpt-5-5")`, etc. work out of the box. For `openrouter:<model>`, we provide a small wrapper that builds `ChatOpenAI(base_url="https://openrouter.ai/api/v1", model=<model>, api_key=$OPENROUTER_API_KEY, …)` with the existing Moonshot routing + `reasoning.enabled: false` kept for OpenRouter models that need them. *Alternative considered:* native SDK per provider. Rejected — LangChain already has tool/message serialization per provider; rebuilding that is the wrong cost. *Alternative considered:* route everything through OpenRouter. Rejected — we want first-class Anthropic/OpenAI access (caching, future features) for the headline comparisons.
 
 **5. Per-provider keys are conditionally required.** At run start, the CLI inspects the chosen `--model`, `--sim-model`, and `--judge-model`, and validates only the API keys those providers need. `OPENROUTER_API_KEY` and `LANGFUSE_*` remain unconditionally required. Missing keys halt startup with a precise error naming exactly which key is missing for which provider. *Alternative considered:* require every supported key up front. Rejected — friction, and the whole point of the cookbook is "try one provider then another."
 
-**6. Judge asserts only `nl_assertions` in v1.** The judge receives the task description, the list of `nl_assertions`, and the full transcript, and produces a structured response: one boolean per assertion plus an overall `passed` boolean and a one-line rationale. *Alternative considered:* also check `communicate_info` and DB diff now. Deferred — the user wants iteration on the eval format itself first, and `nl_assertions` covers 50/50 tasks.
+**6. Judge asserts only `nl_assertions` in v0.** The judge receives the task description, the list of `nl_assertions`, and the full transcript, and produces a structured response: one boolean per assertion plus an overall `passed` boolean and a one-line rationale. *Alternative considered:* also check `communicate_info` and DB diff now. Deferred — the user wants iteration on the eval format itself first, and `nl_assertions` covers 50/50 tasks.
 
 **7. Per-task verdict is binary (PASS / FAIL / ERROR).** `PASS` = every `nl_assertion` boolean is true. `FAIL` = any false. `ERROR` = uncaught exception during run or judge. Clean headline number for the workshop ("X / 50 passed on Sonnet 4.5; Y / 50 on Kimi K2.6").
 
@@ -62,7 +62,7 @@ JSON is the durable format — easy to diff between runs, easy to feed to a note
 - **`with_structured_output` provider parity.** Some providers handle structured output via tool calling, others via JSON mode. LangChain abstracts this but edge cases exist. *Mitigation:* keep `UserTurn` schema small (2 fields), exercise on every provider we plan to support before the workshop.
 - **Judge inconsistency across runs.** LLM judges drift. *Mitigation:* structured output, low temperature, thinking disabled, identical rubric for every task (and cacheable). Acknowledge variance in workshop materials.
 - **Token cost of all-50 every run.** 50 tasks × ~10 turns × (sim + agent + judge) calls per run. *Mitigation:* prompt-cache the agent's policy block and the judge's rubric block; document expected cost per provider in the README.
-- **Variant divergence rot.** Copy-paste variants are easy to start but hard to keep in sync if a shared invariant needs to change. *Mitigation:* explicitly OK in v1; if a real invariant emerges across variants, extract it to a shared helper at that point.
+- **Variant divergence rot.** Copy-paste variants are easy to start but hard to keep in sync if a shared invariant needs to change. *Mitigation:* explicitly OK in v0; if a real invariant emerges across variants, extract it to a shared helper at that point.
 - **Per-provider feature gaps via `init_chat_model`.** Extended thinking, Anthropic caching, etc. may need provider-specific kwargs. *Mitigation:* the `provider-selection` layer accepts a small per-model config blob for these — kept minimal so the comparison stays honest.
 
 ## Open Questions

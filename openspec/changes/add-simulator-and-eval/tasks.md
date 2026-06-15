@@ -1,9 +1,9 @@
 ## 1. Agent variant scaffolding
 
-- [x] 1.1 Move `src/agent/{graph.py, prompt.py, tools.py, architecture.md, __init__.py}` to `src/agents/v1/` preserving content.
-- [x] 1.2 Update every importer (`app.py`, tests, anything in `src/`) to import from `src.agents.v1` instead of `src.agent`. Confirm `rg "src\.agent\b|src/agent\b"` returns no matches under the project.
-- [x] 1.3 Add `src/agents/__init__.py` with `VARIANTS: dict[str, Callable[[Store, ChatModel], CompiledGraph]]` mapping `"v1"` to the v1 factory.
-- [x] 1.4 Confirm `uv run chainlit run app.py --headless` still serves the v1 agent unchanged.
+- [x] 1.1 Move `src/agent/{graph.py, prompt.py, tools.py, architecture.md, __init__.py}` to `src/agents/v0/` preserving content.
+- [x] 1.2 Update every importer (`app.py`, tests, anything in `src/`) to import from `src.agents.v0` instead of `src.agent`. Confirm `rg "src\.agent\b|src/agent\b"` returns no matches under the project.
+- [x] 1.3 Add `src/agents/__init__.py` with `VARIANTS: dict[str, Callable[[Store, ChatModel], CompiledGraph]]` mapping `"v0"` to the v0 factory.
+- [x] 1.4 Confirm `uv run chainlit run app.py --headless` still serves the v0 agent unchanged.
 
 ## 2. Provider-selection layer
 
@@ -56,7 +56,7 @@
 - [x] 7.5 For each task, construct agent/sim/judge LLMs via `build_chat_model`, call the runner with an `on_event` callback that prints `[turn n] USER:` / `[turn n] AGENT:` / `[turn n] TOOL <name>(...) -> ...` lines, call the judge, write transcript + evaluation files, and print a per-task `task <id>: PASS|FAIL|ERROR — <summary>` line.
 - [x] 7.6 Wrap each per-task pipeline in try/except so one failure does not abort the batch; ERROR tasks still produce transcript + evaluation files capturing the exception.
 - [x] 7.7 Print final aggregate summary; exit non-zero if any task was not PASS.
-- [x] 7.8 Smoke test: `uv run python -m src.eval.run --agent v1 --task-id 0` runs end-to-end and produces a complete results directory.
+- [x] 7.8 Smoke test: `uv run python -m src.eval.run --agent v0 --task-id 0` runs end-to-end and produces a complete results directory.
 
 ## 8. Observability wiring
 

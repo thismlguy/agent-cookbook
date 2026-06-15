@@ -62,6 +62,20 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--limit", type=int, default=None, help="run only the first N tasks (after --task-id filter)")
     p.add_argument("--max-turns", type=int, default=DEFAULT_MAX_TURNS, help="conversation turn cap")
     p.add_argument(
+        "--effort",
+        default=None,
+        choices=["low", "medium", "high", "max"],
+        help="agent reasoning effort (output_config.effort). Anthropic Sonnet/Opus only; "
+        "Haiku rejects it. Applies to the agent model, not the simulator or judge.",
+    )
+    p.add_argument(
+        "--thinking",
+        default=None,
+        choices=["adaptive"],
+        help="enable agent extended thinking (adaptive). Pair with --effort to control depth. "
+        "Applies to the agent model only.",
+    )
+    p.add_argument(
         "--concurrency",
         type=int,
         default=DEFAULT_CONCURRENCY,
@@ -278,7 +292,8 @@ def _run_one_task(
     )
 
     try:
-        agent_llm = build_chat_model(args.model)
+        thinking = {"type": args.thinking} if args.thinking else None
+        agent_llm = build_chat_model(args.model, effort=args.effort, thinking=thinking)
         sim_llm = build_chat_model(sim_spec)
         judge_llm = build_chat_model(judge_spec)
 
