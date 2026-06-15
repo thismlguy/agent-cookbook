@@ -42,18 +42,19 @@ def _extract_card(text: str) -> dict[str, str] | None:
 
 
 def _render_cards_for_sim(history: list[BaseMessage], store: Store) -> list[BaseMessage]:
-    """Sim-facing copy of history with each `<confirmation_card/>` tag expanded
-    into a human-readable proposal summary (route, cost, payment split, etc.).
+    """Sim-facing copy of history: strip each agent turn to its visible text
+    (dropping thinking/signature blocks) and expand any `<confirmation_card/>`
+    tag into a human-readable proposal summary (route, cost, payment split).
 
     The production UI renders the card so the user sees what they're confirming;
     in eval the runner is that UI. The REAL history (fed to the agent and written
-    to the transcript) keeps the bare tag — only this sim-facing copy is expanded.
-    A no-op when no tags are present, so v0/v1 transcripts pass through unchanged.
+    to the transcript) keeps the bare tag — only this sim-facing copy is changed.
+    Plain-string, tag-free agent turns pass through untouched.
     """
     rendered: list[BaseMessage] = []
     for m in history:
         if isinstance(m, AIMessage):
-            text = _stringify(m.content)
+            text = _visible_text(m.content)
 
             def _expand(match: "re.Match[str]") -> str:
                 attrs = dict(_ATTR_RE.findall(match.group("attrs")))
@@ -62,7 +63,9 @@ def _render_cards_for_sim(history: list[BaseMessage], store: Store) -> list[Base
                 return render_card_summary(pa, store) if pa is not None else match.group(0)
 
             new_text = _CARD_RE.sub(_expand, text)
-            if new_text != text:
+            # Rebuild only when we actually changed something (an expanded card or
+            # a non-string content we flattened); plain unchanged strings pass through.
+            if not isinstance(m.content, str) or new_text != m.content:
                 rendered.append(AIMessage(content=new_text))
                 continue
         rendered.append(m)
@@ -100,7 +103,7 @@ def _serialize_message(m: BaseMessage) -> dict[str, Any]:
     if isinstance(m, HumanMessage):
         return {"role": "user", "content": _stringify(m.content)}
     if isinstance(m, AIMessage):
-        entry: dict[str, Any] = {"role": "agent", "content": _stringify(m.content)}
+        entry: dict[str, Any] = {"role": "agent", "content": _visible_text(m.content)}
         tool_calls = getattr(m, "tool_calls", None) or []
         if tool_calls:
             entry["tool_calls"] = [
@@ -121,6 +124,29 @@ def _serialize_message(m: BaseMessage) -> dict[str, Any]:
 def _stringify(content: Any) -> str:
     if isinstance(content, str):
         return content
+    if content is None:
+        return ""
+    return str(content)
+
+
+def _visible_text(content: Any) -> str:
+    """The user-visible text of a message.
+
+    Thinking-enabled models (e.g. Sonnet) return content as a list of blocks —
+    a `thinking` block carrying an encrypted `signature`, plus the actual
+    `text` block. Keep only the text blocks so transcripts, the judge, and the
+    simulator see the agent's words, not the encrypted reasoning blob. Plain
+    string content passes through unchanged (Haiku, no thinking)."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for block in content:
+            if isinstance(block, str):
+                parts.append(block)
+            elif isinstance(block, dict) and block.get("type") == "text" and block.get("text"):
+                parts.append(block["text"])
+        return "".join(parts)
     if content is None:
         return ""
     return str(content)
@@ -149,7 +175,7 @@ def _extract_tool_events(new_messages: list[BaseMessage]) -> list[dict[str, Any]
 def _agent_final_text(new_messages: list[BaseMessage]) -> str:
     for m in reversed(new_messages):
         if isinstance(m, AIMessage):
-            return _stringify(m.content)
+            return _visible_text(m.content)
     return ""
 
 
@@ -184,11 +210,12 @@ def run_task(
             terminated_by = "max_turns"
             break
 
-        # v2 confirmation-card protocol: the agent presents a proposal as a
-        # bare <confirmation_card/> tag. Show the simulator a rendered summary of
-        # that proposal (the runner is the "UI" in eval), then let it decide via
-        # the structured `card_action` field — no fragile verbatim id echo.
-        sim_history = _render_cards_for_sim(history, store) if agent_id == "v2" else history
+        # Build the sim-facing view: strip agent thinking/signature blocks to
+        # visible text, and (v2) expand any <confirmation_card/> tag into a
+        # rendered proposal so the sim sees what it's confirming. The real
+        # history keeps the bare tag; the sim decides via `card_action` — no
+        # fragile verbatim id echo. A no-op for plain tag-free string turns.
+        sim_history = _render_cards_for_sim(history, store)
         user_turn: UserTurn = simulator(sim_history)
         user_text = user_turn.text
         effective_kind = user_turn.kind
@@ -196,7 +223,7 @@ def run_task(
         last_agent_text = ""
         for m in reversed(history):
             if isinstance(m, AIMessage):
-                last_agent_text = _stringify(m.content)
+                last_agent_text = _visible_text(m.content)
                 break
         prior_card = _extract_card(last_agent_text)
         if prior_card is not None and user_turn.card_action == "accept":

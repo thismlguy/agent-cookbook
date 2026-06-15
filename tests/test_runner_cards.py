@@ -27,7 +27,7 @@ import importlib
 _booking_mod = importlib.import_module("src.agents.v2.subagents.booking_specialist")
 from src.config import DB_PATH
 from src.domain.store import Store
-from src.runner.runner import _render_cards_for_sim, run_task
+from src.runner.runner import _render_cards_for_sim, _serialize_message, _visible_text, run_task
 from src.sim.schemas import UserTurn
 
 
@@ -248,3 +248,32 @@ def test_render_cards_for_sim_noop_without_tags():
 def test_userturn_card_action_defaults_none():
     assert UserTurn(kind="message", text="x").card_action is None
     assert UserTurn(kind="message", text="", card_action="accept").card_action == "accept"
+
+
+# ─────────────────────── thinking-block transcript cleanup ───────────────────────
+
+# A Sonnet-with-thinking agent turn: list of blocks (thinking+signature, then text).
+_THINKING_CONTENT = [
+    {"type": "thinking", "thinking": "Let me verify the user first.", "signature": "Ev4CCmUIDhgC_base64_blob_=="},
+    {"type": "text", "text": "Could you share your user ID?"},
+]
+
+
+def test_visible_text_strips_thinking_and_signature():
+    assert _visible_text(_THINKING_CONTENT) == "Could you share your user ID?"
+    assert _visible_text("plain string") == "plain string"  # unchanged for non-thinking models
+    assert _visible_text(None) == ""
+
+
+def test_serialize_message_uses_visible_text():
+    entry = _serialize_message(AIMessage(content=_THINKING_CONTENT))
+    assert entry["content"] == "Could you share your user ID?"
+    assert "signature" not in entry["content"]
+
+
+def test_render_cards_for_sim_flattens_thinking_blocks():
+    store = Store.load_from_path(DB_PATH)
+    history = [HumanMessage(content="hi"), AIMessage(content=_THINKING_CONTENT)]
+    sim_view = _render_cards_for_sim(history, store)
+    assert sim_view[1].content == "Could you share your user ID?"
+    assert "signature" not in sim_view[1].content
