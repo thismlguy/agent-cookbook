@@ -31,7 +31,7 @@ class FlightRef(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     flight_number: str = Field(
-        description="Flight number from search_route results (e.g., 'HAT287')."
+        description="Flight number from a flight-search result (e.g., 'HAT287')."
     )
     date: str = Field(
         description="ISO date 'YYYY-MM-DD'; (flight_number, date) must exist in the flights DB with status='available'."

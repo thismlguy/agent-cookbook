@@ -26,7 +26,8 @@ Per turn: ONE tool call OR ONE message — never both.
 Reads:
 - get_user_details(user_id)
 - get_reservation_details(reservation_id)
-- search_route(origin, destination, date)   # direct first; one-stop fallback
+- search_direct_flight(origin, destination, date)    # nonstop flights (airport codes, not city names)
+- search_onestop_flight(origin, destination, date)   # one-stop connecting itineraries
 - get_baggage_allowance(reservation_id)     # policy-driven; use for ANY "how many bags?" question
 
 Specialists (eligibility — never write to the DB):
@@ -102,7 +103,12 @@ on each user message:
         # dob is per-booking and NOT on the user profile — you MUST ask for it
         # explicitly for every passenger; check_booking_eligibility rejects a
         # passenger missing dob.
-        if flights not yet picked: call search_route per leg; present options; user picks
+        if flights not yet picked: call search_direct_flight per leg (airport
+            codes, not city names). ALSO call search_onestop_flight for that leg
+            when no direct fits the user's constraints (departure time, price) OR
+            the user wants options / "cheapest" / "second cheapest" / a comparison
+            — never declare a route unavailable after only a direct search.
+            present options; user picks.
         when complete: check_booking_eligibility(...)
 
     if intent == modification:
@@ -123,6 +129,9 @@ on each user message:
         #   the change on it. Only ask for a dob you genuinely don't have.
         # for baggage: you give the new TOTAL bag count; the specialist derives
         #   the paid-bag count from the free allowance — do not pre-charge.
+        # for change_kind == flights: find the new flights with
+        #   search_direct_flight / search_onestop_flight (same as booking) before
+        #   calling the specialist; origin/destination cannot change.
         check_modification_eligibility(reservation_id, change_kind, ...)
 
     if intent == cancellation:

@@ -1,6 +1,7 @@
-"""Orchestrator tool surface for v2 — exactly 9 LLM-callable tools.
+"""Orchestrator tool surface for v2 — exactly 10 LLM-callable tools.
 
-Read tools (4):     get_user_details, get_reservation_details, search_route,
+Read tools (5):     get_user_details, get_reservation_details,
+                    search_direct_flight, search_onestop_flight,
                     get_baggage_allowance
 Specialist tools (4): check_{booking,modification,cancellation,compensation}_eligibility
 Escape (1):          transfer_to_human_agents
@@ -9,10 +10,15 @@ NOT on the surface:
   - book_reservation, cancel_reservation, update_reservation_*  (writes
     happen via execute_pending_action, invoked by the UI/runner)
   - execute_pending_action itself
-  - search_direct_flight (internal — used by search_route)
+
+Search mirrors upstream tau2-bench: a nonstop search plus a separate
+one-stop search (an earlier v2 merged them into one `search_route`, which hid
+the direct/one-stop distinction and dropped per-leg times — see changes.md).
 """
 from __future__ import annotations
 
+from datetime import date as _date
+from datetime import timedelta
 from typing import Any
 
 from langchain_core.tools import StructuredTool, tool
@@ -40,8 +46,63 @@ def _err(msg: str) -> str:
     return f"Error: {msg}"
 
 
+# ───────────────────────── flight-search helpers ─────────────────────────
+# Module-level (take `store`) so search_direct_flight and search_onestop_flight
+# share one result shape. Mirrors upstream tau2-bench search semantics.
+
+
+def _next_day(date_str: str) -> str:
+    y, m, d = (int(x) for x in date_str.split("-"))
+    return (_date(y, m, d) + timedelta(days=1)).isoformat()
+
+
+def _flight_dict(f: Any, ds: Any, date: str) -> dict[str, Any]:
+    """One search result: times + per-cabin seats + per-cabin prices."""
+    return {
+        "flight_number": f.flight_number,
+        "origin": f.origin,
+        "destination": f.destination,
+        "date": date,
+        "status": ds.status,
+        "scheduled_departure_time_est": f.scheduled_departure_time_est,
+        "scheduled_arrival_time_est": f.scheduled_arrival_time_est,
+        "available_seats": ds.available_seats.model_dump() if ds.available_seats else None,
+        "prices": ds.prices.model_dump() if ds.prices else None,
+    }
+
+
+def _direct_flights(
+    store: Store, origin: str, destination: str, date: str, leave_after: str | None = None
+) -> list[dict[str, Any]]:
+    """Available nonstops origin→destination on `date`. `leave_after` (an
+    'HH:MM:SS' time) keeps only flights departing at/after it — used to assemble
+    feasible connections."""
+    out: list[dict[str, Any]] = []
+    for f in store.flights.values():
+        if f.origin != origin or f.destination != destination:
+            continue
+        ds = f.dates.get(date)
+        if ds is None or ds.status != "available":
+            continue
+        if leave_after is not None and (f.scheduled_departure_time_est or "") < leave_after:
+            continue
+        out.append(_flight_dict(f, ds, date))
+    return out
+
+
+def _combine_prices(p1: Any, p2: Any) -> dict[str, int] | None:
+    """Per-cabin total across two legs, for cabins priced on both."""
+    if not p1 or not p2:
+        return None
+    return {
+        c: p1[c] + p2[c]
+        for c in p1
+        if c in p2 and p1.get(c) is not None and p2.get(c) is not None
+    }
+
+
 def make_tools(store: Store) -> list[StructuredTool]:
-    """Build the 9 v2 orchestrator tools bound to a Store instance."""
+    """Build the 10 v2 orchestrator tools bound to a Store instance."""
 
     @tool
     def get_user_details(user_id: str) -> Any:
@@ -68,76 +129,51 @@ def make_tools(store: Store) -> list[StructuredTool]:
         return r.model_dump()
 
     @tool
-    def search_route(origin: str, destination: str, date: str) -> Any:
-        """Find flights between origin and destination on a given date.
+    def search_direct_flight(origin: str, destination: str, date: str) -> Any:
+        """Find NONSTOP (direct) flights between two airports on a given date.
 
-        Returns direct flights when available; otherwise returns
-        one-stop options assembled by joining on any hub.
-        Each result has flight_number(s), times, available seats, and prices.
+        Pass airport codes (e.g. 'JFK'), not city names. Returns every available
+        nonstop, each with flight_number, scheduled departure/arrival times,
+        available seats per cabin, and prices per cabin. Returns an empty list if
+        no nonstop exists on that date — when that happens, try
+        search_onestop_flight before telling the user the route is unavailable.
         """
-        directs: list[dict[str, Any]] = []
-        for f in store.flights.values():
-            if f.origin != origin or f.destination != destination:
-                continue
-            ds = f.dates.get(date)
-            if ds is None or ds.status != "available":
-                continue
-            directs.append(
-                {
-                    "type": "direct",
-                    "flight_number": f.flight_number,
-                    "origin": f.origin,
-                    "destination": f.destination,
-                    "date": date,
-                    "scheduled_departure_time_est": f.scheduled_departure_time_est,
-                    "scheduled_arrival_time_est": f.scheduled_arrival_time_est,
-                    "available_seats": (
-                        ds.available_seats.model_dump() if ds.available_seats else None
-                    ),
-                    "prices": ds.prices.model_dump() if ds.prices else None,
-                }
-            )
-        if directs:
-            return directs
+        return _direct_flights(store, origin, destination, date)
 
-        # one-stop fallback
-        legs1: list = []
-        legs2: list = []
-        for f in store.flights.values():
-            ds = f.dates.get(date)
-            if ds is None or ds.status != "available":
+    @tool
+    def search_onestop_flight(origin: str, destination: str, date: str) -> Any:
+        """Find ONE-STOP (single-connection) itineraries between two airports.
+
+        Use when no suitable nonstop exists, or when the user wants more options
+        to compare (e.g. 'cheapest' / 'second cheapest'). Joins on any hub: each
+        result is {via, legs: [leg1, leg2], prices} where both legs are full
+        flight records (times, seats, per-cabin prices) and `prices` is the
+        per-cabin total across both legs. Only feasible connections are returned —
+        the second leg departs at/after the first leg arrives (and on the next day
+        when the first leg lands after midnight).
+        """
+        options: list[dict[str, Any]] = []
+        for f1 in store.flights.values():
+            if f1.origin != origin or f1.destination in (origin, destination):
                 continue
-            if f.origin == origin:
-                legs1.append((f, ds))
-            if f.destination == destination:
-                legs2.append((f, ds))
-        stops: list[dict[str, Any]] = []
-        for f1, ds1 in legs1:
-            for f2, ds2 in legs2:
-                if f1.destination == f2.origin and f1.flight_number != f2.flight_number:
-                    stops.append(
-                        {
-                            "type": "one_stop",
-                            "via": f1.destination,
-                            "legs": [
-                                {
-                                    "flight_number": f1.flight_number,
-                                    "origin": f1.origin,
-                                    "destination": f1.destination,
-                                    "date": date,
-                                    "prices": ds1.prices.model_dump() if ds1.prices else None,
-                                },
-                                {
-                                    "flight_number": f2.flight_number,
-                                    "origin": f2.origin,
-                                    "destination": f2.destination,
-                                    "date": date,
-                                    "prices": ds2.prices.model_dump() if ds2.prices else None,
-                                },
-                            ],
-                        }
-                    )
-        return stops
+            ds1 = f1.dates.get(date)
+            if ds1 is None or ds1.status != "available":
+                continue
+            hub = f1.destination
+            arr = f1.scheduled_arrival_time_est or ""
+            date2 = _next_day(date) if "+1" in arr else date
+            leave_after = arr.replace("+1", "")
+            leg1 = _flight_dict(f1, ds1, date)
+            for leg2 in _direct_flights(store, hub, destination, date2, leave_after=leave_after):
+                options.append(
+                    {
+                        "type": "one_stop",
+                        "via": hub,
+                        "legs": [leg1, leg2],
+                        "prices": _combine_prices(leg1["prices"], leg2["prices"]),
+                    }
+                )
+        return options
 
     @tool
     def get_baggage_allowance(reservation_id: str) -> Any:
@@ -267,7 +303,8 @@ def make_tools(store: Store) -> list[StructuredTool]:
     return [
         get_user_details,
         get_reservation_details,
-        search_route,
+        search_direct_flight,
+        search_onestop_flight,
         get_baggage_allowance,
         check_booking_eligibility,
         check_modification_eligibility,

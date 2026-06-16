@@ -32,7 +32,7 @@ This document is the design. Implementation lands in follow-up files
 
 A single LangGraph ReAct agent. Owns:
 - the conversation with the user
-- basic info-gathering tool calls (`get_user_details`, `get_reservation_details`, `search_route`)
+- basic info-gathering tool calls (`get_user_details`, `get_reservation_details`, `search_direct_flight`/`search_onestop_flight`)
 - routing decisions ("this is a cancellation request → invoke cancellation specialist")
 - relaying specialist verdicts to the user (deny/transfer as prose;
   ready_to_act as a confirmation-card tag — see *Confirmation card protocol*)
@@ -489,21 +489,26 @@ documenting rather than papering over.
 
 ## Orchestrator tool surface
 
-Total: 8 tools.
+Total: 10 tools.
 
 | Tool | Kind | Notes |
 |---|---|---|
 | `get_user_details(user_id)` | info | look up user profile |
 | `get_reservation_details(reservation_id)` | info | look up reservation |
-| `search_route(origin, destination, date)` | info | direct + one-stop fallback |
+| `search_direct_flight(origin, destination, date)` | info | nonstop flights on a date |
+| `search_onestop_flight(origin, destination, date)` | info | one-stop connecting itineraries |
+| `get_baggage_allowance(reservation_id)` | info | policy-driven free-bag allowance |
 | `check_booking_eligibility(...)` | specialist | invokes booking subagent |
 | `check_modification_eligibility(...)` | specialist | invokes modification subagent |
 | `check_cancellation_eligibility(reservation_id, reason)` | specialist | invokes cancellation subagent |
 | `check_compensation_eligibility(reservation_id, complaint_kind, change_or_cancel_done)` | specialist | invokes compensation subagent |
 | `transfer_to_human_agents(summary)` | escape | unchanged |
 
-`search_direct_flight` is no longer top-level; it's used internally by
-`search_route`. `book_reservation`, `cancel_reservation`,
+Search mirrors upstream tau2-bench's two tools (`search_direct_flight` +
+`search_onestop_flight`). An earlier v2 merged them into one `search_route`
+with a direct-XOR-one-stop fallback; the eval showed that hid the
+direct/one-stop distinction and dropped per-leg times, so it was reverted (see
+changes.md "Fix 8"). `book_reservation`, `cancel_reservation`,
 `update_reservation_*` are not on the LLM's tool surface at all —
 they're invoked only inside `pa.execute(store)`, which itself runs only
 when the UI/runner calls `execute_pending_action(action_id)` after user

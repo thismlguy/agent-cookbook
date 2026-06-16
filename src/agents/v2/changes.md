@@ -253,15 +253,47 @@ Targeted re-run of the four affected tasks: **46, 40, 33 PASS**; 22 improved to
 8/9 assertions (its remaining miss is an unrelated payment-method choice). New
 unit test: `test_modify_baggage_derives_free_allowance`.
 
+## Fix 8 — flight search: a v2 simplification that didn't survive the eval
+
+**Symptom (tasks 9, 20, 35).** The agent couldn't find nonstops when asked
+(9), couldn't filter connections by departure time (20 — gave up and
+transferred), and couldn't surface a "second cheapest" option (35 — saw one
+direct, said "no second cheapest").
+
+**Root cause.** v2 had collapsed v0/upstream's two search tools into one
+`search_route` that returned **direct XOR one-stop**, dropped per-leg times and
+seats on connections, and joined only same-date legs. Three failures fall out:
+one-stops are hidden whenever a direct exists (no price comparison); connections
+have no times to filter on; and the merged tool hides *whether* a direct search
+even happened — so task 9's "agent searched for direct flights" fails even
+though it did. Decisively, task 20's assertion **name-checks `search_direct_flight`**
+("the function used was not the specified `search_direct_flight`") — the
+assertions were written against upstream tau2's two-tool surface.
+
+**Fix.** Restore the upstream surface: `search_direct_flight` (nonstops, full
+fields, returns `[]` *visibly* when none) and `search_onestop_flight` (feasible
+connections — second leg departs at/after the first arrives, next-day when the
+first lands after midnight; both legs full; per-cabin combined price for
+"cheapest/Nth-cheapest"). Tool count 9→10 (still far below v0's 13).
+(`src/agents/v2/tools.py`, prompt, architecture.) Diffed against the upstream
+`tools.py` to match semantics.
+
+**Lesson for the talk.** *Not every simplification survives contact with the
+eval.* Merging the two search tools looked like a clean "fewer tools for small
+models" win, but it silently removed capability (one-stop price comparison,
+time filtering) **and** observability (was a direct search even run?). This is
+the mirror image of Fix 2: there we made a hidden write visible; here a hidden
+*search* had to become visible again.
+
 ## Where we are
 
-- **Full mocked suite: green** (54 tests; a regression test for every fix above).
+- **Full mocked suite: green** (regression tests for every fix above).
 - **Full Sonnet re-run:** 30/50 (60%) tasks, 130/159 (81.8%) assertions — up from
   26/50 (52%) / 75.0%, now level with the v1 Sonnet baseline (62% / 82.7%). 11
   tasks flipped to PASS; the apparent "regressions" were sim/judge variance, not
   the fixes (verified per-transcript).
-- **Remaining ceiling:** the `search_route` tool regression (tasks 9, 20, 35) and
-  the arithmetic/"seam" rules (7, 23, 38) — see the search + reasoning root-cause.
+- **Remaining ceiling:** the arithmetic/"seam" rules (7, 23, 38) — see the
+  reasoning root-cause. (The search-tool regression, 9/20/35, is addressed by Fix 8.)
 - **Pending:** a Haiku re-run, and (for a publishable number) averaging 2 Sonnet
   runs or moving the judge to Sonnet to kill the intermittent judge ERRORs.
 
