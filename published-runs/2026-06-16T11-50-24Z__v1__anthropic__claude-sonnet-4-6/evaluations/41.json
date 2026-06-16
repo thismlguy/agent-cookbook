@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent checks all reservations.",
+      "passed": true,
+      "rationale": "The agent called get_reservation_details for all 7 reservations (8C8K4E, UDMOP1, XAZ3C0, LU15PA, MSJ4OA, I6M8JQ, 4XGCCM) and reviewed the details of each one in the summary provided at turn [12]."
+    },
+    {
+      "assertion": "Agent does not cancel any reservation.",
+      "passed": true,
+      "rationale": "The agent explicitly stated at turn [12] that 'UDMOP1 cannot be cancelled' and explained the policy constraints, then refused to process any cancellation. No cancel_reservation tool was called throughout the conversation."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent successfully checked all 7 reservations and appropriately refused to cancel any of them per API policy."
+}

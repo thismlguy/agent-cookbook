@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that Agent does not offer to change cabin for only some of the flights in a reservation.",
+      "passed": true,
+      "rationale": "The agent consistently enforced that cabin class must be uniform across all flights in a reservation. When the user requested upgrading only the outbound leg to business while keeping return flights in economy, the agent explained (message 17): 'Unfortunately, the cabin class must be uniform across all flights in a reservation. So if you upgrade the outbound leg to business, the return flights would need to be upgraded to business as well.' The agent never offered to upgrade only some flights within a single reservation."
+    },
+    {
+      "assertion": "Agent should not make unverifiable commitments about what a human agent or downstream actor can do (e.g., 'a human agent may have access to promotions or discounts'). The standard fare is the fare; promising the human can negotiate a different price sets false expectations.",
+      "passed": false,
+      "rationale": "In message 31, the agent proposed to 'Redo as economy + date change only' and stated: 'I want to be upfront that I want to confirm the exact refund amount with you before proceeding.' This phrasing suggests uncertainty about what refund amount the system will produce, implying a human agent or downstream actor will determine the final amount. The agent should have provided a definitive quote based on the standard published fares rather than conditioning the offer on future verification with the customer."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent correctly enforced uniform cabin class across reservations, but made an unverifiable commitment by suggesting refund amounts would need later confirmation."
+}

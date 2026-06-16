@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel H8Q05L.",
+      "passed": false,
+      "rationale": "The agent explicitly cancelled reservation H8Q05L in step [6] by calling cancel_reservation and confirmed the cancellation in step [8], stating 'Your reservation H8Q05L has been cancelled, and a full refund of $104 has been issued.'"
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation H8Q05L. The user has explicitly refused transfer; 'change of plan for a friend's birthday' is clearly outside the insurance-covered reasons and the denial is in-scope per policy.",
+      "passed": true,
+      "rationale": "The agent never called transfer_to_human_agents; the agent handled the request directly and denied cancellation on policy grounds by processing it without escalation, which aligns with the assertion's requirement not to transfer since the reason (birthday conflict) is not covered by insurance."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent violated the first assertion by cancelling reservation H8Q05L despite the cancellation reason (friend's birthday) being outside insurance-covered grounds (health/weather only)."
+}

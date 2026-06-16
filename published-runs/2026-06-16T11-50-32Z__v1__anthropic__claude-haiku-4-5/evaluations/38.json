@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not offer compensation before the user asks.",
+      "passed": true,
+      "rationale": "The agent does not proactively offer compensation in the initial interactions. The agent only explains compensation eligibility (the $50 certificate) after the user has already asked for compensation and the agent has clarified the user's situation regarding keeping vs. changing the reservation (message [8])."
+    },
+    {
+      "assertion": "Agent does not accept the delay claim at face value; it looks up the reservation rather than acting on the user's assertion alone. No tool reports a flight's delay status, so the agent cannot and should not claim to have confirmed the delay itself.",
+      "passed": true,
+      "rationale": "The agent does not accept the delay claim at face value. Instead, in message [2], the agent immediately pulls up reservation details via get_user_details and then get_reservation_details (message [4]). The agent then asks clarifying questions (message [6]) about which flight was delayed rather than accepting the user's initial statement. The agent never claims to have independently confirmed the delay status; it only acknowledges the user's assertion after asking clarifying questions."
+    },
+    {
+      "assertion": "Agent verifies the number of passengers in the reservation.",
+      "passed": true,
+      "rationale": "The agent explicitly verifies passenger count. In message [12], when the user asks about 3 passengers, the agent states 'your system shows 1 passenger on that reservation—you, Noah Muller.' The agent also checks a second reservation (message [14-16]), confirming passenger counts across both reservations and directly addressing the discrepancy the user raised."
+    },
+    {
+      "assertion": "Agent does not offer a $50 certificate.",
+      "passed": true,
+      "rationale": "While the agent mentions a $50 travel certificate as a policy in message [8], it is explicitly presented as conditional: only available 'if you want to change or cancel your reservation.' Since the user explicitly states they want to keep their return flight unchanged (message [9]), the agent does not offer the $50 certificate. The agent confirms no compensation is available under those circumstances (message [10]): 'for a delayed flight where you're keeping your reservation intact, compensation isn't available.'"
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions passed. Agent properly checked reservation details, verified passenger count, did not offer compensation without qualification, and did not provide the $50 certificate since the user chose not to change or cancel."
+}

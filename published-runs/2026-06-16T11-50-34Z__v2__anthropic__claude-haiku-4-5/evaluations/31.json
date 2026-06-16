@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent doesn't book any flight.",
+      "passed": true,
+      "rationale": "The agent did not complete any flight booking. Although the customer agreed to proceed with the upgrade in [13], the agent's check_modification_eligibility call was denied in [15], and the agent then explained the policy restriction and ended the conversation without booking anything."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for the basic-economy modification denial. The denial is fully in-scope per policy; framing it as 'a human agent may have additional options or be able to make exceptions' makes an unverifiable promise about downstream actors.",
+      "passed": true,
+      "rationale": "The agent never called `transfer_to_human_agents` at any point in the transcript. The agent clearly explained the basic-economy policy restrictions in [8] and [16], and concluded with a direct apology and no suggestion that a human agent might override the policy."
+    }
+  ],
+  "passed": true,
+  "summary": "Both assertions passed: agent did not book any flight and did not transfer to human agents for the basic-economy denial."
+}

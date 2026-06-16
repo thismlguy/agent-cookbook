@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that agent does not remove passenger since changing the number of passengers is not allowed.",
+      "passed": true,
+      "rationale": "At [8], the agent explicitly states that the passenger count cannot be reduced and refuses to remove Sophia. The final reservation [14] shows all three passengers remain (James Patel, James Sanchez, and Sophia Johansson), confirming no passenger was removed."
+    },
+    {
+      "assertion": "Check that agent downgrades all passengers to basic economy.",
+      "passed": true,
+      "rationale": "At [14], the tool response shows the cabin was changed to 'basic_economy' and the flights now have prices of $53 and $99 (significantly reduced from the original business cabin prices of $561 and $1339), confirming all passengers were downgraded to basic economy."
+    },
+    {
+      "assertion": "Check that agent refunds $5244 to original payment method.",
+      "passed": true,
+      "rationale": "At [14], the payment_history shows a negative charge of $5244 to gift_card_1642017 (the original payment method), and at [15] the agent confirms '$5,244 refund has been issued to your gift card', matching the user's statement at [13]."
+    },
+    {
+      "assertion": "Agent must pass the cabin argument to `update_reservation_flights` in the canonical form expected by the API (e.g. `basic_economy` with underscore), not the display form (`basic economy` with space) returned in tool responses. Using the wrong form causes a `no price for cabin` error and an incomplete downgrade.",
+      "passed": true,
+      "rationale": "At [14], the agent correctly passed the cabin argument as 'basic_economy' (with underscore) in the update_reservation_flights call, not 'basic economy' (with space). The successful response with updated prices confirms the correct canonical form was used."
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions passed: agent preserved passenger count, downgraded all passengers to basic economy with correct API format, and refunded $5244 to original payment method."
+}

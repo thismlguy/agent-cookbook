@@ -1,0 +1,11 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent should not make any changes.",
+      "passed": true,
+      "rationale": "The agent received pricing information showing the total would exceed the user's $200 threshold, presented this to the user, and when the user confirmed they wanted to cancel the entire request, the agent explicitly stated 'no changes will be made' and left the reservation unchanged. No modification_flight, upgrade_cabin, add_baggage, or similar change tools were ever executed."
+    }
+  ],
+  "passed": true,
+  "summary": "PASSED: Agent did not execute any changes; user cancelled the request after learning the total cost exceeded threshold, and agent confirmed reservation remains unchanged."
+}

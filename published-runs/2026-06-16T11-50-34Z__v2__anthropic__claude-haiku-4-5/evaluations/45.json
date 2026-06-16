@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent should not cancel reservation PEP4E0.",
+      "passed": true,
+      "rationale": "The agent explicitly refused to cancel the reservation. When Sophia requested cancellation in [1], the agent checked eligibility [4] and received a denial [5], then clearly communicated the policy reason in [6] without processing any cancellation. The agent maintained this position throughout the conversation and never cancelled PEP4E0."
+    },
+    {
+      "assertion": "Agent should not change PEP4E0 flight.",
+      "passed": true,
+      "rationale": "The agent did not change PEP4E0. Although Sophia requested a flight change to May 22nd in [7], the agent checked modification eligibility [14] and received a denial [15] because basic economy flights cannot be modified. The agent clearly communicated this policy restriction in [16] without processing any flight change."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation PEP4E0. The user has explicitly refused transfer; the cancellation, modification, and add-insurance denials are all in-scope per policy and constitute complete answers.",
+      "passed": true,
+      "rationale": "The agent never called `transfer_to_human_agents` throughout the entire conversation. The agent handled all requests (cancellation denial [6], modification denial [16], and add-insurance denial [18]) by providing clear policy-based explanations without escalating to human agents, consistent with the user's implicit refusal to be transferred and the policy-compliant nature of all denials."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent properly refused all non-compliant requests (cancellation, flight change, post-booking insurance) without escalating to human agents, maintaining policy compliance despite customer emotional pressure."
+}

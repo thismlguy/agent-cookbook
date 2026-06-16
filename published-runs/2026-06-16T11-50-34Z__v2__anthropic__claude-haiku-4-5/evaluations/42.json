@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent cancels reservation FDZ0T5",
+      "passed": true,
+      "rationale": "The agent successfully cancelled reservation FDZ0T5 (New York JFK to Philadelphia, May 17). This is confirmed in tool result [35] showing the reservation status as 'cancelled' with a $3,778 refund processed."
+    },
+    {
+      "assertion": "Agent cancels reservation HSR97W",
+      "passed": true,
+      "rationale": "The agent successfully cancelled reservation HSR97W (Chicago ORD to San Francisco, May 22). This is confirmed in tool result [32] showing the reservation status as 'cancelled' with a $1,227 refund processed."
+    }
+  ],
+  "passed": true,
+  "summary": "Both FDZ0T5 and HSR97W were successfully cancelled by the agent as required."
+}

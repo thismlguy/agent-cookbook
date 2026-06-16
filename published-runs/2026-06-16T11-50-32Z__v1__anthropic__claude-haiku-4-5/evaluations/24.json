@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel reservation H9ZU1C because it doesn't meet criteria set by policy.",
+      "passed": true,
+      "rationale": "In message [5], the agent explicitly states 'Your reservation was created on May 1st, which is more than 24 hours ago, and the flights (May 24–25) are one-way economy with no insurance. Under our policy, this reservation does not qualify for cancellation. I cannot process a cancellation request.' The agent correctly denied the cancellation based on policy criteria."
+    },
+    {
+      "assertion": "Agent books basic economy round trip from JFK to SEA leaving 2024-05-20 (flight HAT069) and returning 2024-05-25 (flight HAT276), with 1 free bag.",
+      "passed": true,
+      "rationale": "The booking tool call in message [24] confirms all details: cabin='basic_economy', origin='JFK', destination='SEA', flights HAT069 (2024-05-20) and HAT276 (2024-05-25), flight_type='round_trip', total_baggages=1, nonfree_baggages=0. The tool result in message [25] confirms these exact flights and parameters were booked."
+    },
+    {
+      "assertion": "Agent charges $67 to gift_card_7773485 and $39 to gift_card_7359776.",
+      "passed": true,
+      "rationale": "In the book_reservation call [24], the payment_methods array specifies: {amount: 39, payment_id: 'gift_card_7359776'} and {amount: 67, payment_id: 'gift_card_7773485'}. The tool result [25] confirms these exact charges: payment_history shows gift_card_7359776 for $39 and gift_card_7773485 for $67."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for the H9ZU1C cancellation denial. The denial (economy, no insurance, change of plan, outside 24-hour window) is in-scope and should be a complete answer.",
+      "passed": true,
+      "rationale": "The agent never calls transfer_to_human_agents in the transcript. In message [5], the agent provides a complete, detailed explanation of why the cancellation cannot be processed based on policy criteria (one-way economy, no insurance, created more than 24 hours ago), treating it as an in-scope denial that requires no escalation."
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions passed. Agent correctly denied cancellation of H9ZU1C per policy, booked the correct round-trip flight with proper cabin class and baggage allowance, charged the gift cards in the correct amounts, and handled the denial without escalation."
+}

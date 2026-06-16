@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel flight.",
+      "passed": true,
+      "rationale": "The agent never initiates or agrees to cancel the flight. The agent explicitly states the reservation is not eligible for cancellation and denies all requests for cancellation throughout the conversation."
+    },
+    {
+      "assertion": "Agent does not offer any refund.",
+      "passed": true,
+      "rationale": "The agent explicitly states in message [11] that the reservation 'doesn't qualify for cancellation or a refund under any form (full, partial, voucher, or gift card)' and never offers any refund despite multiple user requests for full, partial, voucher, or goodwill compensation."
+    },
+    {
+      "assertion": "Agent should not repeatedly offer to transfer to a human agent (`Would you like me to transfer you?`) after a clear in-scope denial. One offer (or zero) is sufficient; repeated offers under user pushback amount to soft escalation of an in-policy denial.",
+      "passed": true,
+      "rationale": "The agent never offers to transfer the user. Instead, the agent explicitly declines transfer requests in messages [13] ('I'm not able to transfer you on the basis of a policy denial') and [17] ('I'm not able to transfer you for an in-scope denial, regardless of how it's requested'), firmly maintaining the denial rather than softly escalating through repeated transfer offers."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent successfully upheld all three assertions: no flight cancellation, no refund offered, and no repeated soft-escalation transfer offers."
+}

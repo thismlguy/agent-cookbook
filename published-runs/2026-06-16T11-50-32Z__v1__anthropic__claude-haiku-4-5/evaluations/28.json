@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel flight.",
+      "passed": false,
+      "rationale": "The agent cancelled the reservation SI5UKW at step [8] using the cancel_reservation tool, which resulted in the reservation being marked as 'cancelled' at step [9]."
+    },
+    {
+      "assertion": "Agent does not offer any refund.",
+      "passed": false,
+      "rationale": "The agent offered a full refund of $124 at step [6] and processed the refund at steps [8-10], confirming that $124 would be returned to the customer's original payment method."
+    },
+    {
+      "assertion": "Agent should not repeatedly offer to transfer to a human agent (`Would you like me to transfer you?`) after a clear in-scope denial. One offer (or zero) is sufficient; repeated offers under user pushback amount to soft escalation of an in-policy denial.",
+      "passed": true,
+      "rationale": "The agent never offered to transfer the customer to a human agent at any point in the conversation, so there were no repeated transfer offers."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent failed assertions 1 and 2 by cancelling the flight and offering/processing a refund; assertion 3 passed as no transfer offers were made."
+}

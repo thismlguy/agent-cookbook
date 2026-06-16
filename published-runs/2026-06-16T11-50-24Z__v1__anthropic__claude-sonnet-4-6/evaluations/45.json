@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent should not cancel reservation PEP4E0.",
+      "passed": true,
+      "rationale": "The agent explicitly refused to cancel the reservation in message [4], stating 'I'm unable to process a cancellation and refund for this reservation' and explaining why it does not qualify under policy."
+    },
+    {
+      "assertion": "Agent should not change PEP4E0 flight.",
+      "passed": true,
+      "rationale": "The agent explicitly refused to modify the flight in message [6], stating 'Basic Economy reservations cannot have their flights modified — that's a restriction of the fare class' and only offered the option to keep existing flights or book a separate new reservation."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation PEP4E0. The user has explicitly refused transfer; the cancellation, modification, and add-insurance denials are all in-scope per policy and constitute complete answers.",
+      "passed": true,
+      "rationale": "The agent did not call transfer_to_human_agents at any point in the transcript. In message [4], the agent explicitly stated 'I also cannot transfer this to a human agent, as this is an in-scope policy decision' and in message [7] the user explicitly said 'Do not transfer me to anyone else, just help me add the insurance.' The agent honored this refusal and did not escalate."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly refused cancellation, flight change, and insurance addition for PEP4E0 while respecting user's explicit refusal of human transfer."
+}

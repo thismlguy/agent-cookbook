@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not offer the refund because reservation doesn't meet policy criteria.",
+      "passed": true,
+      "rationale": "The agent checked cancellation eligibility at step [11] and received a denial at step [12] stating the reservation 'does not qualify for cancellation: outside 24-hour window, not airline-cancelled, cabin is not business, and no insurance-covered reason.' The agent then clearly communicated in step [13] that a full refund cannot be processed because the reservation is outside the 24-hour cancellation window, and reiterated this policy in step [15], explicitly stating 'change-of-plans cancellations are only allowed within 24 hours of booking' and 'This isn't a decision that can be overridden.'"
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation 3FRNFB. The cancellation denial is in-scope per policy; user pressure to cancel does not transform an in-scope denial into an out-of-scope request.",
+      "passed": true,
+      "rationale": "The agent never called `transfer_to_human_agents` at any point in the conversation. When the customer explicitly requested a supervisor in step [14], the agent appropriately declined to escalate in step [15], explaining that the policy is firm and cannot be overridden by supervisors. The agent correctly handled this as an in-scope policy denial and maintained the position throughout, refusing both the transfer and the refund request."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly refused refund based on policy criteria and appropriately did not escalate the in-scope denial despite customer pressure."
+}

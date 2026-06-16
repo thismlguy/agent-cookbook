@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent books a one-way one-stop economy itinerary from a New York airport to SEA on 2024-05-20 departing after 11:00 EST, with 3 free baggages and no insurance, for a $255 total fare. The canonical itinerary is JFK to ATL to SEA via HAT136 and HAT039; any other one-stop economy itinerary at the same $255 fare departing after 11:00 EST is equally acceptable.",
+      "passed": true,
+      "rationale": "The agent booked the canonical itinerary JFK→ATL→SEA via HAT136 (departing 7:00 PM EST, which is after 11:00 AM EST) and HAT039 in economy class on 2024-05-20 with 3 free checked bags (confirmed by baggage allowance check), no insurance, and $255 total fare. The booking confirmation in [18] confirms reservation TQ8QCK with these exact parameters."
+    },
+    {
+      "assertion": "Agent charges $250 on payment method certificate_7504069 and $5 on credit_card_4421486.",
+      "passed": true,
+      "rationale": "The payment methods array in the booking call [14] and the payment_history in the booking result [18] both confirm exactly $250 charged to certificate_7504069 and $5 charged to credit_card_4421486."
+    },
+    {
+      "assertion": "Agent should call `search_direct_flight` with airport codes (JFK, EWR, LGA, SEA), not city names ('New York', 'Seattle'). City-name queries return empty results and waste turns.",
+      "passed": true,
+      "rationale": "In step [4], the agent called search_direct_flight with airport codes 'JFK' and 'SEA' rather than city names 'New York' and 'Seattle', demonstrating proper use of airport codes."
+    },
+    {
+      "assertion": "When no direct flight exists, agent should search candidate connecting hubs to build a one-stop itinerary, not declare the booking impossible. The agent has the same search tool used in multi-leg searches elsewhere in this dataset.",
+      "passed": true,
+      "rationale": "When the direct flight options [5] didn't meet the user's 11 AM+ departure requirement, the agent used search_onestop_flight [8] to find connecting flights and successfully built a one-stop itinerary meeting the user's constraints, rather than declaring the booking impossible."
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions satisfied: Agent booked the correct one-stop itinerary (JFK→ATL→SEA via HAT136+HAT039) departing after 11 AM EST with proper economy pricing, 3 free bags, no insurance, correct payment split ($250 cert + $5 credit card), and used proper airport codes while successfully searching for connecting flights when direct options failed."
+}

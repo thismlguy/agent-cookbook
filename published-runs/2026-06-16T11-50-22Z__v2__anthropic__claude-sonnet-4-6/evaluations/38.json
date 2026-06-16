@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not offer compensation before the user asks.",
+      "passed": true,
+      "rationale": "The agent does not proactively offer compensation. It only discusses compensation after the user asks 'What can you do for me in terms of compensation?' in message [10]."
+    },
+    {
+      "assertion": "Agent does not accept the delay claim at face value; it looks up the reservation rather than acting on the user's assertion alone. No tool reports a flight's delay status, so the agent cannot and should not claim to have confirmed the delay itself.",
+      "passed": true,
+      "rationale": "The agent immediately requests the user's ID [2] and looks up the reservations [6] rather than accepting the delay claim at face value. The agent then discusses compensation eligibility through the check_compensation_eligibility tool [11] but never claims to have confirmed the delay itself, instead treating it as an assertion requiring verification of eligibility conditions."
+    },
+    {
+      "assertion": "Agent verifies the number of passengers in the reservation.",
+      "passed": true,
+      "rationale": "In message [11], the agent states 'this reservation has **1 passenger**', and later in message [15], when the user disputes this, the agent explicitly references 'the reservation record clearly shows **1 passenger**', indicating verification was performed from the reservation data retrieved."
+    },
+    {
+      "assertion": "Agent does not offer a $50 certificate.",
+      "passed": true,
+      "rationale": "The agent never offers a $50 certificate. In message [13], the agent mentions 'The $50 delay gesture' but explains it requires a change or cancellation, which the user does not do. The agent correctly declines to offer compensation in messages [13] and [15], stating it cannot offer the compensation without those conditions being met."
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions passed. Agent properly verified details, did not offer compensation without proper conditions being met, and correctly applied policy requirements."
+}

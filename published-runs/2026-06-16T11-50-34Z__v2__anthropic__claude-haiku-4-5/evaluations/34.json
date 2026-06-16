@@ -1,0 +1,11 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent should not make any changes.",
+      "passed": true,
+      "rationale": "The agent conducted research (flight searches, reservation lookups) but crucially never executed any modifications to the reservation. When the customer explicitly demanded all changes be processed atomically (all or none), the agent recognized the system limitation and transferred the customer to a human agent rather than proceeding with individual modifications that could partially fail. No actual changes were made to reservation HXDUBJ."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly refrained from making any changes, recognizing the customer's all-or-nothing requirement and appropriately escalating to human agents."
+}

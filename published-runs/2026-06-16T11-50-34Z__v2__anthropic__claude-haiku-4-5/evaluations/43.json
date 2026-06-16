@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent should not cancel reservation 9HBUV8 since it does not meet requirements.",
+      "passed": true,
+      "rationale": "The agent checked cancellation eligibility for reservation 9HBUV8 with reason 'change_of_plan' (step [21]), received a deny status (step [22]), and correctly refused to cancel it, explaining that even with travel insurance, it only covers health/weather reasons, not change of plans (step [23])."
+    },
+    {
+      "assertion": "Agent should not cancel reservation D1EW9B since it does not meet requirements.",
+      "passed": true,
+      "rationale": "The agent checked cancellation eligibility for reservation D1EW9B with reason 'change_of_plan' (step [13]), received a deny status (step [14]), and correctly refused to cancel it, explaining the reasons (outside 24-hour window, basic economy, no insurance) in step [15]."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for the D1EW9B denial. The basic-economy + change-of-plan + outside-24h denial is in-scope per policy; the user's silver membership does not create eligibility for cancellation.",
+      "passed": true,
+      "rationale": "The agent never called `transfer_to_human_agents` throughout the conversation. When the user invoked silver membership status in step [16], the agent correctly explained in step [17] that membership tier doesn't override the cancellation policy, handling the denial in-scope without escalation."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly refused both cancellation requests without escalation, properly applying cancellation policy regardless of membership status."
+}

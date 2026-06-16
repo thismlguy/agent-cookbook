@@ -1,0 +1,11 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent should not make any changes.",
+      "passed": true,
+      "rationale": "The agent conducted searches and presented options to the customer, but explicitly declined to make any changes to the reservation when the customer determined no option met their budget constraints. The agent stated: 'Since none of these meet all your requirements, I won't make any changes. Your original reservation...remains as-is.' No modification tools were ever invoked."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly refrained from making changes when the customer's requirements could not be met within their constraints."
+}

@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent updates reservation OBUT9V return flights to HAT290 and HAT175 on May 27.",
+      "passed": false,
+      "rationale": "The agent updated the return flights to HAT105 and HAT147 on May 27, not HAT290 and HAT175. The tool result in [26] and [27] confirms the flights are HAT105 (DEN→ORD) and HAT147 (ORD→IAH)."
+    },
+    {
+      "assertion": "Agent assigns payment to gift_card_6276644.",
+      "passed": false,
+      "rationale": "The agent assigned baggage payment to gift_card_7480005 (shown in [25] tool call and [27] payment history), not gift_card_6276644. While the agent mentioned using 'the gift card with the smallest balance,' the actual payment was assigned to a different card."
+    },
+    {
+      "assertion": "Agent updates reservation OBUT9V to 2 free baggages.",
+      "passed": false,
+      "rationale": "The agent updated the reservation to 2 total baggages with 1 paid bag, not 2 free baggages. The [27] result shows 'total_baggages': 2, 'nonfree_baggages': 1, meaning only 1 free and 1 paid."
+    },
+    {
+      "assertion": "Agent should not repeatedly retry the same direct-flight search after it returns empty. If DEN→IAH direct is unavailable, agent should search alternative routings (e.g., DEN→hub→IAH) rather than re-issuing the identical query.",
+      "passed": true,
+      "rationale": "The agent correctly handled this: after the DEN→IAH direct flight search returned empty in [12]-[13], the agent searched for alternative routings via hubs (ORD and DFW) in [16] without repeating the original DEN→IAH direct search."
+    }
+  ],
+  "passed": false,
+  "summary": "3 of 4 assertions failed; only the assertion about avoiding repeated direct-flight searches passed."
+}

@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that Agent does not offer to change cabin for only some of the flights in a reservation.",
+      "passed": true,
+      "rationale": "The agent correctly refused to offer a partial-cabin upgrade. When the user asked to upgrade only the outbound IAH-SEA flight to business on May 24th while keeping the return in economy, the agent explicitly stated in message [27]: 'cabin upgrades must apply **uniformly to all segments and all passengers** — I'm unable to upgrade only the outbound leg while keeping the return in economy. A partial-segment upgrade isn't something our policy supports.' The agent never offered a partial upgrade."
+    },
+    {
+      "assertion": "Agent should not make unverifiable commitments about what a human agent or downstream actor can do (e.g., 'a human agent may have access to promotions or discounts'). The standard fare is the fare; promising the human can negotiate a different price sets false expectations.",
+      "passed": true,
+      "rationale": "The agent correctly avoided making unverifiable commitments about promotions or negotiations. In message [29], when the user asked about promotions or different options to get under $1,000, the agent stated clearly: 'I don't have access to promotions or special pricing, and I can't adjust the fare structure. The $1,758 is the system-calculated price difference... there's no alternate path I can offer.' The agent did not suggest that a human agent might have access to discounts or that the price could be negotiated differently, avoiding false expectations."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly refused partial-cabin upgrades and avoided making unverifiable commitments about promotions or downstream pricing flexibility."
+}

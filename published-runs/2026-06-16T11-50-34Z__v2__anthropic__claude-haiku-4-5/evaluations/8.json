@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent get sophia_silva_7557 user details.",
+      "passed": true,
+      "rationale": "In step [2], the agent called get_user_details with user_id 'sophia_silva_7557' and received the user's full details including name, address, DOB, email, and payment methods."
+    },
+    {
+      "assertion": "Agent identifies reservation id as WUNA5K.",
+      "passed": true,
+      "rationale": "In step [12], the agent called get_reservation_details with reservation_id 'WUNA5K', which was confirmed in step [13] to be the ORD-to-PHL trip from May 10 with flight HAT271."
+    },
+    {
+      "assertion": "Agent books one-way flight HAT271, May 26, in economy, no travel insurance, no baggage. Passengers on reservation is Kevin Smith DOB 2001-04-12 + Sophia Silvia DOB 1957-10-05.",
+      "passed": true,
+      "rationale": "In step [20], the agent called check_booking_eligibility with flight_type 'one_way', flight_number 'HAT271', date '2024-05-26', cabin 'economy', insurance 'no', total_baggages 0, and passengers Sophia Silva DOB 1957-10-05 and Kevin Smith DOB 2001-04-12. Step [24] confirms the booking was created with these exact specifications."
+    },
+    {
+      "assertion": "Agent uses single certificate for payment.",
+      "passed": true,
+      "rationale": "In step [19], the user selected certificate_8045380. In step [20], the payment_methods array contains a single certificate entry: [{'amount': 348, 'payment_id': 'certificate_8045380'}]. Step [24] confirms this single certificate was used for the final booking."
+    }
+  ],
+  "passed": true,
+  "summary": "All four assertions passed: agent retrieved user details, identified the correct prior reservation (WUNA5K), booked the specified one-way flight with correct passengers and cabin class, and used a single certificate for payment."
+}

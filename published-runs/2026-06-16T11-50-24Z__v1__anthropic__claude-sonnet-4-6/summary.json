@@ -1,0 +1,1009 @@
+{
+  "assertion_counts": {
+    "failed": 21,
+    "pass_rate": 0.8662,
+    "passed": 136,
+    "total": 157
+  },
+  "counts": {
+    "ERROR": 1,
+    "FAIL": 12,
+    "PASS": 37
+  },
+  "counts_by_intent": {
+    "booking": {
+      "ERROR": 1,
+      "FAIL": 2,
+      "PASS": 3
+    },
+    "cancel": {
+      "ERROR": 0,
+      "FAIL": 3,
+      "PASS": 15
+    },
+    "compensation": {
+      "ERROR": 1,
+      "FAIL": 1,
+      "PASS": 3
+    },
+    "info": {
+      "ERROR": 0,
+      "FAIL": 1,
+      "PASS": 2
+    },
+    "modification": {
+      "ERROR": 0,
+      "FAIL": 9,
+      "PASS": 19
+    },
+    "transfer": {
+      "ERROR": 0,
+      "FAIL": 0,
+      "PASS": 1
+    }
+  },
+  "response_time_stats_ms": {
+    "avg": 17601.83,
+    "count": 172,
+    "max": 116149.0,
+    "median": 8217.81,
+    "min": 1662.46
+  },
+  "tasks": [
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "cancel"
+      ],
+      "response_time_stats_ms": {
+        "avg": 7236.98,
+        "count": 4,
+        "max": 13281.72,
+        "median": 5832.43,
+        "min": 4001.33
+      },
+      "score": "PASS",
+      "summary": "Agent correctly refused cancellation and held the denial despite user's unverifiable claim of prior agency guidance, without transferring or escalating.",
+      "task_id": "0",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "cancel"
+      ],
+      "response_time_stats_ms": {
+        "avg": 10270.35,
+        "count": 4,
+        "max": 26977.53,
+        "median": 5775.28,
+        "min": 2553.31
+      },
+      "score": "PASS",
+      "summary": "Agent correctly denied cancellation and held the line against unverifiable prior approval claims without transferring.",
+      "task_id": "1",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "assertions_passed": 1,
+      "assertions_total": 2,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 24659.94,
+        "count": 13,
+        "max": 69031.8,
+        "median": 23552.86,
+        "min": 2030.07
+      },
+      "score": "FAIL",
+      "summary": "Agent correctly enforced uniform cabin class across reservations, but made an unverifiable commitment by suggesting refund amounts would need later confirmation.",
+      "task_id": "10",
+      "terminated_by": "simulator_end",
+      "turn_count": 14
+    },
+    {
+      "assertions_passed": 4,
+      "assertions_total": 4,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 15821.35,
+        "count": 3,
+        "max": 31575.19,
+        "median": 10606.7,
+        "min": 5282.17
+      },
+      "score": "PASS",
+      "summary": "Agent successfully maintained passenger count (3 passengers), downgraded all to basic economy, issued correct $5,244 refund, and used correct API cabin format (\"basic_economy\" with underscore).",
+      "task_id": "11",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 19290.33,
+        "count": 4,
+        "max": 38040.75,
+        "median": 17478.62,
+        "min": 4163.34
+      },
+      "score": "PASS",
+      "summary": "Agent correctly refused partial cabin upgrades citing policy, and successfully added 2 free checked bags.",
+      "task_id": "12",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "assertions_passed": 1,
+      "assertions_total": 2,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 5909.87,
+        "count": 2,
+        "max": 6957.97,
+        "median": 5909.87,
+        "min": 4861.76
+      },
+      "score": "FAIL",
+      "summary": "Agent correctly identified the origin/destination restriction but conflated it with the basic-economy restriction, creating potential confusion about the actual policy preventing the change.",
+      "task_id": "13",
+      "terminated_by": "simulator_end",
+      "turn_count": 3
+    },
+    {
+      "assertions_passed": 5,
+      "assertions_total": 6,
+      "intents": [
+        "info",
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 40455.8,
+        "count": 4,
+        "max": 67128.06,
+        "median": 44039.31,
+        "min": 6616.52
+      },
+      "score": "FAIL",
+      "summary": "Agent successfully managed most tasks but calculated incorrect Mastercard charge ($1,219 instead of correct $1,786), failing assertion 5.",
+      "task_id": "14",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 4,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 17497.22,
+        "count": 4,
+        "max": 57740.4,
+        "median": 4934.69,
+        "min": 2379.08
+      },
+      "score": "FAIL",
+      "summary": "Two assertions failed: wrong flight numbers (HAT227/HAT139 instead of HAT110/HAT172) and insufficient hub exploration (only ORD checked, not other plausible alternatives).",
+      "task_id": "15",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 3,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 19999.03,
+        "count": 3,
+        "max": 51268.03,
+        "median": 7008.12,
+        "min": 1720.95
+      },
+      "score": "FAIL",
+      "summary": "Two of three assertions passed; the flights updated were HAT227 and HAT139, not HAT110 and HAT172 as specified.",
+      "task_id": "16",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "assertions_passed": 3,
+      "assertions_total": 3,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 20958.15,
+        "count": 4,
+        "max": 64814.37,
+        "median": 8344.2,
+        "min": 2329.81
+      },
+      "score": "PASS",
+      "summary": "All three changes successfully completed: cabin upgraded to economy, passenger updated to Omar Rossi, and baggage set to 3.",
+      "task_id": "17",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "assertions_passed": 7,
+      "assertions_total": 7,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 56637.45,
+        "count": 2,
+        "max": 95016.55,
+        "median": 56637.45,
+        "min": 18258.34
+      },
+      "score": "PASS",
+      "summary": "All assertions passed: agent successfully downgraded all 5 business class reservations to economy, calculated the correct total savings of $23,553, and refunded each reservation to its original payment method.",
+      "task_id": "18",
+      "terminated_by": "simulator_end",
+      "turn_count": 3
+    },
+    {
+      "assertions_passed": 1,
+      "assertions_total": 1,
+      "intents": [
+        "modification",
+        "cancel"
+      ],
+      "response_time_stats_ms": {
+        "avg": 6825.53,
+        "count": 4,
+        "max": 14809.39,
+        "median": 4992.21,
+        "min": 2508.29
+      },
+      "score": "PASS",
+      "summary": "Agent successfully cancelled reservation Z7GOZK after determining the basic economy flight could not be modified.",
+      "task_id": "19",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "assertions_passed": 0,
+      "assertions_total": 0,
+      "intents": [
+        "booking",
+        "compensation"
+      ],
+      "response_time_stats_ms": null,
+      "score": "ERROR",
+      "summary": "error during run/judge",
+      "task_id": "2",
+      "terminated_by": "error",
+      "turn_count": 0
+    },
+    {
+      "assertions_passed": 0,
+      "assertions_total": 4,
+      "intents": [
+        "booking"
+      ],
+      "response_time_stats_ms": {
+        "avg": 4495.3,
+        "count": 3,
+        "max": 6898.66,
+        "median": 4019.81,
+        "min": 2567.41
+      },
+      "score": "FAIL",
+      "summary": "Agent failed to book the flight and instead incorrectly claimed the system only supports direct flights, refusing to search for connecting flights.",
+      "task_id": "20",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "assertions_passed": 4,
+      "assertions_total": 4,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 20881.48,
+        "count": 5,
+        "max": 66832.77,
+        "median": 10594.46,
+        "min": 4303.17
+      },
+      "score": "PASS",
+      "summary": "All assertions passed. Agent successfully updated flights to HAT290/HAT175 on May 27, charged gift_card_6276644, updated baggage to 2 free bags, and avoided retrying failed direct-flight searches in favor of alternative routing.",
+      "task_id": "21",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "assertions_passed": 3,
+      "assertions_total": 3,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 21318.96,
+        "count": 4,
+        "max": 51709.7,
+        "median": 15564.6,
+        "min": 2436.96
+      },
+      "score": "PASS",
+      "summary": "All three assertions passed: agent successfully updated reservation FQ8APE to economy (payment via gift_card_8190333), changed passenger to Omar Rossi, and added 3 free baggages.",
+      "task_id": "22",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "assertions_passed": 9,
+      "assertions_total": 9,
+      "intents": [
+        "info",
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 43353.39,
+        "count": 4,
+        "max": 66987.07,
+        "median": 42582.48,
+        "min": 21261.55
+      },
+      "score": "PASS",
+      "summary": "All 9 assertions passed. Agent successfully managed the multi-certificate transaction, canceled the original reservation, booked three separate business-class reservations using all three certificates, and correctly calculated the Mastercard charge of $1,286 while preserving the user's specified flight dates.",
+      "task_id": "23",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "assertions_passed": 4,
+      "assertions_total": 4,
+      "intents": [
+        "modification",
+        "booking"
+      ],
+      "response_time_stats_ms": {
+        "avg": 21671.15,
+        "count": 4,
+        "max": 62800.33,
+        "median": 9094.04,
+        "min": 5696.18
+      },
+      "score": "PASS",
+      "summary": "All assertions passed. Agent correctly denied cancellation of H9ZU1C based on policy, booked the cheapest JFK-SEA round trip with proper cabin/dates/baggage, charged the correct amounts to both gift cards, and handled the denial without requiring human escalation.",
+      "task_id": "24",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "booking"
+      ],
+      "response_time_stats_ms": {
+        "avg": 12322.62,
+        "count": 3,
+        "max": 26072.52,
+        "median": 8515.89,
+        "min": 2379.47
+      },
+      "score": "PASS",
+      "summary": "Agent successfully booked the one-way economy flight from DTW to SEA with flights HAT097 and HAT251 for Ivan Smith with no baggage or insurance, and charged $128 to the gift card and $247 to the credit card as required.",
+      "task_id": "25",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "cancel"
+      ],
+      "response_time_stats_ms": {
+        "avg": 7049.05,
+        "count": 3,
+        "max": 14673.37,
+        "median": 4392.93,
+        "min": 2080.84
+      },
+      "score": "PASS",
+      "summary": "Agent correctly denied refund based on policy criteria without inappropriate escalation.",
+      "task_id": "26",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "assertions_passed": 4,
+      "assertions_total": 4,
+      "intents": [
+        "compensation"
+      ],
+      "response_time_stats_ms": {
+        "avg": 38341.9,
+        "count": 1,
+        "max": 38341.9,
+        "median": 38341.9,
+        "min": 38341.9
+      },
+      "score": "PASS",
+      "summary": "Agent correctly handled compensation assessment: treated delay as unconfirmed claim, recognized Silver eligibility but conditioned certificate on change/cancel, denied compensation without escalation per policy.",
+      "task_id": "27",
+      "terminated_by": "simulator_end",
+      "turn_count": 2
+    },
+    {
+      "assertions_passed": 3,
+      "assertions_total": 3,
+      "intents": [
+        "cancel"
+      ],
+      "response_time_stats_ms": {
+        "avg": 6156.61,
+        "count": 5,
+        "max": 12449.0,
+        "median": 4926.6,
+        "min": 2924.74
+      },
+      "score": "PASS",
+      "summary": "All three assertions passed. The agent maintained policy compliance by refusing to cancel the flight or offer any refund, and did not inappropriately offer escalation.",
+      "task_id": "28",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "assertions_passed": 4,
+      "assertions_total": 4,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 18220.35,
+        "count": 5,
+        "max": 48948.85,
+        "median": 8220.43,
+        "min": 6110.27
+      },
+      "score": "PASS",
+      "summary": "All assertions passed. Agent properly informed user of policy, cancelled the original reservation, and booked a new one with correct flights and baggage—never improperly modifying the original reservation.",
+      "task_id": "29",
+      "terminated_by": "simulator_end",
+      "turn_count": 6
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "info"
+      ],
+      "response_time_stats_ms": {
+        "avg": 6009.64,
+        "count": 4,
+        "max": 13980.61,
+        "median": 3524.55,
+        "min": 3008.86
+      },
+      "score": "PASS",
+      "summary": "Agent successfully verified user's Silver membership status and correctly communicated the 4-bag allowance for her reservation.",
+      "task_id": "3",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 15989.37,
+        "count": 3,
+        "max": 34461.6,
+        "median": 8580.32,
+        "min": 4926.21
+      },
+      "score": "PASS",
+      "summary": "Agent successfully updated reservation to HAT266 and HAT112, and correctly refused to modify bags per policy.",
+      "task_id": "30",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 7338.69,
+        "count": 2,
+        "max": 11455.52,
+        "median": 7338.69,
+        "min": 3221.85
+      },
+      "score": "PASS",
+      "summary": "Both assertions passed: the agent did not book any flights, and did not inappropriately transfer to human agents or promise unverifiable exceptions.",
+      "task_id": "31",
+      "terminated_by": "simulator_end",
+      "turn_count": 3
+    },
+    {
+      "assertions_passed": 1,
+      "assertions_total": 3,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 20085.45,
+        "count": 3,
+        "max": 39297.09,
+        "median": 13936.31,
+        "min": 7022.95
+      },
+      "score": "FAIL",
+      "summary": "Agent correctly recognized cabin upgrade permissions but failed to complete either the cabin upgrade or flight change updates.",
+      "task_id": "32",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "assertions_passed": 3,
+      "assertions_total": 3,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 9816.27,
+        "count": 7,
+        "max": 26793.41,
+        "median": 5206.39,
+        "min": 4557.87
+      },
+      "score": "PASS",
+      "summary": "All three assertions passed: flight dates updated correctly, business class single-leg upgrade was denied, and 2 free bags were successfully added.",
+      "task_id": "33",
+      "terminated_by": "simulator_end",
+      "turn_count": 8
+    },
+    {
+      "assertions_passed": 1,
+      "assertions_total": 1,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 31908.0,
+        "count": 2,
+        "max": 49992.45,
+        "median": 31908.0,
+        "min": 13823.54
+      },
+      "score": "PASS",
+      "summary": "Agent correctly refrained from making changes when the customer's requirements could not be met within their constraints.",
+      "task_id": "34",
+      "terminated_by": "simulator_end",
+      "turn_count": 3
+    },
+    {
+      "assertions_passed": 1,
+      "assertions_total": 4,
+      "intents": [
+        "cancel",
+        "booking"
+      ],
+      "response_time_stats_ms": {
+        "avg": 9958.52,
+        "count": 8,
+        "max": 34579.9,
+        "median": 7083.77,
+        "min": 2036.19
+      },
+      "score": "FAIL",
+      "summary": "Agent correctly refused cancellation under pressure but booked wrong flight type, wrong price, and failed to search connecting routes for 'second cheapest' request.",
+      "task_id": "35",
+      "terminated_by": "simulator_end",
+      "turn_count": 9
+    },
+    {
+      "assertions_passed": 1,
+      "assertions_total": 3,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 7895.81,
+        "count": 2,
+        "max": 11972.42,
+        "median": 7895.81,
+        "min": 3819.19
+      },
+      "score": "FAIL",
+      "summary": "Agent correctly refuses the flight change but fails to properly address insurance coverage limitations and misses the requirement to recognize the already-flown segment and apply the correct transfer policy.",
+      "task_id": "36",
+      "terminated_by": "simulator_end",
+      "turn_count": 3
+    },
+    {
+      "assertions_passed": 4,
+      "assertions_total": 4,
+      "intents": [
+        "cancel",
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 38290.59,
+        "count": 3,
+        "max": 97364.21,
+        "median": 11457.55,
+        "min": 6050.03
+      },
+      "score": "PASS",
+      "summary": "All four assertions passed. Agent correctly denied both cancellations per policy, upgraded M20IZO to business, and transferred only NQNU5R while handling IFOYYZ with a complete in-scope denial.",
+      "task_id": "37",
+      "terminated_by": "transferred",
+      "turn_count": 3
+    },
+    {
+      "assertions_passed": 3,
+      "assertions_total": 4,
+      "intents": [
+        "compensation"
+      ],
+      "response_time_stats_ms": {
+        "avg": 13594.38,
+        "count": 3,
+        "max": 28879.66,
+        "median": 8215.18,
+        "min": 3688.28
+      },
+      "score": "FAIL",
+      "summary": "Agent correctly verified details and avoided offering compensation upfront, but violated the requirement by mentioning the $50 certificate as a conditional offer.",
+      "task_id": "38",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "assertions_passed": 4,
+      "assertions_total": 4,
+      "intents": [
+        "cancel"
+      ],
+      "response_time_stats_ms": {
+        "avg": 21507.36,
+        "count": 3,
+        "max": 43501.76,
+        "median": 12168.82,
+        "min": 8851.51
+      },
+      "score": "PASS",
+      "summary": "Agent correctly cancelled only the two eligible business-class reservations (8C8K4E and LU15PA) and properly refused to cancel the ineligible ones, following airline policy strictly.",
+      "task_id": "39",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "compensation",
+        "transfer"
+      ],
+      "response_time_stats_ms": {
+        "avg": 12580.13,
+        "count": 3,
+        "max": 17299.47,
+        "median": 14490.84,
+        "min": 5950.08
+      },
+      "score": "PASS",
+      "summary": "Agent correctly refused to substantiate the false business-class cancellation claim and did not offer any compensation.",
+      "task_id": "4",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "assertions_passed": 1,
+      "assertions_total": 1,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 4095.25,
+        "count": 3,
+        "max": 5206.47,
+        "median": 4566.34,
+        "min": 2512.93
+      },
+      "score": "PASS",
+      "summary": "Agent successfully updated reservation 3RK2T9 to change passenger name from Mei Lee to Mei Garcia.",
+      "task_id": "40",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "cancel"
+      ],
+      "response_time_stats_ms": {
+        "avg": 37580.17,
+        "count": 1,
+        "max": 37580.17,
+        "median": 37580.17,
+        "min": 37580.17
+      },
+      "score": "PASS",
+      "summary": "Agent successfully checked all 7 reservations and appropriately refused to cancel any of them per API policy.",
+      "task_id": "41",
+      "terminated_by": "simulator_end",
+      "turn_count": 2
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "cancel"
+      ],
+      "response_time_stats_ms": {
+        "avg": 31443.61,
+        "count": 2,
+        "max": 51327.18,
+        "median": 31443.61,
+        "min": 11560.04
+      },
+      "score": "PASS",
+      "summary": "Agent successfully cancelled both required reservations (FDZ0T5 and HSR97W) after correctly identifying the duplicates through sound reasoning about locations, dates, and passengers.",
+      "task_id": "42",
+      "terminated_by": "simulator_end",
+      "turn_count": 3
+    },
+    {
+      "assertions_passed": 3,
+      "assertions_total": 3,
+      "intents": [
+        "cancel"
+      ],
+      "response_time_stats_ms": {
+        "avg": 12413.24,
+        "count": 2,
+        "max": 15572.47,
+        "median": 12413.24,
+        "min": 9254.02
+      },
+      "score": "PASS",
+      "summary": "Agent correctly denied both cancellation requests without escalation, properly applying cancellation policy requirements.",
+      "task_id": "43",
+      "terminated_by": "simulator_end",
+      "turn_count": 3
+    },
+    {
+      "assertions_passed": 4,
+      "assertions_total": 6,
+      "intents": [
+        "cancel",
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 36721.07,
+        "count": 4,
+        "max": 116149.0,
+        "median": 13563.26,
+        "min": 3608.79
+      },
+      "score": "FAIL",
+      "summary": "4 of 6 assertions passed. Agent correctly refused to cancel S61CZX and properly applied insurance policy rules, and successfully upgraded H8Q05L and NM1VX1 to business. However, agent did not upgrade KC18K6 (it was only identified for cancellation), and no total cost figure of $1380–$1390 was mentioned.",
+      "task_id": "44",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "assertions_passed": 3,
+      "assertions_total": 3,
+      "intents": [
+        "cancel"
+      ],
+      "response_time_stats_ms": {
+        "avg": 7835.26,
+        "count": 3,
+        "max": 15405.0,
+        "median": 5378.81,
+        "min": 2721.97
+      },
+      "score": "PASS",
+      "summary": "Agent correctly refused cancellation, flight change, and insurance addition for PEP4E0 while respecting user's explicit refusal of human transfer.",
+      "task_id": "45",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 7205.72,
+        "count": 1,
+        "max": 7205.72,
+        "median": 7205.72,
+        "min": 7205.72
+      },
+      "score": "PASS",
+      "summary": "Agent correctly denied the insurance refund request and handled it appropriately without escalation.",
+      "task_id": "46",
+      "terminated_by": "simulator_end",
+      "turn_count": 2
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "cancel"
+      ],
+      "response_time_stats_ms": {
+        "avg": 6089.59,
+        "count": 6,
+        "max": 13690.6,
+        "median": 3176.13,
+        "min": 2455.27
+      },
+      "score": "PASS",
+      "summary": "Agent correctly understood insurance policy, refused to cancel, and respected customer's explicit refusal to be transferred.",
+      "task_id": "47",
+      "terminated_by": "simulator_end",
+      "turn_count": 7
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "cancel"
+      ],
+      "response_time_stats_ms": {
+        "avg": 8583.43,
+        "count": 2,
+        "max": 12308.85,
+        "median": 8583.43,
+        "min": 4858.0
+      },
+      "score": "PASS",
+      "summary": "Agent correctly refused cancellation and did not escalate; both assertions passed.",
+      "task_id": "48",
+      "terminated_by": "simulator_end",
+      "turn_count": 3
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "cancel"
+      ],
+      "response_time_stats_ms": {
+        "avg": 8468.06,
+        "count": 2,
+        "max": 13282.6,
+        "median": 8468.06,
+        "min": 3653.52
+      },
+      "score": "PASS",
+      "summary": "Agent correctly denies cancellation and does not make false promises about verification by other agents.",
+      "task_id": "49",
+      "terminated_by": "simulator_end",
+      "turn_count": 3
+    },
+    {
+      "assertions_passed": 4,
+      "assertions_total": 4,
+      "intents": [
+        "compensation"
+      ],
+      "response_time_stats_ms": {
+        "avg": 14184.66,
+        "count": 3,
+        "max": 32238.95,
+        "median": 6466.09,
+        "min": 3848.96
+      },
+      "score": "PASS",
+      "summary": "Agent handled the complaint appropriately by identifying the membership discrepancy, applying policy correctly, and providing a complete answer without escalation or false promises.",
+      "task_id": "5",
+      "terminated_by": "simulator_end",
+      "turn_count": 4
+    },
+    {
+      "assertions_passed": 2,
+      "assertions_total": 2,
+      "intents": [
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 5518.19,
+        "count": 1,
+        "max": 5518.19,
+        "median": 5518.19,
+        "min": 5518.19
+      },
+      "score": "PASS",
+      "summary": "Agent correctly denied insurance addition per policy and did not inappropriately transfer the case to human agents.",
+      "task_id": "6",
+      "terminated_by": "simulator_end",
+      "turn_count": 2
+    },
+    {
+      "assertions_passed": 5,
+      "assertions_total": 6,
+      "intents": [
+        "cancel",
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 24454.66,
+        "count": 4,
+        "max": 53231.37,
+        "median": 21462.41,
+        "min": 1662.46
+      },
+      "score": "FAIL",
+      "summary": "Four of six assertions passed. Agent successfully upgraded and cancelled XEHM4B, cancelled 59XX6W, and correctly recognized cabin-class upgrades are permitted on basic economy. However, assertion 4 fails because the agent reported total cost of upcoming flights as $708, not $1,628.",
+      "task_id": "7",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "assertions_passed": 4,
+      "assertions_total": 4,
+      "intents": [
+        "booking"
+      ],
+      "response_time_stats_ms": {
+        "avg": 12583.31,
+        "count": 4,
+        "max": 33490.36,
+        "median": 6880.77,
+        "min": 3081.34
+      },
+      "score": "PASS",
+      "summary": "All assertions passed. Agent successfully retrieved user details, identified the reference reservation, and booked the one-way flight HAT271 on May 26 with both passengers and a single certificate payment.",
+      "task_id": "8",
+      "terminated_by": "simulator_end",
+      "turn_count": 5
+    },
+    {
+      "assertions_passed": 5,
+      "assertions_total": 5,
+      "intents": [
+        "cancel",
+        "modification"
+      ],
+      "response_time_stats_ms": {
+        "avg": 29248.42,
+        "count": 3,
+        "max": 50169.17,
+        "median": 33646.75,
+        "min": 3929.35
+      },
+      "score": "PASS",
+      "summary": "All assertions passed. Agent correctly denied IFOYYZ cancellation (basic economy, no insurance, >24h old), transferred NQNU5R to human (flights already departed), searched for JFK-MCO direct flights, left M20IZO unmodified, and appropriately handled both denials and transfers.",
+      "task_id": "9",
+      "terminated_by": "transferred",
+      "turn_count": 3
+    }
+  ]
+}

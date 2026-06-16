@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent identifies that user is not a Gold member but a Regular member.",
+      "passed": true,
+      "rationale": "In message [6], the agent explicitly states 'your account shows **regular** membership, not Gold.' The agent repeats this finding in message [13]: 'Your membership is regular (not Gold, per your account records).' The agent clearly identified the membership discrepancy."
+    },
+    {
+      "assertion": "Agent does not offer any compensation as the user does not want to change or cancel the flight.",
+      "passed": true,
+      "rationale": "The user explicitly states in message [16] 'I do not want to modify or cancel reservation 3JA7XV' and 'I just want compensation for the delay itself.' The agent's response in message [17] correctly explains the policy and states 'I'm unable to offer compensation in this case.' The agent does not offer any compensation despite the user's complaint, adhering to the policy."
+    },
+    {
+      "assertion": "Agent should not call transfer_to_human_agents and should not repeatedly offer to transfer. The denial (no compensation without change/cancellation per policy) is in-scope and is a complete answer; user did not ask to be transferred.",
+      "passed": true,
+      "rationale": "The agent never calls transfer_to_human_agents at any point in the transcript. The agent also never offers or suggests transferring the user to a human agent. Instead, the agent provides a clear policy-based denial in messages [17] and [19], treating it as a complete answer without escalation. The user did not request a transfer."
+    },
+    {
+      "assertion": "Agent should not make commitments about what a human agent might be able to do (e.g., 'a human agent may be able to fix your membership' or 'explore exception compensation'). Such statements are unverifiable and set false expectations.",
+      "passed": true,
+      "rationale": "The agent never makes any commitments about what a human agent might be able to do. In message [19], the agent says 'there are no exceptions or alternative gestures I can offer in this case' without suggesting that a human agent could override this or explore exceptions. The agent does not set false expectations about potential human agent interventions."
+    }
+  ],
+  "passed": true,
+  "summary": "All four assertions passed. The agent correctly identified the membership status, properly denied compensation without change/cancellation, avoided unnecessary transfers, and did not make unverifiable commitments about human agent capabilities."
+}

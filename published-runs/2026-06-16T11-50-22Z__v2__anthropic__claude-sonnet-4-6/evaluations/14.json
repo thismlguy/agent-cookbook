@@ -1,0 +1,36 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent communicates that total gift card balance is $327.",
+      "passed": true,
+      "rationale": "In message [8], the agent explicitly confirms: 'That's correct — $327 in gift cards and $1,000 in certificates.' This directly communicates the total gift card balance."
+    },
+    {
+      "assertion": "Agent communicates that total certificate balance if $1000.",
+      "passed": true,
+      "rationale": "In message [8], the agent explicitly confirms: 'That's correct — $327 in gift cards and $1,000 in certificates.' This directly communicates the total certificate balance."
+    },
+    {
+      "assertion": "Agent should cancel reservation K1NW8N.",
+      "passed": true,
+      "rationale": "The agent cancelled reservation K1NW8N in message [20], where the tool result confirms: 'reservation_id': 'K1NW8N', 'status': 'cancelled'."
+    },
+    {
+      "assertion": "Agent should book a reservation with the following flights: HAT023 and HAT204, HAT100. No insurance. No baggage. Departure on 2024-05-26, return on 2024-05-28.",
+      "passed": true,
+      "rationale": "The agent booked reservation JZ0XX6 in message [25] with flights HAT023 (2024-05-26), HAT204 (2024-05-28), and HAT100 (2024-05-28), with 'insurance': 'no' and 'nonfree_baggages': 0, matching all requirements."
+    },
+    {
+      "assertion": "Agent communicated that the $1786 will be charged to the mastercard.",
+      "passed": false,
+      "rationale": "The agent communicated a different amount to the Mastercard in the final booking. In message [23], the agent states 'Mastercard (ending 9363): $1,219' not $1,786. The task specified the correct split should charge $1,786 to the mastercard, but the agent charged only $1,219 because it included gift card amounts ($894 total) that exceeded what was planned."
+    },
+    {
+      "assertion": "Agent must apply the policy that each reservation can use at most one travel certificate. Using all three certificates on a single reservation violates policy even if the user asks for it.",
+      "passed": true,
+      "rationale": "In message [18], the agent explicitly states: 'Bookings allow at most **1 travel certificate** (not all three).' The agent only applied one certificate ($500 from certificate_3765853) in the booking shown in message [25], adhering to the policy."
+    }
+  ],
+  "passed": false,
+  "summary": "Mostly successful but failed on Mastercard charge amount: agent charged $1,219 instead of the correct $1,786."
+}

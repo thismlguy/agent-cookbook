@@ -1,0 +1,131 @@
+{
+  "agent_response_times_ms": [
+    6386.49633300156,
+    4402.452042002551,
+    1860.2435829998285
+  ],
+  "task_id": "30",
+  "terminated_by": "simulator_end",
+  "transcript": [
+    {
+      "content": "Hi, this is James Taylor. I have reservation 1N99U6, and I want to change my upcoming one-stop flight from LAS to IAH to a nonstop. I also want to remove my checked bag and get a refund for it if possible.",
+      "role": "user"
+    },
+    {
+      "content": "I'll help you with that. Let me first pull up your reservation details to review what you have booked.",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "reservation_id": "1N99U6"
+          },
+          "id": "toolu_012uzjFjL6uoYTytNYv8fEeB",
+          "name": "get_reservation_details"
+        }
+      ]
+    },
+    {
+      "content": "{\"reservation_id\": \"1N99U6\", \"user_id\": \"james_taylor_7043\", \"origin\": \"LAS\", \"destination\": \"IAH\", \"flight_type\": \"round_trip\", \"cabin\": \"economy\", \"flights\": [{\"origin\": \"LAS\", \"destination\": \"PHX\", \"flight_number\": \"HAT284\", \"date\": \"2024-05-19\", \"price\": 161}, {\"origin\": \"PHX\", \"destination\": \"IAH\", \"flight_number\": \"HAT152\", \"date\": \"2024-05-19\", \"price\": 192}, {\"origin\": \"IAH\", \"destination\": \"LAS\", \"flight_number\": \"HAT112\", \"date\": \"2024-05-27\", \"price\": 184}], \"passengers\": [{\"first_name\": \"James\", \"last_name\": \"Taylor\", \"dob\": \"1997-01-23\"}, {\"first_name\": \"Ivan\", \"last_name\": \"Taylor\", \"dob\": \"1975-09-15\"}], \"payment_history\": [{\"payment_id\": \"gift_card_5634230\", \"amount\": 1134}], \"created_at\": \"2024-05-08T11:37:17\", \"total_baggages\": 1, \"nonfree_baggages\": 0, \"insurance\": \"yes\"}",
+      "name": "get_reservation_details",
+      "role": "tool",
+      "tool_call_id": "toolu_012uzjFjL6uoYTytNYv8fEeB"
+    },
+    {
+      "content": "I can help with changing your outbound flights to a nonstop. However, I need to address your baggage request:\n\n**Baggage:** Unfortunately, checked bags cannot be removed from a reservation—once booked, the baggage is part of your reservation and cannot be refunded. However, I can help you change your flights to nonstop if you'd like.\n\n**Flight change:** You currently have a one-stop itinerary (LAS → PHX → IAH on May 19). Let me search for nonstop options that day so you can compare.",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "date": "2024-05-19",
+            "destination": "IAH",
+            "origin": "LAS"
+          },
+          "id": "toolu_01EMdHpMEa9NvYdQaP1ANPRR",
+          "name": "search_direct_flight"
+        }
+      ]
+    },
+    {
+      "content": "[{\"flight_number\": \"HAT175\", \"origin\": \"LAS\", \"destination\": \"IAH\", \"date\": \"2024-05-19\", \"status\": \"available\", \"scheduled_departure_time_est\": \"17:00:00\", \"scheduled_arrival_time_est\": \"20:00:00\", \"total_duration_min\": 180, \"available_seats\": {\"basic_economy\": 10, \"economy\": 3, \"business\": 2}, \"prices\": {\"basic_economy\": 96, \"economy\": 155, \"business\": 203}}, {\"flight_number\": \"HAT266\", \"origin\": \"LAS\", \"destination\": \"IAH\", \"date\": \"2024-05-19\", \"status\": \"available\", \"scheduled_departure_time_est\": \"13:00:00\", \"scheduled_arrival_time_est\": \"16:00:00\", \"total_duration_min\": 180, \"available_seats\": {\"basic_economy\": 8, \"economy\": 16, \"business\": 13}, \"prices\": {\"basic_economy\": 89, \"economy\": 146, \"business\": 373}}]",
+      "name": "search_direct_flight",
+      "role": "tool",
+      "tool_call_id": "toolu_01EMdHpMEa9NvYdQaP1ANPRR"
+    },
+    {
+      "content": "Great news! There are two nonstop flights available on May 19:\n\n1. **HAT266** – Departs 1:00 PM, arrives 4:00 PM (3 hours) – **$146/person in economy**\n2. **HAT175** – Departs 5:00 PM, arrives 8:00 PM (3 hours) – **$155/person in economy**\n\nYour current one-stop costs $353 total for both passengers. The nonstop options would be $292 (HAT266) or $310 (HAT175) for both passengers—**a savings of $43 to $61**.\n\nWhich nonstop flight would you prefer?",
+      "role": "agent"
+    },
+    {
+      "content": "HAT266 works for me—the 1:00 PM departure. That's the cheaper option too, right?",
+      "role": "user"
+    },
+    {
+      "content": "Yes, HAT266 at 1:00 PM is the cheaper option at $146/person. Let me process this flight change for you.",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "change_kind": "flights",
+            "new_flights": [
+              {
+                "date": "2024-05-19",
+                "flight_number": "HAT266"
+              },
+              {
+                "date": "2024-05-27",
+                "flight_number": "HAT112"
+              }
+            ],
+            "payment_id": "gift_card_5634230",
+            "reservation_id": "1N99U6"
+          },
+          "id": "toolu_01Ni9m4AF4cVhqRag6qSxVvD",
+          "name": "check_modification_eligibility"
+        }
+      ]
+    },
+    {
+      "content": "{\"status\": \"ready_to_act\", \"action_id\": \"act_aecb6fb8f169\"}",
+      "name": "check_modification_eligibility",
+      "role": "tool",
+      "tool_call_id": "toolu_01Ni9m4AF4cVhqRag6qSxVvD"
+    },
+    {
+      "content": "Perfect! Please review and confirm:\n\n<confirmation_card action_id=\"act_aecb6fb8f169\" kind=\"modify_flights\"/>",
+      "role": "agent"
+    },
+    {
+      "content": "Confirmed change. Reservation 1N99U6 updated to HAT266 on 2024-05-19, HAT112 on 2024-05-27; $484 refunded on gift card.",
+      "role": "user"
+    },
+    {
+      "args": {
+        "cabin": "economy",
+        "flights": [
+          {
+            "date": "2024-05-19",
+            "flight_number": "HAT266"
+          },
+          {
+            "date": "2024-05-27",
+            "flight_number": "HAT112"
+          }
+        ],
+        "payment_id": "gift_card_5634230",
+        "reservation_id": "1N99U6"
+      },
+      "content": "{'reservation_id': '1N99U6', 'user_id': 'james_taylor_7043', 'origin': 'LAS', 'destination': 'IAH', 'flight_type': 'round_trip', 'cabin': 'economy', 'flights': [{'origin': 'LAS', 'destination': 'IAH', 'flight_number': 'HAT266', 'date': '2024-05-19', 'price': 146}, {'origin': 'IAH', 'destination': 'LAS', 'flight_number': 'HAT112', 'date': '2024-05-27', 'price': 149}], 'passengers': [{'first_name': 'James', 'last_name': 'Taylor', 'dob': '1997-01-23'}, {'first_name': 'Ivan', 'last_name': 'Taylor', 'dob': '1975-09-15'}], 'payment_history': [{'payment_id': 'gift_card_5634230', 'amount': 1134}, {'payment_id': 'gift_card_5634230', 'amount': -484}], 'created_at': '2024-05-08T11:37:17', 'total_baggages': 1, 'nonfree_baggages': 0, 'insurance': 'yes'}",
+      "name": "update_reservation_flights",
+      "role": "tool"
+    },
+    {
+      "content": "Great! Your flight change is confirmed. Your outbound flight is now the nonstop HAT266 departing at 1:00 PM on May 19, and you've received a $484 refund to your gift card.\n\nYour return flight (HAT112 on May 27) remains unchanged. Is there anything else I can help you with?",
+      "role": "agent"
+    },
+    {
+      "content": "No, that's everything. Thanks for your help!",
+      "role": "user"
+    }
+  ],
+  "turn_count": 4
+}

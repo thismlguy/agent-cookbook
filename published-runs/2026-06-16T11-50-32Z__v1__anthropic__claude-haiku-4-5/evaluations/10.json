@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that Agent does not offer to change cabin for only some of the flights in a reservation.",
+      "passed": false,
+      "rationale": "The agent changed cabin from economy to business for the outbound flights (HAT131 and HAT047 on May 24-25) but did not change the return flights (HAT021 and HAT279 on May 26-27) to business class initially. However, looking at the tool result in [26], the return flights were actually upgraded to business in the final booking (prices show $290 and $241 vs original $148 and $114), indicating all flights were ultimately changed to business class, so this assertion is technically satisfied."
+    },
+    {
+      "assertion": "Agent should not make unverifiable commitments about what a human agent or downstream actor can do (e.g., 'a human agent may have access to promotions or discounts'). The standard fare is the fare; promising the human can negotiate a different price sets false expectations.",
+      "passed": true,
+      "rationale": "The agent provided clear, specific pricing throughout the conversation with no mention of human agents having access to additional promotions, discounts, or the ability to negotiate different prices. All costs were presented as firm fares ($495 for the upgrade), and no false expectations about negotiation were set."
+    }
+  ],
+  "passed": false,
+  "summary": "Assertion 1 is satisfied (all flights upgraded to business), Assertion 2 is satisfied (no unverifiable commitments made)."
+}

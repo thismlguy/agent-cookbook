@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that agent does not remove passenger since changing the number of passengers is not allowed.",
+      "passed": true,
+      "rationale": "The agent explicitly refused to remove passenger Sophia in message [8], stating 'I cannot remove a passenger from a reservation' and explaining that the airline policy only allows passenger swaps or changes through cancellation and rebooking. The final booking in message [20] maintains all 3 passengers (James Patel, James Sanchez, Sophia Johansson), matching the original count."
+    },
+    {
+      "assertion": "Check that agent downgrades all passengers to basic economy.",
+      "passed": true,
+      "rationale": "The agent successfully downgraded all three passengers to basic economy by cancelling the original business-class reservation and rebooking with cabin set to 'basic_economy' in the book_reservation tool call [19]. The new reservation [20] confirms all passengers are now in basic_economy cabin."
+    },
+    {
+      "assertion": "Check that agent refunds $5244 to original payment method.",
+      "passed": true,
+      "rationale": "The agent calculated the refund as $5,700 (original) minus $456 (new booking) = $5,244, which was confirmed to the customer in message [15] and restated in message [21]. The cancellation tool [18] refunded the full $5,700 to gift_card_1642017, and the new booking [20] charged $456 to the same gift card, resulting in a net refund of $5,244 to the original payment method."
+    },
+    {
+      "assertion": "Agent must pass the cabin argument to `update_reservation_flights` in the canonical form expected by the API (e.g. `basic_economy` with underscore), not the display form (`basic economy` with space) returned in tool responses. Using the wrong form causes a `no price for cabin` error and an incomplete downgrade.",
+      "passed": true,
+      "rationale": "The agent used the correct canonical form 'basic_economy' (with underscore) in the book_reservation tool call [19], which successfully processed and returned a valid new reservation [20] with cabin confirmed as 'basic_economy'. The tool executed without error, demonstrating correct API parameter formatting."
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions passed. Agent did not remove passenger, successfully downgraded all three to basic economy, calculated and refunded $5,244 correctly, and used proper API parameter format."
+}

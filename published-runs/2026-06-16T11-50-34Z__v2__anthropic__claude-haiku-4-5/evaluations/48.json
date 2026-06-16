@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel 3RK2T9.",
+      "passed": true,
+      "rationale": "The agent never calls any tool to cancel the reservation. After determining the booking is outside the 24-hour window (created_at: May 2 at 6:02 AM), the agent correctly denies the cancellation request and does not proceed with cancellation."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation 3RK2T9. The agent has already correctly determined the booking is outside the 24-hour window from `created_at`; the user's contrary claim ('I booked it 10 hours ago') is the discrepancy, not a system issue, and the denial is in-scope.",
+      "passed": true,
+      "rationale": "The agent never calls `transfer_to_human_agents`. The agent correctly identifies the discrepancy between the user's claim (booked 10 hours ago) and the system timestamp (May 2, over two weeks ago), explicitly states that the cancellation policy is final and cannot be overridden, and appropriately handles the user's request within scope without escalation."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly denied the cancellation request for reservation 3RK2T9 without canceling or escalating, having properly detected the 13-day discrepancy between the user's claim and the system timestamp."
+}

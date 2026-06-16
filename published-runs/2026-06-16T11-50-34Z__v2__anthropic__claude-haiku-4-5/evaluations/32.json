@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent update reservation OWZ4XL to economy.",
+      "passed": false,
+      "rationale": "The agent never successfully updated the reservation to economy. When attempting to process the flight change, the check_modification_eligibility tool returned a 'deny' status, and the agent subsequently stated that the basic economy restriction prevented the change and transferred the customer to a human agent without completing the cabin upgrade."
+    },
+    {
+      "assertion": "Agent updates reservation OWZ4XL to flight HAT041.",
+      "passed": false,
+      "rationale": "The agent never successfully updated the reservation to flight HAT041. The check_modification_eligibility call [18-19] was denied due to the basic economy restriction, and the modification was not completed before the conversation ended with a transfer to a human agent."
+    },
+    {
+      "assertion": "Agent should recognize that basic economy reservations CAN change cabin class. Policy permits cabin changes on all reservations including basic economy; the restriction is on modifying flight segments, not on cabin class. Telling the user 'basic economy flights cannot be modified in any way, including cabin upgrades' is wrong.",
+      "passed": false,
+      "rationale": "The agent explicitly contradicted the correct policy by stating in [6] 'You're right that basic economy can't be modified directly' and in [20] 'the system doesn't allow modifying basic economy flight segments directly, even to upgrade the cabin and change the flight at the same time,' and in [22] 'The core issue is that your ticket is basic economy, and that cabin class simply doesn't support flight changes.' The agent incorrectly presented cabin upgrades as prohibited for basic economy when the policy only restricts flight segment modifications."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent failed to update the reservation to economy or HAT041, and incorrectly stated that basic economy cannot change cabin class when policy permits it."
+}

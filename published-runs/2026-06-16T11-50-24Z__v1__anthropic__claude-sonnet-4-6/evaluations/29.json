@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent informs the user that the reservation can't be changed and it can be cancelled instead.",
+      "passed": true,
+      "rationale": "In step 4, the agent clearly informs the user that the destination change (DTW→LGA to DTW→JFK) 'cannot be done as a modification' and explicitly states 'To switch to JFK, you'd need to cancel this reservation and book a new one.' The agent presents cancellation as the required path forward."
+    },
+    {
+      "assertion": "Agent cancelled reservation VA5SGQ.",
+      "passed": true,
+      "rationale": "In step 6, the agent executed cancel_reservation with reservation_id 'VA5SGQ', and in step 7, the tool returned confirmation that 'VA5SGQ' was successfully cancelled with a $686 refund processed."
+    },
+    {
+      "assertion": "Agent books new round trip reservation with flights HAT169 and HAT033 with one bag.",
+      "passed": true,
+      "rationale": "In step 17, the agent called book_reservation with origin 'DTW', destination 'JFK', flight_type 'round_trip', flights [HAT169 on 2024-05-17, HAT033 on 2024-05-19], and total_baggages '1'. In step 18, the tool confirmed the new reservation A8PRIX was created with these exact flights and 1 total baggage."
+    },
+    {
+      "assertion": "Agent should not silently change the destination of a reservation (DTW→LGA → DTW→JFK) via `update_reservation_flights`. Policy prohibits modifying origin, destination, or trip type; the correct path is cancel + new booking, not flight modification.",
+      "passed": true,
+      "rationale": "The agent never used update_reservation_flights at any point. Instead, the agent correctly followed the policy by: (1) informing the user that destination changes cannot be done via modification (step 4), (2) cancelling the old reservation VA5SGQ (step 6-7), and (3) booking an entirely new reservation A8PRIX with the new destination (step 17-18). This is the correct path and demonstrates adherence to the policy."
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions passed. Agent properly informed user of policy, cancelled the original reservation, and booked a new one with correct flights and baggage—never improperly modifying the original reservation."
+}

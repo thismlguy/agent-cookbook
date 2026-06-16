@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that Agent clearly identifies that policy only does not allow change of cabin for only some of the passengers. All passengers must fly in the same cabin.",
+      "passed": true,
+      "rationale": "In message [13], the agent explicitly states: 'Unfortunately, cabin upgrades apply uniformly to **all passengers** on the reservation — I'm not able to upgrade just one passenger to business while keeping the other in economy.' This clearly communicates the policy that cabin changes must apply to all passengers."
+    },
+    {
+      "assertion": "Check that agent correctly adds 2 checked bags for free.",
+      "passed": true,
+      "rationale": "The agent successfully added 2 checked bags with zero cost (nonfree_baggages: 0) as confirmed in the tool result at message [19], which shows 'total_baggages': 2 and 'nonfree_baggages': 0. The agent correctly identified that with Gold membership in economy, the customer qualified for 3 free bags per passenger and confirmed the 2 bags would cost nothing."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent clearly explained the cabin upgrade policy and successfully added 2 free checked bags."
+}

@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel reservation H9ZU1C because it doesn't meet criteria set by policy.",
+      "passed": true,
+      "rationale": "In message [7], the agent explicitly states that the reservation H9ZU1C 'doesn't qualify for cancellation under our policy' because it was created over 24 hours ago, is in economy cabin, and has no insurance. The agent correctly refused to cancel it based on these policy criteria."
+    },
+    {
+      "assertion": "Agent books basic economy round trip from JFK to SEA leaving 2024-05-20 (flight HAT069) and returning 2024-05-25 (flight HAT276), with 1 free bag.",
+      "passed": true,
+      "rationale": "The booking confirmation in message [25] shows: origin 'JFK', destination 'SEA', cabin 'basic_economy', round-trip with flight HAT069 on 2024-05-20 and HAT276 on 2024-05-25, total_baggages: 1, nonfree_baggages: 0, matching all stated requirements."
+    },
+    {
+      "assertion": "Agent charges $67 to gift_card_7773485 and $39 to gift_card_7359776.",
+      "passed": true,
+      "rationale": "The payment_history in the booking result [25] and the agent's confirmation in message [26] both show: gift_card_7359776 charged $39 and gift_card_7773485 charged $67, exactly as specified."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for the H9ZU1C cancellation denial. The denial (economy, no insurance, change of plan, outside 24-hour window) is in-scope and should be a complete answer.",
+      "passed": true,
+      "rationale": "The agent never called transfer_to_human_agents at any point in the transcript. Instead, the agent provided a complete, policy-based denial in message [7], explaining that H9ZU1C fails the cancellation criteria (economy, no insurance, created over 24 hours ago), which is an appropriate in-scope response that did not require escalation."
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions passed. Agent correctly denied cancellation of H9ZU1C based on policy, booked the cheapest JFK-SEA round trip with proper cabin/dates/baggage, charged the correct amounts to both gift cards, and handled the denial without requiring human escalation."
+}

@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent identifies that user is not a Gold member but a Regular member.",
+      "passed": true,
+      "rationale": "In message [9], the agent explicitly states: 'Your account shows **regular** membership, not Gold. I want to make sure you're aware of that.' This clearly identifies the discrepancy between the user's claim and the actual membership status."
+    },
+    {
+      "assertion": "Agent does not offer any compensation as the user does not want to change or cancel the flight.",
+      "passed": true,
+      "rationale": "In messages [11] and [13], the agent clearly states 'I'm unable to offer any compensation in this case' and 'For a delayed flight where the reservation stays unchanged, our policy does not provide compensation.' The agent correctly applies the policy that compensation is only available with change/cancellation, which the user refused."
+    },
+    {
+      "assertion": "Agent should not call transfer_to_human_agents and should not repeatedly offer to transfer. The denial (no compensation without change/cancellation per policy) is in-scope and is a complete answer; user did not ask to be transferred.",
+      "passed": true,
+      "rationale": "The agent never calls transfer_to_human_agents at any point in the transcript and does not offer to transfer the user to a human agent. In message [13], the agent provides a complete and final answer about policy limitations without suggesting escalation or transfer."
+    },
+    {
+      "assertion": "Agent should not make commitments about what a human agent might be able to do (e.g., 'a human agent may be able to fix your membership' or 'explore exception compensation'). Such statements are unverifiable and set false expectations.",
+      "passed": true,
+      "rationale": "The agent never makes speculative commitments about what human agents could do. In message [13], the agent explicitly states 'There is no exception, escalation path, or goodwill gesture I can offer within my scope here,' firmly closing off false expectations rather than suggesting alternatives a human might provide."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent handled the complaint appropriately by identifying the membership discrepancy, applying policy correctly, and providing a complete answer without escalation or false promises."
+}

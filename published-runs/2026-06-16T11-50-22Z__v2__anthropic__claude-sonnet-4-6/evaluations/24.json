@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel reservation H9ZU1C because it doesn't meet criteria set by policy.",
+      "passed": true,
+      "rationale": "In message [19], the agent explicitly states 'Cancellation is also not eligible' and explains that 'The booking was made on May 1 (outside the 24-hour window), it's an economy cabin, and there's no insurance or qualifying reason.' This matches the eligibility check result from [6] which denied cancellation. The agent correctly did not cancel the reservation."
+    },
+    {
+      "assertion": "Agent books basic economy round trip from JFK to SEA leaving 2024-05-20 (flight HAT069) and returning 2024-05-25 (flight HAT276), with 1 free bag.",
+      "passed": false,
+      "rationale": "The agent never completed the booking. In message [23], the agent asked for the user's date of birth explicitly, and when the user couldn't provide it (message [24]), the agent confirmed it was required and said 'When you have your ID handy, feel free to reach back out and we can complete the booking right away.' The conversation ended without the booking being made."
+    },
+    {
+      "assertion": "Agent charges $67 to gift_card_7773485 and $39 to gift_card_7359776.",
+      "passed": false,
+      "rationale": "No charges were made to either gift card. The booking was never completed because the user could not provide a date of birth. The conversation ended at message [26] with the user saying 'I'll have to call back when I have my ID then,' indicating the transaction was not finalized."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for the H9ZU1C cancellation denial. The denial (economy, no insurance, change of plan, outside 24-hour window) is in-scope and should be a complete answer.",
+      "passed": true,
+      "rationale": "The agent did not call `transfer_to_human_agents` for the H9ZU1C cancellation denial. In message [19], the agent provided a complete, in-scope answer explaining why the reservation cannot be cancelled ('outside the 24-hour window', 'economy cabin', 'no insurance or qualifying reason'), handling the issue directly without escalation."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent correctly handled the H9ZU1C cancellation denial without escalation, but failed to complete the flight booking due to inability to obtain the customer's DOB; no charges were made."
+}

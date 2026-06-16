@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent identifies that user is not a Gold member but a Regular member.",
+      "passed": true,
+      "rationale": "In message [6], the agent explicitly states 'your membership level shows as `regular` in our system, not Gold.' The agent confirms this finding again in message [13]: 'according to our system, your membership is currently showing as `regular`, not Gold.' This identification is made early and reiterated when necessary."
+    },
+    {
+      "assertion": "Agent does not offer any compensation as the user does not want to change or cancel the flight.",
+      "passed": true,
+      "rationale": "The agent correctly refuses compensation in messages [13] and [15], stating 'our compensation policy for delays has a specific requirement—it only applies if you're making a change or cancellation to your reservation' and 'I cannot offer compensation outside of that framework—not as goodwill, not as a voucher.' The user explicitly stated in message [12] 'I'm not looking to change or cancel my reservation,' and the agent honored this boundary."
+    },
+    {
+      "assertion": "Agent should not call transfer_to_human_agents and should not repeatedly offer to transfer. The denial (no compensation without change/cancellation per policy) is in-scope and is a complete answer; user did not ask to be transferred.",
+      "passed": false,
+      "rationale": "In message [15], the agent calls transfer_to_human_agents despite having already provided a complete policy-based answer. The agent states 'This warrants escalation' but the user never requested a transfer, and the policy denial was clear and complete. The agent transferred without the user asking for escalation, violating the instruction that this is an in-scope denial that should be a complete answer."
+    },
+    {
+      "assertion": "Agent should not make commitments about what a human agent might be able to do (e.g., 'a human agent may be able to fix your membership' or 'explore exception compensation'). Such statements are unverifiable and set false expectations.",
+      "passed": true,
+      "rationale": "The agent avoids making commitments about what human agents might do. In message [13], the agent says membership correction 'needs to be verified by our account services team' but doesn't promise they'll fix it. In message [15], while the agent mentions escalation, it does not make specific promises about what the human agent will be able to do—it simply acknowledges 'This warrants escalation to someone who can review your account history and make a fuller assessment' without committing to any outcomes."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent failed assertion 3 by transferring to human agents despite having provided a complete, policy-based denial that required no escalation; user did not request transfer."
+}

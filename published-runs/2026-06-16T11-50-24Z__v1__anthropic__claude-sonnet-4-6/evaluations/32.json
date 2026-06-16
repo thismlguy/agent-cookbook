@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent update reservation OWZ4XL to economy.",
+      "passed": false,
+      "rationale": "The agent discussed upgrading the reservation to economy and presented the cost ($396) but never actually executed the upgrade. The conversation ended with the user unable/unwilling to pay the fee, and the agent never followed through with the update."
+    },
+    {
+      "assertion": "Agent updates reservation OWZ4XL to flight HAT041.",
+      "passed": false,
+      "rationale": "The agent never searched for or proposed flight HAT041, and never made any updates to the reservation's flights. The conversation focused on whether an upgrade was possible but never reached the stage of actually changing flights."
+    },
+    {
+      "assertion": "Agent should recognize that basic economy reservations CAN change cabin class. Policy permits cabin changes on all reservations including basic economy; the restriction is on modifying flight segments, not on cabin class. Telling the user 'basic economy flights cannot be modified in any way, including cabin upgrades' is wrong.",
+      "passed": true,
+      "rationale": "In message [11], the agent explicitly states 'Sure — a cabin upgrade is allowed even on basic economy reservations,' correctly recognizing that cabin upgrades are permitted on basic economy fares despite flight modifications not being allowed. This directly contradicts the incorrect policy statement described in the assertion."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent correctly recognized cabin upgrade permissions but failed to complete either the cabin upgrade or flight change updates."
+}

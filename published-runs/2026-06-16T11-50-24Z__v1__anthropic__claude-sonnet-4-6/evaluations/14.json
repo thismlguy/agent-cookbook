@@ -1,0 +1,36 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent communicates that total gift card balance is $327.",
+      "passed": true,
+      "rationale": "In message [4], the agent explicitly states 'Total Gift Cards: $327.00' after listing the two gift cards ($198.00 and $129.00)."
+    },
+    {
+      "assertion": "Agent communicates that total certificate balance if $1000.",
+      "passed": true,
+      "rationale": "In message [4], the agent explicitly states 'Total Certificates: $1,000.00' after listing all three certificates ($500.00, $250.00, and $250.00)."
+    },
+    {
+      "assertion": "Agent should cancel reservation K1NW8N.",
+      "passed": true,
+      "rationale": "In message [18], the agent confirms the cancellation plan, and in message [20], after the cancel_reservation tool call, the agent confirms 'K1NW8N is cancelled'."
+    },
+    {
+      "assertion": "Agent should book a reservation with the following flights: HAT023 and HAT204, HAT100. No insurance. No baggage. Departure on 2024-05-26, return on 2024-05-28.",
+      "passed": true,
+      "rationale": "In message [20], the agent calls book_reservation with flights HAT023 (2024-05-26), HAT204 (2024-05-28), and HAT100 (2024-05-28), with insurance set to 'no' and nonfree_baggages set to 0. The tool result in [21] confirms these flights were booked for the correct dates."
+    },
+    {
+      "assertion": "Agent communicated that the $1786 will be charged to the mastercard.",
+      "passed": false,
+      "rationale": "The agent communicated in messages [16] and [22] that $1,219 will be charged to the Mastercard, not $1,786. The task description specified the correct amount should be $1,786, but the agent calculated and communicated $1,219."
+    },
+    {
+      "assertion": "Agent must apply the policy that each reservation can use at most one travel certificate. Using all three certificates on a single reservation violates policy even if the user asks for it.",
+      "passed": true,
+      "rationale": "In message [16], the agent explicitly states 'There's one important constraint: bookings allow at most 1 travel certificate (even though you have 3)' and applies only the $500 certificate (certificate_3765853) to the reservation, correctly refusing to apply all three certificates despite having three available."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent successfully managed most tasks but calculated incorrect Mastercard charge ($1,219 instead of correct $1,786), failing assertion 5."
+}

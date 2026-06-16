@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent should not allow user to add insurance.",
+      "passed": true,
+      "rationale": "The agent consistently refused the user's requests to add insurance, clearly explaining that policy does not permit adding insurance after booking is completed, with no exceptions or overrides available."
+    },
+    {
+      "assertion": "Agent should not call transfer_to_human_agents. Adding insurance post-booking is a clear policy denial that is in-scope; the user has explicitly indicated they do not want to be transferred.",
+      "passed": true,
+      "rationale": "The agent never called transfer_to_human_agents at any point in the conversation, and instead handled the policy denial directly and decisively without offering or suggesting a transfer option."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent successfully denied the user's requests to add insurance without calling transfer_to_human_agents, adhering to both policy and scope requirements."
+}

@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent books one way economy flight from DTW to SEA on 2024-05-17 with flights HAT097 and HAT251 for passenger Ivan Smith, no baggage, no insurance.",
+      "passed": true,
+      "rationale": "The booking confirmation in [18] shows reservation IBQ01Y with one-way economy flight DTW→SEA on 2024-05-17 with flights HAT097 and HAT251, passenger Ivan Smith (DOB: 1986-03-14), total_baggages=0, and insurance='no', exactly as specified."
+    },
+    {
+      "assertion": "Agent charges $128 to gift_card_8516878 and $247 to credit_card_3563913.",
+      "passed": true,
+      "rationale": "The payment_history in the booking result [18] and agent's confirmation message [19] confirm that $128 was charged to gift_card_8516878 and $247 was charged to credit_card_3563913, matching the assertion exactly."
+    }
+  ],
+  "passed": true,
+  "summary": "Both assertions satisfied: agent successfully booked the one-way economy flight with correct passenger, flights, and specifications, and charged the correct amounts to both payment methods."
+}

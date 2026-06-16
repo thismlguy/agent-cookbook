@@ -1,0 +1,36 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent upgrades XEHM4B to business.",
+      "passed": true,
+      "rationale": "In [13], the agent calls update_reservation_flights with cabin set to 'business' for XEHM4B, and the tool response [14] confirms the cabin is now 'business' with updated flight prices (HAT005: $346, HAT178: $338)."
+    },
+    {
+      "assertion": "Agent cancels XEHM4B (as it is business flight).",
+      "passed": true,
+      "rationale": "In [13], the agent calls cancel_reservation for XEHM4B, and the tool response [15] confirms status is 'cancelled' with refunds totaling $1,368 (296+1072)."
+    },
+    {
+      "assertion": "Agent cancels 59XX6W (as it has insurance and the user is sick).",
+      "passed": true,
+      "rationale": "In [13], the agent calls cancel_reservation for 59XX6W, and the tool response [16] confirms status is 'cancelled' with refund of $624."
+    },
+    {
+      "assertion": "Agent communicates that total cost of upcoming flights is $1,628.",
+      "passed": false,
+      "rationale": "In [22], the agent states 'Total cost of upcoming flights: $708', not $1,628. The agent correctly identifies the two upcoming flights (7WPL39 with $402 and 3EMQJ6 with $306), and 402+306=708."
+    },
+    {
+      "assertion": "Agent should recognize that basic economy reservations CAN change cabin class. Policy permits cabin changes on all reservations including basic economy; the restriction is on modifying flight segments, not on cabin class.",
+      "passed": true,
+      "rationale": "The agent successfully processes the upgrade of XEHM4B from basic_economy to business in [11] and [13], treating it as a valid cabin-class change without any objections, demonstrating recognition that basic economy allows cabin upgrades."
+    },
+    {
+      "assertion": "Agent's reported numerical totals (e.g., 'total cost of upcoming flights') should be arithmetically correct and should correctly scope which reservations count as 'upcoming'.",
+      "passed": true,
+      "rationale": "In [22], the agent correctly identifies 7WPL39 (May 28) and 3EMQJ6 (May 25–30) as upcoming, correctly excludes A90KR2 (May 14, already past) and 9MRJD4 (May 6/13, already past), and correctly calculates $402 + $306 = $708. The arithmetic is correct and the scoping is accurate based on flight dates relative to the current implied date (around May 15–19, 2024)."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent failed assertion 4: reported upcoming flights total as $708 instead of $1,628. All other assertions passed."
+}

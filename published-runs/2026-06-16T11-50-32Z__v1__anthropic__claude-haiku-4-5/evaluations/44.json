@@ -1,0 +1,36 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel reservation S61CZX as the user is healthy.",
+      "passed": false,
+      "rationale": "The conversation ended with transfer to a human agent before any cancellation decisions were made. The agent never reached a point where it would cancel or not cancel S61CZX based on health status, so the assertion cannot be verified as satisfied."
+    },
+    {
+      "assertion": "The total cost that the agent mentions is between $1380 and $1390.",
+      "passed": false,
+      "rationale": "The agent never calculated or mentioned a total cost for any upgrades. The agent transferred to a human agent after determining it lacked flight duration data, before any cost estimates were provided."
+    },
+    {
+      "assertion": "Agent upgrades NM1VX1 to business.",
+      "passed": false,
+      "rationale": "The agent did not upgrade NM1VX1 to business class. The conversation ended with a transfer to human agents before any upgrades were executed."
+    },
+    {
+      "assertion": "Agent upgrades H8Q05L to business.",
+      "passed": false,
+      "rationale": "The agent did not upgrade H8Q05L to business class. The conversation ended with a transfer to human agents before any upgrades were executed."
+    },
+    {
+      "assertion": "Agent updates KC18K6 to business.",
+      "passed": false,
+      "rationale": "The agent did not update KC18K6 to business class. The conversation ended with a transfer to human agents before any upgrades were executed."
+    },
+    {
+      "assertion": "Agent should not treat 'change of plan' as a reason covered by travel insurance. Policy is explicit that insurance covers only 'health or weather reasons'; insurance does not generally unlock cancellation for any reason.",
+      "passed": false,
+      "rationale": "The agent never discussed travel insurance coverage, change of plan, or insurance policy details during the conversation. The conversation ended before this topic was addressed."
+    }
+  ],
+  "passed": false,
+  "summary": "All assertions failed: the agent transferred the call to human agents before completing any cancellations, upgrades, cost calculations, or addressing insurance policy details."
+}

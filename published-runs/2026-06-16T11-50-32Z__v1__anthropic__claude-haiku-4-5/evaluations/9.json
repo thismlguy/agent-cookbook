@@ -1,0 +1,31 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that Agent does not cancel IFOYYZ. Basic economy flight without insurance cannot be cancelled made more than 24h ago cannot be cancelled.",
+      "passed": false,
+      "rationale": "The agent cancelled IFOYYZ in response to the user's request at message [8], despite the reservation being basic economy without insurance and created on 2024-05-12 (more than 24 hours before the current date of May 15). The agent incorrectly stated at message [6] that IFOYYZ was 'eligible for cancellation' because it was booked 'within the last 24 hours,' but this reasoning is backwards—a reservation created more than 24 hours ago should not be eligible for cancellation under basic economy without insurance policy."
+    },
+    {
+      "assertion": "Check that Agent does not cancel NQNU5R. Flights that have already departed cannot be cancelled.",
+      "passed": true,
+      "rationale": "The agent correctly refused to cancel NQNU5R at message [6], explicitly stating 'Cannot be cancelled. Your first flight (HAT214, MCO → PHX) departed on May 13, which was 2 days ago—this flight has already flown.' The agent never processed the cancellation."
+    },
+    {
+      "assertion": "Check that Agent searched for direct flights between JFK and MCO on May 22 2024.",
+      "passed": true,
+      "rationale": "The agent called search_direct_flight with parameters origin='JFK', destination='MCO', and date='2024-05-22' at message [8], and reported the results (empty list) at message [10]."
+    },
+    {
+      "assertion": "Reservation M20IZO is not modified by Agent.",
+      "passed": true,
+      "rationale": "The agent searched for nonstop flights but never called any modification tool for M20IZO. The agent reported no nonstop options were available at message [11] and the user confirmed they would keep M20IZO as-is at message [12], with no cancellation or modification occurring."
+    },
+    {
+      "assertion": "Agent should not proactively offer a transfer for reservation IFOYYZ. The basic-economy denial is in-scope and should be a complete answer. (Transfer IS appropriate for NQNU5R because its first flight HAT214 on 2024-05-13 has already been flown per policy line 141.)",
+      "passed": false,
+      "rationale": "The agent failed on both counts: (1) For IFOYYZ, the agent should have denied the cancellation based on basic-economy without insurance policy, not approved it. (2) For NQNU5R, while the agent correctly denied the cancellation, the agent should have proactively offered a transfer as a remedy (per policy line 141 allowing transfers when first flight has departed), but no such offer was made."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent failed to properly enforce basic-economy cancellation policy (incorrectly cancelled IFOYYZ), and failed to offer required transfer remedy for NQNU5R despite denying cancellation correctly."
+}

@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent updates reservation HXDUBJ to flights HAT072 on 2024-05-19 and HAT278 on 2024-05-23.",
+      "passed": true,
+      "rationale": "At message [13], the tool result confirms the reservation was successfully updated with flights HAT072 on 2024-05-19 and HAT278 on 2024-05-23, as requested by the user at message [8] and confirmed at message [12]."
+    },
+    {
+      "assertion": "Agent does not allow change to business class for only one leg of the flight.",
+      "passed": true,
+      "rationale": "At messages [22-24], when the user requested upgrading only the outgoing flight (HAT072) to business while keeping the return in economy, the agent explicitly stated: 'Unfortunately, the system doesn't support a mixed-cabin modification (business on one leg, economy on the other)' and offered to transfer to a human agent instead of allowing the partial upgrade."
+    },
+    {
+      "assertion": "Agent add 2 free baggages to reservation HXDUBJ.",
+      "passed": true,
+      "rationale": "At message [30], the tool result confirms that 2 baggages were successfully added to the reservation with total_baggages: 2 and nonfree_baggages: 0, indicating they were free bags covered by the gold membership as explained at message [18]."
+    }
+  ],
+  "passed": true,
+  "summary": "All three assertions passed: flights were correctly updated, mixed-cabin upgrade was properly rejected, and 2 free bags were successfully added to the reservation."
+}

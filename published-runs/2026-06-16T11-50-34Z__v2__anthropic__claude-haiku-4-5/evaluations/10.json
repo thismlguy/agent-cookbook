@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that Agent does not offer to change cabin for only some of the flights in a reservation.",
+      "passed": false,
+      "rationale": "The agent explicitly offered to upgrade only the outbound flight to business class while keeping the return in economy in multiple instances: at [20] ('May 24 outbound in business + May 26-27 return in economy'), at [30] ('May 24 outbound in business + May 27 return in economy'), and at [37-38] where the agent formulated a plan with 'May 24 outbound (business) + May 27 return (economy)'. This violates the core principle that the agent should not split cabin classes within a single reservation."
+    },
+    {
+      "assertion": "Agent should not make unverifiable commitments about what a human agent or downstream actor can do (e.g., 'a human agent may have access to promotions or discounts'). The standard fare is the fare; promising the human can negotiate a different price sets false expectations.",
+      "passed": true,
+      "rationale": "The agent does not make any claims about human agents having access to promotions, discounts, or the ability to negotiate different prices. The agent consistently provides specific, verifiable fares from the search tools and sticks to actual pricing without suggesting downstream negotiation is possible. At [38], the agent offers using travel certificates that are already on the account, which is verifiable, not a promise about what someone else might do."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent violated the primary assertion by repeatedly offering to change cabin class for only some flights in a reservation (split booking with outbound business/return economy), failing a core requirement of the task."
+}

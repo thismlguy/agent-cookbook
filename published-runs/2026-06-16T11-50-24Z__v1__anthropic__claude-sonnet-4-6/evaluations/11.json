@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that agent does not remove passenger since changing the number of passengers is not allowed.",
+      "passed": true,
+      "rationale": "The agent explicitly refused to remove Sophia in message [8], stating 'Our policy does not allow changing the **number** of passengers on a reservation.' The final reservation in [16] shows all 3 passengers remain: James Patel, James Sanchez, and Sophia Johansson."
+    },
+    {
+      "assertion": "Check that agent downgrades all passengers to basic economy.",
+      "passed": true,
+      "rationale": "In message [15], the agent called update_reservation_flights with cabin set to 'basic_economy', and the tool result in [16] confirms the reservation now shows cabin: 'basic_economy' with flight prices of $53 and $99 per person for all 3 passengers."
+    },
+    {
+      "assertion": "Check that agent refunds $5244 to original payment method.",
+      "passed": true,
+      "rationale": "In message [13], the agent correctly calculated and stated the refund would be $5,244. The tool result in [16] shows payment_history includes both the original charge and a refund: {'payment_id': 'gift_card_1642017', 'amount': -5244}, and message [17] confirms 'a **$5,244 refund** has been issued to your gift card (gift_card_1642017)'."
+    },
+    {
+      "assertion": "Agent must pass the cabin argument to `update_reservation_flights` in the canonical form expected by the API (e.g. `basic_economy` with underscore), not the display form (`basic economy` with space) returned in tool responses. Using the wrong form causes a `no price for cabin` error and an incomplete downgrade.",
+      "passed": true,
+      "rationale": "In message [15], the agent called update_reservation_flights with the correct canonical form: {'cabin': 'basic_economy'} (with underscore, not space). The tool successfully processed this and returned updated flight prices, confirming the correct API form was used."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent successfully maintained passenger count (3 passengers), downgraded all to basic economy, issued correct $5,244 refund, and used correct API cabin format (\"basic_economy\" with underscore)."
+}

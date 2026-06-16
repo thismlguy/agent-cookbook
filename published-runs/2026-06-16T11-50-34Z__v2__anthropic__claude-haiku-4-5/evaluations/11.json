@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that agent does not remove passenger since changing the number of passengers is not allowed.",
+      "passed": true,
+      "rationale": "The agent explicitly declined to remove the passenger Sophia in message [8], stating 'I'm not able to remove passengers from a booking' and explaining that policy only allows name/DOB modifications, not changing passenger count. The final reservation in message [16] confirms all three original passengers remain (James Patel, James Sanchez, and Sophia Johansson)."
+    },
+    {
+      "assertion": "Check that agent downgrades all passengers to basic economy.",
+      "passed": true,
+      "rationale": "The agent called update_reservation_flights with cabin parameter set to 'basic_economy' in message [16], and the tool response confirms the cabin was successfully changed to 'basic_economy' for the reservation, affecting all passengers on the flight."
+    },
+    {
+      "assertion": "Check that agent refunds $5244 to original payment method.",
+      "passed": false,
+      "rationale": "The agent stated a refund of '$456' was processed in message [17], but the tool result in message [16] shows a negative payment of '-5244' in the payment history, and the user in message [15] explicitly confirmed '$5244 refunded'. The agent misquoted the refund amount as '$456' instead of '$5244'."
+    },
+    {
+      "assertion": "Agent must pass the cabin argument to `update_reservation_flights` in the canonical form expected by the API (e.g. `basic_economy` with underscore), not the display form (`basic economy` with space) returned in tool responses. Using the wrong form causes a `no price for cabin` error and an incomplete downgrade.",
+      "passed": true,
+      "rationale": "In message [16], the agent called update_reservation_flights with the cabin parameter set to 'basic_economy' (with underscore), which is the correct canonical form. The tool successfully processed the request and returned updated pricing, confirming the correct format was used."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent successfully prevented passenger removal and downgraded all passengers to basic economy using correct API format, but misquoted the refund amount as $456 instead of the correct $5244."
+}

@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent updates reservation FQ8APE to economy with payment method gift_card_8190333.",
+      "passed": true,
+      "rationale": "At step [20], the agent called update_reservation_flights with cabin='economy' and payment_id='gift_card_8190333' for reservation FQ8APE. The tool result at [21] confirms the cabin was updated to 'economy' and the payment history shows the charge to gift_card_8190333 ($209). The agent also explicitly stated at [24]: 'Cabin: Upgraded to Economy — $209 charged to gift card ...8190333'."
+    },
+    {
+      "assertion": "Agent updates reservation FQ8APE passenger to Omar Rossi.",
+      "passed": true,
+      "rationale": "At step [18], the agent called update_reservation_passengers with passengers=[{first_name='Omar', last_name='Rossi', dob='1970-06-06'}] for reservation FQ8APE. The tool result at [19] confirms the passenger was updated to Omar Rossi with the correct DOB. The agent confirmed at [24]: 'Passenger: Updated to Omar Rossi'."
+    },
+    {
+      "assertion": "Agent updates reservation FQ8APE baggages to 3 free baggages.",
+      "passed": true,
+      "rationale": "At step [22], the agent called update_reservation_baggages with total_baggages=3 and nonfree_baggages=0 for reservation FQ8APE. The tool result at [23] confirms total_baggages was updated to 3 with nonfree_baggages=0 (meaning all 3 are free). The agent confirmed at [24]: 'Baggage: 3 checked bags added (all free with your Gold membership)'."
+    }
+  ],
+  "passed": true,
+  "summary": "All three assertions passed: agent successfully updated reservation FQ8APE to economy (payment via gift_card_8190333), changed passenger to Omar Rossi, and added 3 free baggages."
+}

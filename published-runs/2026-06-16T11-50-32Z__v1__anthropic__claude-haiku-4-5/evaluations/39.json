@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent cancels reservation 8C8K4E.",
+      "passed": true,
+      "rationale": "The agent cancelled reservation 8C8K4E in step [14] and confirmed the cancellation in step [19], processing a refund of $5,680."
+    },
+    {
+      "assertion": "Agent cancels reservation LU15PA.",
+      "passed": true,
+      "rationale": "The agent cancelled reservation LU15PA in step [14] and confirmed the cancellation in step [19], processing a refund of $2,366."
+    },
+    {
+      "assertion": "Agent does not cancel reservation MSJ4OA. It is economy with travel insurance, but the cancellation reason (giving up the seat for someone else, a change of plan) is not a health or weather reason, so insurance does not make it eligible; it is also not business cabin, not within 24h of booking, and not airline-cancelled.",
+      "passed": true,
+      "rationale": "The agent did not cancel MSJ4OA. In step [12], the agent explicitly stated that MSJ4OA 'has already flown or are in the past, so I cannot cancel those per policy,' and never attempted to cancel it despite the user's request to cancel all flights in step [13]."
+    },
+    {
+      "assertion": "Agent does not cancel any other reservation.",
+      "passed": false,
+      "rationale": "The agent cancelled UDMOP1 and XAZ3C0 in step [14], which are 'other' reservations beyond the three explicitly mentioned in the prior assertions. These cancellations are confirmed in step [19]."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent cancelled four reservations instead of following policy; should have cancelled only 8C8K4E and LU15PA while refusing MSJ4OA and the other two reservations."
+}

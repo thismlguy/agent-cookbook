@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent updates reservation HXDUBJ to flights HAT072 on 2024-05-19 and HAT278 on 2024-05-23.",
+      "passed": true,
+      "rationale": "In step [11], the agent calls update_reservation_flights with HAT072 on 2024-05-19 and HAT278 on 2024-05-23, and step [12] confirms the update was successful with these exact flights in the updated reservation."
+    },
+    {
+      "assertion": "Agent does not allow change to business class for only one leg of the flight.",
+      "passed": true,
+      "rationale": "In step [18], the user requests business class for only the outbound flight (HAT072) while keeping the return in economy. The agent explicitly denies this in step [19], stating 'cabin class must be uniform across all flights in a reservation. I can't upgrade only the outbound to business while keeping the return in economy.'"
+    },
+    {
+      "assertion": "Agent add 2 free baggages to reservation HXDUBJ.",
+      "passed": true,
+      "rationale": "In step [23], the agent calls update_reservation_baggages with total_baggages: 2, and the tool response in step [24] confirms the reservation now has total_baggages: 2 with nonfree_baggages: 0, meaning the 2 bags are free. The agent confirms in step [25] that '2 checked bags have been added to your reservation at no charge.'"
+    }
+  ],
+  "passed": true,
+  "summary": "All three assertions passed: flight dates updated correctly, business class single-leg upgrade was denied, and 2 free bags were successfully added."
+}

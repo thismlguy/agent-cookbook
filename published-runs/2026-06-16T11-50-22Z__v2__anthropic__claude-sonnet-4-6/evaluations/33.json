@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent updates reservation HXDUBJ to flights HAT072 on 2024-05-19 and HAT278 on 2024-05-23.",
+      "passed": true,
+      "rationale": "In turn [18], the tool update_reservation_flights confirms the reservation was updated with flights HAT072 on 2024-05-19 and HAT278 on 2024-05-23 in economy cabin, matching the user's selection."
+    },
+    {
+      "assertion": "Agent does not allow change to business class for only one leg of the flight.",
+      "passed": true,
+      "rationale": "In turn [25], the user requests to upgrade only the outbound to business while keeping the return in economy. In turn [26], the agent explicitly states: 'Unfortunately, a cabin upgrade applies uniformly to **all segments** of the reservation — I'm not able to upgrade just the outbound leg while keeping the return in economy.'"
+    },
+    {
+      "assertion": "Agent add 2 free baggages to reservation HXDUBJ.",
+      "passed": true,
+      "rationale": "In turn [34], the tool update_reservation_baggages confirms that 2 baggages were added to reservation HXDUBJ with 0 nonfree_baggages (meaning all 2 are free), and the reservation's total_baggages field is updated to 2."
+    }
+  ],
+  "passed": true,
+  "summary": "All three assertions passed. The agent successfully updated the flights, refused the partial cabin upgrade, and added 2 free bags to the reservation."
+}

@@ -1,0 +1,36 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent upgrades XEHM4B to business.",
+      "passed": true,
+      "rationale": "At step [13-14], the agent successfully upgrades XEHM4B from basic economy to business using update_reservation_flights, confirmed by the tool response showing cabin changed to 'business' with new prices ($346 and $338 per person)."
+    },
+    {
+      "assertion": "Agent cancels XEHM4B (as it is business flight).",
+      "passed": true,
+      "rationale": "At step [15-16], after upgrading XEHM4B to business, the agent calls cancel_reservation for XEHM4B, and the tool confirms it is cancelled with appropriate refunds."
+    },
+    {
+      "assertion": "Agent cancels 59XX6W (as it has insurance and the user is sick).",
+      "passed": true,
+      "rationale": "At step [17-18], the agent cancels 59XX6W and the tool confirms the cancellation with a $624 refund. This is appropriate because 59XX6W has insurance (confirmed in reservation details at step [4]) and the user cited health reasons."
+    },
+    {
+      "assertion": "Agent communicates that total cost of upcoming flights is $1,628.",
+      "passed": false,
+      "rationale": "At step [26], the agent reports the total cost of upcoming flights (7WPL39 and 3EMQJ6) as $708, not $1,628. The actual costs are $402 + $306 = $708."
+    },
+    {
+      "assertion": "Agent should recognize that basic economy reservations CAN change cabin class. Policy permits cabin changes on all reservations including basic economy; the restriction is on modifying flight segments, not on cabin class.",
+      "passed": true,
+      "rationale": "The agent successfully upgrades XEHM4B from basic economy to business at step [13-14] without objection, demonstrating recognition that basic economy reservations can change cabin class. The agent did not claim this was impossible or policy-prohibited."
+    },
+    {
+      "assertion": "Agent's reported numerical totals (e.g., 'total cost of upcoming flights') should be arithmetically correct and should correctly scope which reservations count as 'upcoming'.",
+      "passed": true,
+      "rationale": "At step [26], the agent reports $402 + $306 = $708, which is arithmetically correct. The agent correctly scopes 'upcoming' to include only 7WPL39 (May 28) and 3EMQJ6 (May 25–30), excluding A90KR2 (May 14, already flown) and 9MRJD4 (May 6 and 13, already flown), as noted at step [24]."
+    }
+  ],
+  "passed": false,
+  "summary": "Four of six assertions passed. Agent successfully upgraded and cancelled XEHM4B, cancelled 59XX6W, and correctly recognized cabin-class upgrades are permitted on basic economy. However, assertion 4 fails because the agent reported total cost of upcoming flights as $708, not $1,628."
+}
