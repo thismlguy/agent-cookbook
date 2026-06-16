@@ -56,16 +56,49 @@ def _next_day(date_str: str) -> str:
     return (_date(y, m, d) + timedelta(days=1)).isoformat()
 
 
+def _time_to_min(t: str | None) -> int | None:
+    """Minutes-since-midnight for an 'HH:MM:SS' string, +1440 if it carries a
+    '+1' overnight marker. None if unparseable."""
+    if not t:
+        return None
+    extra = 1440 if "+1" in t else 0
+    base = t.replace("+1", "").strip()
+    parts = base.split(":")
+    if len(parts) < 2:
+        return None
+    try:
+        return int(parts[0]) * 60 + int(parts[1]) + extra
+    except ValueError:
+        return None
+
+
+def _abs_min(date_str: str, time_str: str | None) -> int | None:
+    """Absolute minute timestamp = date_ordinal*1440 + time-of-day, so two
+    legs on different dates can be subtracted to get elapsed duration."""
+    tod = _time_to_min(time_str)
+    if tod is None:
+        return None
+    y, m, d = (int(x) for x in date_str.split("-"))
+    return _date(y, m, d).toordinal() * 1440 + tod
+
+
 def _flight_dict(f: Any, ds: Any, date: str) -> dict[str, Any]:
-    """One search result: times + per-cabin seats + per-cabin prices."""
+    """One search result: times + per-cabin seats + per-cabin prices, plus the
+    flight's elapsed gate-to-gate duration in minutes (so the agent can rank by
+    speed without doing time arithmetic itself)."""
+    dep = f.scheduled_departure_time_est
+    arr = f.scheduled_arrival_time_est
+    dep_min, arr_min = _time_to_min(dep), _time_to_min(arr)
+    duration = arr_min - dep_min if dep_min is not None and arr_min is not None else None
     return {
         "flight_number": f.flight_number,
         "origin": f.origin,
         "destination": f.destination,
         "date": date,
         "status": ds.status,
-        "scheduled_departure_time_est": f.scheduled_departure_time_est,
-        "scheduled_arrival_time_est": f.scheduled_arrival_time_est,
+        "scheduled_departure_time_est": dep,
+        "scheduled_arrival_time_est": arr,
+        "total_duration_min": duration,
         "available_seats": ds.available_seats.model_dump() if ds.available_seats else None,
         "prices": ds.prices.model_dump() if ds.prices else None,
     }
@@ -134,6 +167,7 @@ def make_tools(store: Store) -> list[StructuredTool]:
 
         Pass airport codes (e.g. 'JFK'), not city names. Returns every available
         nonstop, each with flight_number, scheduled departure/arrival times,
+        total_duration_min (gate-to-gate minutes, for ranking by speed),
         available seats per cabin, and prices per cabin. Returns an empty list if
         no nonstop exists on that date — when that happens, try
         search_onestop_flight before telling the user the route is unavailable.
@@ -145,12 +179,14 @@ def make_tools(store: Store) -> list[StructuredTool]:
         """Find ONE-STOP (single-connection) itineraries between two airports.
 
         Use when no suitable nonstop exists, or when the user wants more options
-        to compare (e.g. 'cheapest' / 'second cheapest'). Joins on any hub: each
-        result is {via, legs: [leg1, leg2], prices} where both legs are full
-        flight records (times, seats, per-cabin prices) and `prices` is the
-        per-cabin total across both legs. Only feasible connections are returned —
-        the second leg departs at/after the first leg arrives (and on the next day
-        when the first leg lands after midnight).
+        to compare (e.g. 'cheapest' / 'second cheapest' / 'fastest'). Joins on any
+        hub: each result is {via, legs: [leg1, leg2], total_duration_min, prices}
+        where both legs are full flight records (times, seats, per-cabin prices),
+        `total_duration_min` is the whole itinerary's elapsed minutes including the
+        layover (rank by this for 'fastest'), and `prices` is the per-cabin total
+        across both legs. Only feasible connections are returned — the second leg
+        departs at/after the first leg arrives (and on the next day when the first
+        leg lands after midnight).
         """
         options: list[dict[str, Any]] = []
         for f1 in store.flights.values():
@@ -165,59 +201,83 @@ def make_tools(store: Store) -> list[StructuredTool]:
             leave_after = arr.replace("+1", "")
             leg1 = _flight_dict(f1, ds1, date)
             for leg2 in _direct_flights(store, hub, destination, date2, leave_after=leave_after):
+                start = _abs_min(leg1["date"], leg1["scheduled_departure_time_est"])
+                end = _abs_min(leg2["date"], leg2["scheduled_arrival_time_est"])
                 options.append(
                     {
                         "type": "one_stop",
                         "via": hub,
                         "legs": [leg1, leg2],
+                        # total elapsed incl. layover (leg1 departure → leg2 arrival)
+                        "total_duration_min": (end - start)
+                        if start is not None and end is not None
+                        else None,
                         "prices": _combine_prices(leg1["prices"], leg2["prices"]),
                     }
                 )
         return options
 
     @tool
-    def get_baggage_allowance(reservation_id: str) -> Any:
-        """Compute the policy-defined free baggage allowance for a reservation.
+    def get_baggage_allowance(
+        reservation_id: str | None = None,
+        user_id: str | None = None,
+        cabin: str | None = None,
+        passenger_count: int | None = None,
+    ) -> Any:
+        """Compute the policy-defined free baggage allowance.
 
-        Use this for any user question about how many bags they can bring,
-        free vs paid bags, or what their baggage limit is. The allowance is
-        a deterministic function of (membership, cabin, passenger_count)
-        per the airline's policy table — do NOT compute it yourself.
+        Use this for any "how many bags?" / free-vs-paid question, AND when
+        booking to learn how many bags are free for the cabin the user is about
+        to buy (so "use all my free allowance" maps to a concrete bag count). The
+        allowance is a deterministic function of (membership, cabin,
+        passenger_count) — do NOT compute it yourself.
 
-        Returns:
-          {
-            "reservation_id": "...",
-            "membership": "regular" | "silver" | "gold",
-            "cabin": "basic_economy" | "economy" | "business",
-            "passenger_count": int,
-            "free_per_passenger": int,
-            "free_total": int,
-            "current_total_baggages": int,    # already on the reservation
-            "current_nonfree_baggages": int,
-            "paid_extra_per_bag_usd": 50
-          }
+        Two ways to call it:
+          - existing reservation: pass `reservation_id`.
+          - a not-yet-booked trip: pass `user_id` and `cabin` (and
+            `passenger_count`, default 1) — the membership comes from the user.
+
+        Returns: membership, cabin, passenger_count, free_per_passenger,
+        free_total, paid_extra_per_bag_usd, and (reservation form only)
+        current_total_baggages / current_nonfree_baggages.
         """
-        r = store.reservations.get(reservation_id)
-        if r is None:
-            return _err(f"reservation '{reservation_id}' not found")
-        user = store.users.get(r.user_id)
-        if user is None:
-            return _err(f"user '{r.user_id}' on reservation not found")
-        per_pax = free_allowance_per_passenger(user.membership, r.cabin)
+        if reservation_id is not None:
+            r = store.reservations.get(reservation_id)
+            if r is None:
+                return _err(f"reservation '{reservation_id}' not found")
+            user = store.users.get(r.user_id)
+            if user is None:
+                return _err(f"user '{r.user_id}' on reservation not found")
+            membership, cabin_, n_pax = user.membership, r.cabin, len(r.passengers)
+            current = {
+                "current_total_baggages": r.total_baggages,
+                "current_nonfree_baggages": r.nonfree_baggages,
+            }
+        else:
+            if user_id is None or cabin is None:
+                return _err(
+                    "pass either `reservation_id`, or `user_id` and `cabin` "
+                    "(for a not-yet-booked trip)"
+                )
+            user = store.users.get(user_id)
+            if user is None:
+                return _err(f"user '{user_id}' not found")
+            membership, cabin_, n_pax = user.membership, cabin, passenger_count or 1
+            current = {}
+
+        per_pax = free_allowance_per_passenger(membership, cabin_)
         if per_pax is None:
             return _err(
-                f"no baggage rule for membership='{user.membership}', cabin='{r.cabin}'"
+                f"no baggage rule for membership='{membership}', cabin='{cabin_}'"
             )
-        n_pax = len(r.passengers)
         return {
             "reservation_id": reservation_id,
-            "membership": user.membership,
-            "cabin": r.cabin,
+            "membership": membership,
+            "cabin": cabin_,
             "passenger_count": n_pax,
             "free_per_passenger": per_pax,
             "free_total": per_pax * n_pax,
-            "current_total_baggages": r.total_baggages,
-            "current_nonfree_baggages": r.nonfree_baggages,
+            **current,
             "paid_extra_per_bag_usd": EXTRA_BAG_FEE_USD,
         }
 

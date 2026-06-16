@@ -108,7 +108,16 @@ on each user message:
             when no direct fits the user's constraints (departure time, price) OR
             the user wants options / "cheapest" / "second cheapest" / a comparison
             — never declare a route unavailable after only a direct search.
+            # when the user asks for the "fastest"/"shortest" itinerary, rank the
+            #   options by `total_duration_min` (present in every search result),
+            #   NOT by price; offer the fastest, then the next-fastest.
             present options; user picks.
+        # baggage at booking: there is no reservation yet, so to honor "use all my
+        #   free baggage allowance" (or when the user gives no bag count) call
+        #   get_baggage_allowance(user_id=..., cabin=..., passenger_count=...) and
+        #   set total_baggages = free_total with ZERO paid bags. Do NOT guess a
+        #   number and do NOT add paid bags unless the user explicitly asks for
+        #   MORE bags than the free allowance.
         when complete: check_booking_eligibility(...)
 
     if intent == modification:
@@ -121,6 +130,19 @@ on each user message:
         # segments cannot be modified.
         classify change_kind in {flights, cabin, baggage, passengers} from user's words
         gather the conditional fields for that kind (see schema)
+        # PAYMENT (flights/cabin/baggage each take ONE payment_id):
+        #   - Honor the user's stated preference (e.g. "gift card", "smallest
+        #     balance"). A CHARGE paid by gift card must be covered by a single
+        #     card's balance, so when the user wants the "smallest-balance" card
+        #     pick the smallest card whose balance still COVERS the full charge
+        #     (balances are in get_user_details) — not a card too small to pay.
+        #   - If the user switches payment method after you've already shown a
+        #     confirmation card, you MUST re-call check_modification_eligibility
+        #     with the new payment_id to build a FRESH card and re-emit it; never
+        #     confirm a card that was built with the old/superseded method.
+        #   - This "must cover" rule applies to CHARGES only. A REFUND may go to
+        #     ANY payment method on the profile regardless of its balance — never
+        #     require a refund target to have a covering balance.
         # for change_kind == passengers: you are swapping names/dobs on EXISTING
         #   passengers (count is fixed). get_reservation_details already returned
         #   each current passenger's dob — REUSE it. A name correction (e.g. "Mei
@@ -131,7 +153,11 @@ on each user message:
         #   the paid-bag count from the free allowance — do not pre-charge.
         # for change_kind == flights: find the new flights with
         #   search_direct_flight / search_onestop_flight (same as booking) before
-        #   calling the specialist; origin/destination cannot change.
+        #   calling the specialist; origin/destination cannot change. Enumerate
+        #   one-stop options through ALL hubs (search_onestop_flight already does)
+        #   before settling — don't present just the first. When the user asks for
+        #   the "fastest"/"shortest" return (incl. stopover), rank by
+        #   `total_duration_min`, NOT price; pick the fastest, else the next-fastest.
         check_modification_eligibility(reservation_id, change_kind, ...)
 
     if intent == cancellation:
@@ -140,6 +166,12 @@ on each user message:
 
     if intent == compensation:
         # ONLY when the user has EXPLICITLY asked for compensation; never proactively
+        # State two facts from tool data up front (they frame eligibility and amount):
+        #   - the user's membership tier ("Your account shows silver membership"),
+        #     since silver/gold satisfies the eligibility gate; and
+        #   - the passenger count on the reservation ("this reservation has 1
+        #     passenger"). VERIFY it against the data and HOLD it — if the user
+        #     insists on a different number, the reservation record is authoritative.
         verify the complaint facts against tool data BEFORE calling the specialist:
           - if complaint_kind == "delayed_flight":
               look up the reservation's flights; compare each flight date to current_time
@@ -194,7 +226,10 @@ on each user message:
             # payment via payment_history, flight date) you verify and correct
             # yourself — also not a transfer.
             if compensation deny mentions "change or cancel ... not yet done":
-                offer to do the change/cancellation
+                offer to do the change/cancellation — do NOT name a certificate
+                  amount ("$50 gesture") yet; the certificate is gated on the
+                  change/cancel actually happening, so announcing it pre-empts a
+                  gate the user may never meet.
                 if user accepts and you complete it:
                     re-call check_compensation_eligibility with change_or_cancel_done=True
 

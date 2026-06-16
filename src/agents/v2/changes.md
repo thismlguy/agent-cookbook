@@ -285,6 +285,54 @@ time filtering) **and** observability (was a direct search even run?). This is
 the mirror image of Fix 2: there we made a hidden write visible; here a hidden
 *search* had to become visible again.
 
+## Fix 9 — the six genuine gaps: reasoning the orchestrator never asked for
+
+**Method first.** Before fixing, I re-checked the failing run's git SHA: it
+predated Fix 6 (baggage-derive) and Fix 8 (two-tool search). So I re-ran the six
+"genuine gaps" against HEAD first — two of them (21-baggage, 15) were already
+addressed; the run had just been stale. *Lesson: date your eval against your
+code before you call a transcript a bug.* I also caught two first-pass analyses
+that blamed the dataset ("the assertion is wrong"); the ground truth proved both
+were genuine **agent** errors. *Lesson: a "the test is wrong" verdict needs the
+same adversarial check as a code change.*
+
+**The four real defects, by theme:**
+
+- **Payment is a choice, not a default (tasks 22, 21).** Task 22 committed a
+  cabin upgrade on a *stale* pending action built with a credit card, even after
+  the user asked for a gift card — the orchestrator never rebuilt the
+  confirmation card with the new `payment_id`. Task 21 picked the literally
+  smallest gift card ($6) for a charge it couldn't cover; a modification takes a
+  *single* payment, so the rule is "smallest card that **covers**." Fix: a
+  `<payment>` rule — honor the stated method, rebuild the card on a mid-flow
+  switch, and require coverage **for charges only** (refunds may target any
+  method — that's what task 15's anti-fabrication assertion guards, so the rule
+  is explicitly charge-scoped).
+- **"Use all my free baggage allowance" needs a number (task 24).** The agent
+  guessed 2 bags and charged a $50 paid bag (Mia is silver/basic-economy → 1 free
+  bag), which also broke the payment split. But `get_baggage_allowance` was
+  reservation-scoped and there's no reservation yet at booking time. Fix:
+  generalize it to also answer pre-booking from `(user_id, cabin,
+  passenger_count)`; the booking flow sets `total = free_total`, zero paid.
+- **"Fastest" was unanswerable without arithmetic (task 21).** The agent had
+  per-leg times but said "I don't have timing data" and fell back to cheapest.
+  Fix: the search tools now return `total_duration_min` per result (gate-to-gate,
+  incl. overnight `+1` and one-stop layover); the prompt ranks by it for
+  "fastest"/"shortest." *Same shape as Fix 8: give the model the derived value
+  instead of asking it to compute one.*
+- **Compensation skipped the facts that frame it (tasks 27, 38).** The agent
+  denied correctly but never surfaced the user's membership tier (27) or verified
+  the passenger count against a user who insists on the wrong number (38), and it
+  pre-announced a "$50 gesture" gated on a change/cancel the user refuses. Fix:
+  state membership + passenger count from tool data before the specialist, hold
+  the count against pushback, and don't name a certificate amount before its gate
+  is met.
+
+**Risk discipline.** Every rule is gated on a trigger passing tasks don't hit
+(charge-vs-refund, "fastest" keyword, optional new arg path), and the
+membership-statement pattern is copied from the already-passing task 5. Full
+suite stayed green (57 tests).
+
 ## Where we are
 
 - **Full mocked suite: green** (regression tests for every fix above).
