@@ -95,6 +95,14 @@ def _transcript_to_messages(transcript: list[BaseMessage]) -> list[BaseMessage]:
 SimulatorFn = Callable[[list[BaseMessage]], UserTurn]
 
 
+def _reasoning_enabled(llm: BaseChatModel) -> bool:
+    """True if `llm` is an openrouter model built with reasoning turned on (see
+    providers.select._build_openrouter). Such models reject a forced tool_choice,
+    so structured output must use json_schema rather than function_calling."""
+    eb = getattr(llm, "extra_body", None) or {}
+    return bool(isinstance(eb, dict) and (eb.get("reasoning") or {}).get("enabled"))
+
+
 def make_simulator(scenario: dict[str, Any], llm: BaseChatModel) -> SimulatorFn:
     """Build a `next_user_turn(transcript) -> UserTurn` callable.
 
@@ -104,8 +112,12 @@ def make_simulator(scenario: dict[str, Any], llm: BaseChatModel) -> SimulatorFn:
     other party and never sees tool calls.
     """
     system_prompt = SIMULATOR_SYSTEM_TEMPLATE.format(scenario_block=_format_scenario(scenario))
-    # function_calling is the most provider-portable mode for structured output.
-    structured = llm.with_structured_output(UserTurn, method="function_calling")
+    # function_calling is the most provider-portable mode for structured output,
+    # but it forces a tool_choice — which Moonshot rejects when Kimi reasoning is
+    # on ("tool_choice 'specified' is incompatible with thinking enabled"). For a
+    # reasoning-enabled model, fall back to json_schema (no forced tool call).
+    method = "json_schema" if _reasoning_enabled(llm) else "function_calling"
+    structured = llm.with_structured_output(UserTurn, method=method)
 
     def next_user_turn(transcript: list[BaseMessage]) -> UserTurn:
         messages: list[BaseMessage] = [SystemMessage(content=system_prompt)]

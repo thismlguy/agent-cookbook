@@ -39,14 +39,17 @@ def _is_kimi_k2(model: str) -> bool:
     return model.startswith("moonshotai/kimi-k2")
 
 
-def _build_openrouter(model: str, **kwargs) -> ChatOpenAI:
+def _build_openrouter(model: str, *, enable_reasoning: bool = False, **kwargs) -> ChatOpenAI:
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
         raise RuntimeError("OPENROUTER_API_KEY is required to build an openrouter:* model")
     extra_body: dict = {}
     if _is_kimi_k2(model):
         extra_body["provider"] = {"only": ["moonshotai"]}
-        extra_body["reasoning"] = {"enabled": False}
+        # Reasoning is OFF by default to preserve agent behavior; callers that
+        # want a thinking Kimi (e.g. the user simulator) opt in explicitly. The
+        # reasoning trace bills as completion tokens and stays out of `.content`.
+        extra_body["reasoning"] = {"enabled": bool(enable_reasoning)}
     return ChatOpenAI(
         model=model,
         openai_api_key=api_key,
@@ -62,6 +65,7 @@ def build_chat_model(
     *,
     effort: str | None = None,
     thinking: dict | None = None,
+    enable_reasoning: bool = False,
     **kwargs,
 ):
     """Build a LangChain chat model from a `<provider>:<model>` spec.
@@ -83,7 +87,7 @@ def build_chat_model(
     """
     provider, model = parse_spec(spec)
     if provider == "openrouter":
-        return _build_openrouter(model, **kwargs)
+        return _build_openrouter(model, enable_reasoning=enable_reasoning, **kwargs)
 
     # Anthropic requires max_tokens; the constructor default (None → 1024)
     # is too small once thinking is on, so set a ceiling here. It bounds,
