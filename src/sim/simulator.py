@@ -1,12 +1,51 @@
 """LLM-driven user simulator — produces the next user turn from a task scenario."""
 from __future__ import annotations
 
+import json
+import re
 from typing import Any, Callable
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage, ToolMessage
 
 from src.sim.schemas import UserTurn
+
+# Max attempts to coax a valid UserTurn out of the model before giving up.
+_SIM_MAX_ATTEMPTS = 3
+
+
+def _extract_json_obj(text: str) -> dict | None:
+    """Best-effort recovery of a JSON object from raw model text. Kimi with
+    reasoning under json_schema sometimes wraps the object in ``` fences or
+    trailing prose, which trips the strict structured-output parser. Strip
+    fences, then try a whole-string parse, then the first balanced {...}."""
+    if not text:
+        return None
+    t = text.strip()
+    if t.startswith("```"):
+        t = re.sub(r"^```(?:json)?\s*", "", t)
+        t = re.sub(r"\s*```$", "", t).strip()
+    try:
+        obj = json.loads(t)
+        return obj if isinstance(obj, dict) else None
+    except Exception:
+        pass
+    start = t.find("{")
+    if start < 0:
+        return None
+    depth = 0
+    for i in range(start, len(t)):
+        if t[i] == "{":
+            depth += 1
+        elif t[i] == "}":
+            depth -= 1
+            if depth == 0:
+                try:
+                    obj = json.loads(t[start : i + 1])
+                    return obj if isinstance(obj, dict) else None
+                except Exception:
+                    return None
+    return None
 
 
 def _format_scenario(scenario: dict[str, Any]) -> str:
@@ -119,7 +158,19 @@ def make_simulator(scenario: dict[str, Any], llm: BaseChatModel) -> SimulatorFn:
     # on ("tool_choice 'specified' is incompatible with thinking enabled"). For a
     # reasoning-enabled model, fall back to json_schema (no forced tool call).
     method = "json_schema" if _reasoning_enabled(llm) else "function_calling"
-    structured = llm.with_structured_output(UserTurn, method=method)
+    # include_raw=True so a parse miss returns {parsed, raw, parsing_error}
+    # instead of raising — we then recover the JSON from raw rather than letting
+    # one malformed sim turn ERROR the whole task (json_schema under Kimi
+    # reasoning emits invalid JSON ~1 turn in several at scale).
+    structured = llm.with_structured_output(UserTurn, method=method, include_raw=True)
+
+    _NUDGE = HumanMessage(
+        content=(
+            "Your previous reply was not valid JSON. Respond with ONLY a single "
+            "JSON object matching the schema (fields: kind, text, card_action) — "
+            "no markdown fences, no commentary."
+        )
+    )
 
     def next_user_turn(transcript: list[BaseMessage]) -> UserTurn:
         messages: list[BaseMessage] = [SystemMessage(content=system_prompt)]
@@ -131,6 +182,28 @@ def make_simulator(scenario: dict[str, Any], llm: BaseChatModel) -> SimulatorFn:
             )
         else:
             messages.extend(flipped)
-        return structured.invoke(messages)
+
+        last_err: object = None
+        for attempt in range(_SIM_MAX_ATTEMPTS):
+            out = structured.invoke(messages)
+            parsed = out.get("parsed") if isinstance(out, dict) else out
+            if parsed is not None:
+                return parsed
+            last_err = out.get("parsing_error") if isinstance(out, dict) else None
+            raw = out.get("raw") if isinstance(out, dict) else None
+            content = getattr(raw, "content", "") or ""
+            obj = _extract_json_obj(content if isinstance(content, str) else str(content))
+            if obj is not None:
+                try:
+                    return UserTurn.model_validate(obj)
+                except Exception as e:  # recovered JSON didn't fit the schema
+                    last_err = e
+            # perturb the (temperature-0, deterministic) input so the retry differs
+            messages = messages + [_NUDGE]
+
+        raise ValueError(
+            f"simulator could not produce a valid UserTurn after "
+            f"{_SIM_MAX_ATTEMPTS} attempts: {last_err}"
+        )
 
     return next_user_turn
