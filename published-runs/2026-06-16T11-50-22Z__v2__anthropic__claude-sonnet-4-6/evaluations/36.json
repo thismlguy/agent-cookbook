@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not change the flight.",
+      "passed": true,
+      "rationale": "The agent explicitly refused to change the flight, stating 'I'm not able to modify the flights on this reservation' and citing the basic economy policy restriction."
+    },
+    {
+      "assertion": "Agent should not tell the user that bereavement is covered by their travel insurance. Policy states insurance covers only 'health or weather reasons'; bereavement is not health-related to the policyholder and is not covered.",
+      "passed": false,
+      "rationale": "The agent incorrectly told the user 'a family member's passing would qualify as a health-related reason' and suggested they 'may be eligible for a full refund,' which contradicts the policy that bereavement is not a covered reason (only 'health or weather reasons' apply)."
+    },
+    {
+      "assertion": "Agent should recognize that reservation EUJUY6 has an already-flown segment (HAT238 on 2024-05-14, prior to the current time of 2024-05-15) and that policy line 141 requires transfer rather than a cancel-and-rebook option for such reservations.",
+      "passed": false,
+      "rationale": "The agent did not recognize that HAT238 on 2024-05-14 had already flown (current date is 2024-05-15) and therefore did not apply the policy line 141 requirement for transfer. Instead, the agent only mentioned cancellation as an option without addressing the transfer requirement for already-flown segments."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent correctly refused the flight change but failed on two critical policy points: incorrectly claiming bereavement is covered by insurance, and failing to recognize the already-flown segment and apply the transfer policy requirement."
+}

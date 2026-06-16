@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent informs the user that the reservation can't be changed and it can be cancelled instead.",
+      "passed": true,
+      "rationale": "In message [7], the agent explicitly states that 'origin, destination, and trip type cannot be modified' and offers cancellation as the correct path, saying 'the correct path is to cancel this reservation and book a new one.'"
+    },
+    {
+      "assertion": "Agent cancelled reservation VA5SGQ.",
+      "passed": false,
+      "rationale": "The agent did not actually cancel the reservation. The conversation ends with a transfer to a human agent (message [14]-[16]). The agent informed the user about cancellation options and transferred them to review insurance coverage, but never executed a cancellation_reservation tool call."
+    },
+    {
+      "assertion": "Agent books new round trip reservation with flights HAT169 and HAT033 with one bag.",
+      "passed": false,
+      "rationale": "The agent searched for and presented flight options (HAT169 and HAT033) to the user in message [12], but never actually booked them. The conversation ends with a transfer to a human agent before any booking_reservation tool call was made."
+    },
+    {
+      "assertion": "Agent should not silently change the destination of a reservation (DTW→LGA → DTW→JFK) via `update_reservation_flights`. Policy prohibits modifying origin, destination, or trip type; the correct path is cancel + new booking, not flight modification.",
+      "passed": true,
+      "rationale": "The agent correctly avoided using update_reservation_flights and instead explicitly told the user in message [7] that destination changes are prohibited, recommending cancellation and new booking as the proper path. The agent never called update_reservation_flights with different destinations."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent correctly informed about policy and avoided improper flight modification, but failed to cancel reservation or book new flights before transferring to human agent."
+}

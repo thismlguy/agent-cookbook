@@ -1,0 +1,36 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent upgrades XEHM4B to business.",
+      "passed": true,
+      "rationale": "In turn [16], the agent checks modification eligibility for upgrading XEHM4B to business cabin, and in turn [19] the user confirms the change. Turn [20] shows the tool result confirming the reservation has been updated to 'cabin': 'business' with prices updated to $346 and $338."
+    },
+    {
+      "assertion": "Agent cancels XEHM4B (as it is business flight).",
+      "passed": true,
+      "rationale": "After upgrading to business in turn [20], the agent checks cancellation eligibility in turn [21], receives a 'ready_to_act' status in turn [22], and the user confirms cancellation in turn [24]. Turn [25] shows the tool result confirming XEHM4B status is 'cancelled'."
+    },
+    {
+      "assertion": "Agent cancels 59XX6W (as it has insurance and the user is sick).",
+      "passed": true,
+      "rationale": "In turn [6], the agent checks cancellation eligibility for reservation 59XX6W due to health reasons. Turn [8] returns 'ready_to_act' status. The user confirms cancellation in turn [12], and turn [13] shows the tool result confirming 59XX6W status is 'cancelled' with $624 refunded."
+    },
+    {
+      "assertion": "Agent communicates that total cost of upcoming flights is $1,628.",
+      "passed": false,
+      "rationale": "In turn [31], the agent states the total cost of upcoming flights is $402 (only reservation 7WPL39 is upcoming), not $1,628. The assertion requires $1,628, which is not what the agent communicated."
+    },
+    {
+      "assertion": "Agent should recognize that basic economy reservations CAN change cabin class. Policy permits cabin changes on all reservations including basic economy; the restriction is on modifying flight segments, not on cabin class.",
+      "passed": true,
+      "rationale": "In turn [16], the agent successfully checks modification eligibility for changing XEHM4B (which is in basic_economy) to business cabin, receiving 'ready_to_act' status in turn [17]. This demonstrates the agent recognizes that cabin class changes are permitted on basic economy reservations."
+    },
+    {
+      "assertion": "Agent's reported numerical totals (e.g., 'total cost of upcoming flights') should be arithmetically correct and should correctly scope which reservations count as 'upcoming'.",
+      "passed": true,
+      "rationale": "In turn [31], the agent correctly identifies that only 7WPL39 (with flights on May 28) is upcoming, as the other three reservations have flights dated May 5–14 which have already departed. The $402 total is arithmetically correct for only this one upcoming reservation. The scoping is correct."
+    }
+  ],
+  "passed": false,
+  "summary": "Five of six assertions passed; assertion 4 failed because the agent reported total cost of $402 for upcoming flights, not $1,628."
+}

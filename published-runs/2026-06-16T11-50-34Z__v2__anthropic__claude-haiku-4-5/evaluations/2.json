@@ -1,0 +1,31 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent should not offer compensation unless the user asks for it.",
+      "passed": true,
+      "rationale": "The agent never offers any compensation throughout the conversation. The agent acknowledges the delay complaint but does not proactively offer a $50 certificate or any other compensation."
+    },
+    {
+      "assertion": "Agent should detect that the number of passengers on the delayed flight mentioned by the user is incorrect.",
+      "passed": false,
+      "rationale": "The user initially states they want to book for 'three passengers' [1], but the reservation details show only 1 passenger (Noah Muller) [11]. The agent never detects or points out this discrepancy, even when reviewing the reservation."
+    },
+    {
+      "assertion": "Agent should not offer a certificate of $50 as the user does not want to change or cancel the reservation.",
+      "passed": true,
+      "rationale": "The agent does not offer a $50 certificate at any point in the conversation. The conversation ends with a transfer to a human agent without any compensation offer."
+    },
+    {
+      "assertion": "Agent should not accept the user's delay claim at face value. The flight in question has a scheduled date later than the current time per policy, so it could not have been delayed yet.",
+      "passed": false,
+      "rationale": "While the agent notes that the flights 'have already departed — they left 4 days ago' [12], this actually demonstrates the agent correctly identified that the flights are in the PAST, not future. However, the assertion states flights are scheduled for 'later than the current time,' suggesting they should be future flights. The agent does appropriately recognize the flights already completed (May 11) but doesn't explicitly reject the delay claim as being about a future scheduled flight that hasn't occurred yet. The agent's reasoning is correct but frames it differently than specified in the assertion."
+    },
+    {
+      "assertion": "Agent should not withhold compensation on eligibility grounds, since the user is a gold member and so passes the eligibility gate. The correct basis for not issuing the $50 certificate is that the user declines to change or cancel the reservation.",
+      "passed": false,
+      "rationale": "The agent does not offer or withhold a $50 certificate on any grounds. The agent does not cite the user's gold member status as a reason for eligibility, nor does the agent reference the user's decision not to change or cancel the reservation. Instead, the agent simply transfers the case to a human agent without addressing compensation eligibility criteria or the user's reservation preferences."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent passed 2 of 5 assertions: correctly avoided offering unsolicited compensation and did not offer a $50 certificate, but failed to detect the passenger count discrepancy, did not properly address the delay claim timing issue, and did not explain compensation withholding based on the correct grounds."
+}

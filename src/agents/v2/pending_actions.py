@@ -31,7 +31,7 @@ class FlightRef(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     flight_number: str = Field(
-        description="Flight number from search_route results (e.g., 'HAT287')."
+        description="Flight number from a flight-search result (e.g., 'HAT287')."
     )
     date: str = Field(
         description="ISO date 'YYYY-MM-DD'; (flight_number, date) must exist in the flights DB with status='available'."
@@ -84,8 +84,23 @@ class _PendingBase(BaseModel):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     status: Literal["pending", "executed", "cancelled"] = "pending"
 
-    def execute(self, store: Store) -> dict[str, Any]:  # pragma: no cover - overridden
-        raise NotImplementedError
+    def write_call(self) -> tuple[str, dict[str, Any]]:
+        """(write_tool_name, kwargs) this action commits when executed.
+
+        Single source of truth for the underlying v0 write: `execute()` invokes
+        it, and the runner logs it into the transcript so the judge can see the
+        structural write (tool name + args) that v2 keeps off the LLM surface.
+        Overridden per kind.
+        """
+        raise NotImplementedError  # pragma: no cover - overridden
+
+    def execute(self, store: Store) -> dict[str, Any]:
+        """Run the underlying v0 write tool. Shared across kinds via write_call()."""
+        from src.agents.v0.tools import make_tools as _v1_make_tools
+
+        name, args = self.write_call()
+        tool = {t.name: t for t in _v1_make_tools(store)}[name]
+        return tool.invoke(args)
 
 
 class PendingBook(_PendingBase):
@@ -102,38 +117,28 @@ class PendingBook(_PendingBase):
     nonfree_baggages: int
     insurance: Literal["yes", "no"]
 
-    def execute(self, store: Store) -> dict[str, Any]:
-        from src.agents.v0.tools import make_tools as _v1_make_tools
-
-        tools = {t.name: t for t in _v1_make_tools(store)}
-        book = tools["book_reservation"]
-        return book.invoke(
-            {
-                "user_id": self.user_id,
-                "origin": self.origin,
-                "destination": self.destination,
-                "flight_type": self.flight_type,
-                "cabin": self.cabin,
-                "flights": [f.model_dump() for f in self.flights],
-                "passengers": [p.model_dump() for p in self.passengers],
-                "payment_methods": [pm.model_dump() for pm in self.payment_methods],
-                "total_baggages": self.total_baggages,
-                "nonfree_baggages": self.nonfree_baggages,
-                "insurance": self.insurance,
-            }
-        )
+    def write_call(self) -> tuple[str, dict[str, Any]]:
+        return "book_reservation", {
+            "user_id": self.user_id,
+            "origin": self.origin,
+            "destination": self.destination,
+            "flight_type": self.flight_type,
+            "cabin": self.cabin,
+            "flights": [f.model_dump() for f in self.flights],
+            "passengers": [p.model_dump() for p in self.passengers],
+            "payment_methods": [pm.model_dump() for pm in self.payment_methods],
+            "total_baggages": self.total_baggages,
+            "nonfree_baggages": self.nonfree_baggages,
+            "insurance": self.insurance,
+        }
 
 
 class PendingCancel(_PendingBase):
     kind: Literal["cancel"] = "cancel"
     reservation_id: str
 
-    def execute(self, store: Store) -> dict[str, Any]:
-        from src.agents.v0.tools import make_tools as _v1_make_tools
-
-        tools = {t.name: t for t in _v1_make_tools(store)}
-        cancel = tools["cancel_reservation"]
-        return cancel.invoke({"reservation_id": self.reservation_id})
+    def write_call(self) -> tuple[str, dict[str, Any]]:
+        return "cancel_reservation", {"reservation_id": self.reservation_id}
 
 
 class PendingModifyFlights(_PendingBase):
@@ -147,19 +152,13 @@ class PendingModifyFlights(_PendingBase):
     # write. The write tool recomputes the authoritative delta independently.
     price_delta: int = 0
 
-    def execute(self, store: Store) -> dict[str, Any]:
-        from src.agents.v0.tools import make_tools as _v1_make_tools
-
-        tools = {t.name: t for t in _v1_make_tools(store)}
-        update = tools["update_reservation_flights"]
-        return update.invoke(
-            {
-                "reservation_id": self.reservation_id,
-                "cabin": self.cabin,
-                "flights": [f.model_dump() for f in self.flights],
-                "payment_id": self.payment_id,
-            }
-        )
+    def write_call(self) -> tuple[str, dict[str, Any]]:
+        return "update_reservation_flights", {
+            "reservation_id": self.reservation_id,
+            "cabin": self.cabin,
+            "flights": [f.model_dump() for f in self.flights],
+            "payment_id": self.payment_id,
+        }
 
 
 class PendingModifyBaggage(_PendingBase):
@@ -172,19 +171,13 @@ class PendingModifyBaggage(_PendingBase):
     # computed by the specialist at eligibility time (see PendingModifyFlights).
     price_delta: int = 0
 
-    def execute(self, store: Store) -> dict[str, Any]:
-        from src.agents.v0.tools import make_tools as _v1_make_tools
-
-        tools = {t.name: t for t in _v1_make_tools(store)}
-        update = tools["update_reservation_baggages"]
-        return update.invoke(
-            {
-                "reservation_id": self.reservation_id,
-                "total_baggages": self.total_baggages,
-                "nonfree_baggages": self.nonfree_baggages,
-                "payment_id": self.payment_id,
-            }
-        )
+    def write_call(self) -> tuple[str, dict[str, Any]]:
+        return "update_reservation_baggages", {
+            "reservation_id": self.reservation_id,
+            "total_baggages": self.total_baggages,
+            "nonfree_baggages": self.nonfree_baggages,
+            "payment_id": self.payment_id,
+        }
 
 
 class PendingModifyPassengers(_PendingBase):
@@ -192,17 +185,11 @@ class PendingModifyPassengers(_PendingBase):
     reservation_id: str
     passengers: list[PendingPassenger]
 
-    def execute(self, store: Store) -> dict[str, Any]:
-        from src.agents.v0.tools import make_tools as _v1_make_tools
-
-        tools = {t.name: t for t in _v1_make_tools(store)}
-        update = tools["update_reservation_passengers"]
-        return update.invoke(
-            {
-                "reservation_id": self.reservation_id,
-                "passengers": [p.model_dump() for p in self.passengers],
-            }
-        )
+    def write_call(self) -> tuple[str, dict[str, Any]]:
+        return "update_reservation_passengers", {
+            "reservation_id": self.reservation_id,
+            "passengers": [p.model_dump() for p in self.passengers],
+        }
 
 
 PendingAction = Annotated[

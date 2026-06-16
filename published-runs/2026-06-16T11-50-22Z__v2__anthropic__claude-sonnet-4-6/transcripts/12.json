@@ -1,0 +1,165 @@
+{
+  "agent_response_times_ms": [
+    18382.105832999514,
+    23496.52100000094,
+    6555.563000001712,
+    20124.17383399952,
+    3226.1020419973647
+  ],
+  "task_id": "12",
+  "terminated_by": "simulator_end",
+  "transcript": [
+    {
+      "content": "Hi, I have reservation YAX4DR for an upcoming flight from Boston to Minneapolis. I’d like to upgrade all passengers to business class, and I also need to add two checked bags under my name using my Gold membership.",
+      "role": "user"
+    },
+    {
+      "content": "Could you please provide me with your user ID so I can verify your account?",
+      "role": "agent"
+    },
+    {
+      "content": "Sure, it's chen_lee_6825.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "user_id": "chen_lee_6825"
+          },
+          "id": "toolu_016Acn9FWi1CDKNwfa6KGpb5",
+          "name": "get_user_details"
+        },
+        {
+          "args": {
+            "reservation_id": "YAX4DR"
+          },
+          "id": "toolu_01DjpJurB5n3YJjWRaFxwrR4",
+          "name": "get_reservation_details"
+        }
+      ]
+    },
+    {
+      "content": "{\"user_id\": \"chen_lee_6825\", \"name\": {\"first_name\": \"Chen\", \"last_name\": \"Lee\"}, \"address\": {\"address1\": \"355 Hillcrest Drive\", \"address2\": \"Suite 365\", \"city\": \"San Francisco\", \"country\": \"USA\", \"state\": \"CA\", \"zip\": \"94178\"}, \"email\": \"chen.lee7831@example.com\", \"dob\": \"1967-12-12\", \"payment_methods\": {\"certificate_6730850\": {\"source\": \"certificate\", \"id\": \"certificate_6730850\", \"brand\": null, \"last_four\": null, \"amount\": 250.0}, \"certificate_9982533\": {\"source\": \"certificate\", \"id\": \"certificate_9982533\", \"brand\": null, \"last_four\": null, \"amount\": 100.0}, \"credit_card_4938634\": {\"source\": \"credit_card\", \"id\": \"credit_card_4938634\", \"brand\": \"visa\", \"last_four\": \"9990\", \"amount\": null}}, \"saved_passengers\": [{\"first_name\": \"Noah\", \"last_name\": \"Hernandez\", \"dob\": \"1968-01-06\"}], \"membership\": \"gold\", \"reservations\": [\"JW6LEQ\", \"ICJ5WM\", \"TVN3KL\", \"ZBCR1P\", \"4KG36I\", \"YAX4DR\", \"9NK7W8\"]}",
+      "name": "get_user_details",
+      "role": "tool",
+      "tool_call_id": "toolu_016Acn9FWi1CDKNwfa6KGpb5"
+    },
+    {
+      "content": "{\"reservation_id\": \"YAX4DR\", \"user_id\": \"chen_lee_6825\", \"origin\": \"BOS\", \"destination\": \"MSP\", \"flight_type\": \"one_way\", \"cabin\": \"economy\", \"flights\": [{\"origin\": \"BOS\", \"destination\": \"MCO\", \"flight_number\": \"HAT235\", \"date\": \"2024-05-18\", \"price\": 122}, {\"origin\": \"MCO\", \"destination\": \"MSP\", \"flight_number\": \"HAT298\", \"date\": \"2024-05-19\", \"price\": 127}], \"passengers\": [{\"first_name\": \"Chen\", \"last_name\": \"Lee\", \"dob\": \"1967-12-12\"}, {\"first_name\": \"Noah\", \"last_name\": \"Hernandez\", \"dob\": \"1968-01-06\"}], \"payment_history\": [{\"payment_id\": \"credit_card_4938634\", \"amount\": 498}], \"created_at\": \"2024-05-05T23:00:15\", \"total_baggages\": 0, \"nonfree_baggages\": 0, \"insurance\": \"no\"}",
+      "name": "get_reservation_details",
+      "role": "tool",
+      "tool_call_id": "toolu_01DjpJurB5n3YJjWRaFxwrR4"
+    },
+    {
+      "content": "I found your reservation — it's a one-stop itinerary (BOS → MCO → MSP) in economy for 2 passengers: Chen Lee and Noah Hernandez.\n\nI'll handle these as two separate modifications. Let's start with the cabin upgrade to business class. Which payment method would you like to use for any price difference?\n\n- Travel certificate ending in **6730850** ($250 balance)\n- Travel certificate ending in **9982533** ($100 balance)\n- Visa credit card ending in **9990**",
+      "role": "agent"
+    },
+    {
+      "content": "Let's use the Visa ending in 9990 for the upgrade. How much is the fare difference?",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "change_kind": "cabin",
+            "new_cabin": "business",
+            "payment_id": "credit_card_4938634",
+            "reservation_id": "YAX4DR"
+          },
+          "id": "toolu_01W1Fneurk84zApvi9yNiLfg",
+          "name": "check_modification_eligibility"
+        }
+      ]
+    },
+    {
+      "content": "{\"status\": \"ready_to_act\", \"action_id\": \"act_5ad96dcf1006\"}",
+      "name": "check_modification_eligibility",
+      "role": "tool",
+      "tool_call_id": "toolu_01W1Fneurk84zApvi9yNiLfg"
+    },
+    {
+      "content": "The upgrade is eligible. Please review and confirm the cabin upgrade to business class for all passengers, charged to your Visa ending in 9990:\n\n<confirmation_card action_id=\"act_5ad96dcf1006\" kind=\"modify_cabin\"/>",
+      "role": "agent"
+    },
+    {
+      "content": "$1200 is more than I wanted to spend. Can we just upgrade Noah to business instead? I’d still like to add the 2 checked bags under my name using my Gold membership too.",
+      "role": "user"
+    },
+    {
+      "content": "Unfortunately, cabin upgrades apply uniformly to **all passengers** on the reservation — I'm not able to upgrade just one passenger to business while keeping the other in economy.\n\nWould you like to skip the cabin upgrade entirely and just proceed with adding the checked bags? To check how many bags would be free under your Gold membership, let me look that up.",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "reservation_id": "YAX4DR"
+          },
+          "id": "toolu_011zHuaGVFUxnAYSLmxqYGXD",
+          "name": "get_baggage_allowance"
+        }
+      ]
+    },
+    {
+      "content": "{\"reservation_id\": \"YAX4DR\", \"membership\": \"gold\", \"cabin\": \"economy\", \"passenger_count\": 2, \"free_per_passenger\": 3, \"free_total\": 6, \"current_total_baggages\": 0, \"current_nonfree_baggages\": 0, \"paid_extra_per_bag_usd\": 50}",
+      "name": "get_baggage_allowance",
+      "role": "tool",
+      "tool_call_id": "toolu_011zHuaGVFUxnAYSLmxqYGXD"
+    },
+    {
+      "content": "Good news — with your Gold membership in economy, you get **3 free bags per passenger** (6 free total). Adding 2 bags would cost you nothing.\n\nLet me process the baggage addition now.",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "change_kind": "baggage",
+            "nonfree_baggages": 0,
+            "payment_id": "credit_card_4938634",
+            "reservation_id": "YAX4DR",
+            "total_baggages": 2
+          },
+          "id": "toolu_012nesyd1FfxX48z7Lnzphmz",
+          "name": "check_modification_eligibility"
+        }
+      ]
+    },
+    {
+      "content": "{\"status\": \"ready_to_act\", \"action_id\": \"act_7358be956aff\"}",
+      "name": "check_modification_eligibility",
+      "role": "tool",
+      "tool_call_id": "toolu_012nesyd1FfxX48z7Lnzphmz"
+    },
+    {
+      "content": "Adding 2 checked bags (free under your Gold membership) is ready to confirm:\n\n<confirmation_card action_id=\"act_7358be956aff\" kind=\"modify_baggage\"/>",
+      "role": "agent"
+    },
+    {
+      "content": "Confirmed baggage update on reservation YAX4DR: 2 bags (0 paid); $498 charged on credit card ending 9990.",
+      "role": "user"
+    },
+    {
+      "args": {
+        "nonfree_baggages": 0,
+        "payment_id": "credit_card_4938634",
+        "reservation_id": "YAX4DR",
+        "total_baggages": 2
+      },
+      "content": "{'reservation_id': 'YAX4DR', 'user_id': 'chen_lee_6825', 'origin': 'BOS', 'destination': 'MSP', 'flight_type': 'one_way', 'cabin': 'economy', 'flights': [{'origin': 'BOS', 'destination': 'MCO', 'flight_number': 'HAT235', 'date': '2024-05-18', 'price': 122}, {'origin': 'MCO', 'destination': 'MSP', 'flight_number': 'HAT298', 'date': '2024-05-19', 'price': 127}], 'passengers': [{'first_name': 'Chen', 'last_name': 'Lee', 'dob': '1967-12-12'}, {'first_name': 'Noah', 'last_name': 'Hernandez', 'dob': '1968-01-06'}], 'payment_history': [{'payment_id': 'credit_card_4938634', 'amount': 498}], 'created_at': '2024-05-05T23:00:15', 'total_baggages': 2, 'nonfree_baggages': 0, 'insurance': 'no'}",
+      "name": "update_reservation_baggages",
+      "role": "tool"
+    },
+    {
+      "content": "Your 2 checked bags have been added to reservation YAX4DR at no extra charge — great perk of your Gold membership!\n\nIs there anything else I can help you with?",
+      "role": "agent"
+    },
+    {
+      "content": "No thanks, $1200 is over my budget. Thanks for adding the bags — that's all I need.",
+      "role": "user"
+    }
+  ],
+  "turn_count": 6
+}

@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent doesn't book any flight.",
+      "passed": true,
+      "rationale": "The agent never called any flight-booking tools throughout the conversation. The agent only queried user and reservation details, then informed the customer that flight changes are not possible for basic economy tickets."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for the basic-economy modification denial. The denial is fully in-scope per policy; framing it as 'a human agent may have additional options or be able to make exceptions' makes an unverifiable promise about downstream actors.",
+      "passed": true,
+      "rationale": "The agent did not call `transfer_to_human_agents`. Instead, in message [8], the agent directly stated 'This is a firm policy and I'm unable to override it,' clearly communicating the policy without making unverifiable promises about human agents having exceptions or additional options."
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions passed: agent did not book any flight and did not transfer to human agents, instead properly denying the basic-economy flight change per policy."
+}

@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that Agent clearly identifies that policy only does not allow change of cabin for only some of the passengers. All passengers must fly in the same cabin.",
+      "passed": true,
+      "rationale": "In message [17], the agent explicitly states: 'the system reverted both passengers to economy. Since the policy doesn't allow mixed cabins on a single flight segment, I need to take a different approach.' Then in message [21], the agent clearly explains: 'The policy requires that all passengers in a single reservation must be in the same cabin class. I cannot create one reservation with you in economy and Noah in business.' This directly addresses the policy constraint and explains that the customer needs separate reservations to achieve different cabin classes."
+    },
+    {
+      "assertion": "Check that agent correctly adds 2 checked bags for free.",
+      "passed": true,
+      "rationale": "The agent correctly identified that the customer qualifies for 2 free checked bags under Gold membership in message [6], correctly charged $0 for them. This was confirmed in the tool calls at message [8] where `total_baggages` was set to 2 with `nonfree_baggages: 0`. In the final reservation (P0EIVY for Chen Lee), the tool result at message [30] shows `total_baggages: 2` and `nonfree_baggages: 0`, confirming that 2 checked bags were added at no cost. Message [31] also confirms '2 checked bags (no charge — Gold membership)' in the final summary."
+    }
+  ],
+  "passed": true,
+  "summary": "Both assertions passed: Agent clearly explained the policy restricting mixed-cabin reservations and correctly added 2 free checked bags covered by Gold membership."
+}

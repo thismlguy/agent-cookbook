@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel flight.",
+      "passed": true,
+      "rationale": "Throughout the entire conversation, the agent never cancels the flight. The agent explicitly states the reservation cannot be cancelled due to policy and offers no cancellation. The reservation remains booked at the end of the conversation."
+    },
+    {
+      "assertion": "Agent does not offer any refund.",
+      "passed": true,
+      "rationale": "The agent consistently refuses all refund requests (full, partial 50%, 10%, vouchers, and credits) and clearly states multiple times that no refund amount is available under policy. The agent never offers any form of refund, voucher, or credit compensation."
+    },
+    {
+      "assertion": "Agent should not repeatedly offer to transfer to a human agent (`Would you like me to transfer you?`) after a clear in-scope denial. One offer (or zero) is sufficient; repeated offers under user pushback amount to soft escalation of an in-policy denial.",
+      "passed": true,
+      "rationale": "The agent never offers to transfer the user to a human agent. When the user demands a supervisor in [11], the agent explicitly refuses escalation in [12], stating 'A supervisor would apply the same cancellation policy to your reservation that I'm applying now. They can't override it either.' The agent maintains this position in [14], saying 'I also won't transfer you to someone who will give you the same answer, because that would just be wasting your time.' Zero transfer offers were made, satisfying the requirement."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent successfully maintained policy boundaries: no flight cancellation, no refunds offered, and no repeated transfer offers despite user escalation attempts."
+}

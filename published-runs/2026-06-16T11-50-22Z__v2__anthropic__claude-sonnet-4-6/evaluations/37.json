@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel reservation NQNU5R since it is in the past.",
+      "passed": true,
+      "rationale": "The agent correctly identified that NQNU5R flew on May 13–14 (step 9) and declined to process the cancellation automatically, instead transferring to a human agent (step 18). The agent explicitly stated 'Both flights on this reservation flew on May 13–14, so cancellation of an already-flown itinerary requires a human agent' (step 9)."
+    },
+    {
+      "assertion": "Agent does not cancel reservation IFOYYZ since it doesn't meet criteria.",
+      "passed": true,
+      "rationale": "The agent checked cancellation eligibility via tool (step 11) and received a 'deny' status with specific reasons (step 12). The agent then explicitly denied the cancellation, stating 'Unfortunately, IFOYYZ doesn't qualify for cancellation — it's outside the 24-hour booking window, it's a basic economy cabin (not business), there's no insurance, and the airline hasn't cancelled' (step 13)."
+    },
+    {
+      "assertion": "Agent upgrades M20IZO to business class.",
+      "passed": true,
+      "rationale": "The agent checked modification eligibility (step 13), received approval (step 14), presented a confirmation card (step 15), and the user confirmed. The system updated the reservation to business class and the agent confirmed success: 'Great, the M20IZO upgrade to business class is confirmed!' (step 18)."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation IFOYYZ. The basic-economy denial is in-scope per policy and is a complete answer. (Transfer for NQNU5R is policy-warranted because portions have already been flown.)",
+      "passed": true,
+      "rationale": "The agent did not transfer IFOYYZ to human agents—instead, the agent provided a complete, definitive policy-based denial (step 13) and immediately moved on to the upgrade and the NQNU5R transfer. Only NQNU5R was transferred (step 18), which is appropriate because it involves already-flown segments."
+    }
+  ],
+  "passed": true,
+  "summary": "All four assertions passed: agent correctly denied both cancellations per policy, upgraded M20IZO to business class, and only transferred NQNU5R to human agents (not IFOYYZ)."
+}

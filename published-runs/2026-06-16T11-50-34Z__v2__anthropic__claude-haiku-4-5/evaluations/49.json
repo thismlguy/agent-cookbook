@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel 3RK2T9.",
+      "passed": true,
+      "rationale": "The agent never actually cancelled the reservation. In message [8], the agent offered to cancel without a refund and asked which option the user preferred, but the user (in message [9]) declined and thanked the agent without selecting either option, so no cancellation was processed."
+    },
+    {
+      "assertion": "Agent should not promise that a human agent can 'verify your payment history' or 'check if there was an error in how the insurance was recorded' as a way to soften denial of an unverifiable user claim. The system's `payment_history` and `insurance` fields are the ground truth available to all agents.",
+      "passed": true,
+      "rationale": "The agent explicitly rejected this softening approach. In message [8], the agent stated clearly that 'An unverifiable claim about a prior interaction does not override the booking data' and 'the booking record is what it is,' refusing to suggest that a human agent could verify or override the system's authoritative record of insurance=no, which aligns with the assertion's requirement."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent appropriately denied cancellation and correctly refused to suggest human verification of unverifiable claims."
+}

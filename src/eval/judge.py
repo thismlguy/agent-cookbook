@@ -57,7 +57,14 @@ def _format_transcript(transcript: list[dict[str, Any]]) -> str:
             result = (content or "")
             if len(result) > 800:
                 result = result[:800] + "…"
-            lines.append(f"[{i}] TOOL {m.get('name', '?')} → {result}")
+            name = m.get("name", "?")
+            if m.get("args") is not None:
+                # Structural writes (v2 execute_pending_action) carry their args so
+                # the judge can see, e.g., the payment_id the write committed with.
+                args = json.dumps(m.get("args"), sort_keys=True)
+                lines.append(f"[{i}] TOOL {name}({args}) → {result}")
+            else:
+                lines.append(f"[{i}] TOOL {name} → {result}")
         else:
             lines.append(f"[{i}] {role.upper()}: {content}")
     return "\n".join(lines)

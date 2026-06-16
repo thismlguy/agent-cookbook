@@ -1,0 +1,41 @@
+{
+  "assertions": [
+    {
+      "assertion": "Reservation JG7FMM is updated to economy.",
+      "passed": true,
+      "rationale": "Tool result [14] confirms that reservation JG7FMM's cabin was changed to 'economy' with the flights and passengers unchanged."
+    },
+    {
+      "assertion": "Reservation 2FBBAH is updated to economy.",
+      "passed": true,
+      "rationale": "Tool result [15] confirms that reservation 2FBBAH's cabin was changed to 'economy' with the flights and passengers unchanged."
+    },
+    {
+      "assertion": "Reservation X7BYG1 is updated to economy.",
+      "passed": true,
+      "rationale": "Tool result [16] confirms that reservation X7BYG1's cabin was changed to 'economy' with the flights and passengers unchanged."
+    },
+    {
+      "assertion": "Reservation BOH180 is updated to economy.",
+      "passed": true,
+      "rationale": "Tool result [18] confirms that reservation BOH180's cabin was changed to 'economy' with the flights and passengers unchanged."
+    },
+    {
+      "assertion": "Reservation EQ1G6C is updated to economy.",
+      "passed": true,
+      "rationale": "Tool result [17] confirms that reservation EQ1G6C's cabin was changed to 'economy' with the flights and passengers unchanged."
+    },
+    {
+      "assertion": "Agent communicates that user will save $23553 in total.",
+      "passed": true,
+      "rationale": "In message [19], the agent explicitly states 'Total **$23,553**' in the refund summary table, confirming the total savings amount."
+    },
+    {
+      "assertion": "When user explicitly requests refunds to the original payment method for each reservation, the agent should call `update_reservation_flights` with the original `payment_id` per reservation (as visible in each reservation's `payment_history`), not consolidate all refunds onto a single chosen card.",
+      "passed": true,
+      "rationale": "In tool calls [13], the agent correctly used the original payment_id for each reservation: JG7FMM used 'credit_card_2929732' (from [5]), 2FBBAH used 'gift_card_3481935' (from [7]), X7BYG1 used 'credit_card_2929732' (from [8]), EQ1G6C used 'gift_card_6847880' (from [9]), and BOH180 used 'credit_card_9525117' (from [10]), matching each reservation's original payment_history."
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions passed: agent successfully downgraded all 5 business class reservations to economy using the correct original payment methods, and correctly communicated the total savings of $23,553."
+}

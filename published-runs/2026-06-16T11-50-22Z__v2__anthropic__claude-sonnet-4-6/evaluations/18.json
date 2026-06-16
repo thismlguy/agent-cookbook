@@ -1,0 +1,41 @@
+{
+  "assertions": [
+    {
+      "assertion": "Reservation JG7FMM is updated to economy.",
+      "passed": true,
+      "rationale": "At turn 17, the tool result confirms JG7FMM's cabin was changed to 'economy': {'cabin': 'economy', ...}. The agent also confirmed this update in the conversation."
+    },
+    {
+      "assertion": "Reservation 2FBBAH is updated to economy.",
+      "passed": true,
+      "rationale": "At turn 22, the tool result confirms 2FBBAH's cabin was changed to 'economy': {'cabin': 'economy', ...}. The agent confirmed the update in the conversation."
+    },
+    {
+      "assertion": "Reservation X7BYG1 is updated to economy.",
+      "passed": true,
+      "rationale": "At turn 27, the tool result confirms X7BYG1's cabin was changed to 'economy': {'cabin': 'economy', ...}. The agent confirmed the update in the conversation."
+    },
+    {
+      "assertion": "Reservation BOH180 is updated to economy.",
+      "passed": true,
+      "rationale": "At turn 37, the tool result confirms BOH180's cabin was changed to 'economy': {'cabin': 'economy', ...}. The agent confirmed the update in the conversation."
+    },
+    {
+      "assertion": "Reservation EQ1G6C is updated to economy.",
+      "passed": true,
+      "rationale": "At turn 32, the tool result confirms EQ1G6C's cabin was changed to 'economy': {'cabin': 'economy', ...}. The agent confirmed the update in the conversation."
+    },
+    {
+      "assertion": "Agent communicates that user will save $23553 in total.",
+      "passed": true,
+      "rationale": "At turn 38, the agent explicitly states 'Total refunded: $23,553.' The individual refunds also sum correctly: $6,594 + $3,925 + $5,418 + $2,452 + $5,164 = $23,553."
+    },
+    {
+      "assertion": "When user explicitly requests refunds to the original payment method for each reservation, the agent should call `update_reservation_flights` with the original `payment_id` per reservation (as visible in each reservation's `payment_history`), not consolidate all refunds onto a single chosen card.",
+      "passed": true,
+      "rationale": "The agent correctly used the original payment_id for each reservation: JG7FMM used credit_card_2929732 (turn 17), 2FBBAH used gift_card_3481935 (turn 22), X7BYG1 used credit_card_2929732 (turn 27), EQ1G6C used gift_card_6847880 (turn 32), and BOH180 used credit_card_9525117 (turn 37). Each payment_id matches the original payment method from the reservation details. The refunds were not consolidated to a single card."
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions passed. Agent successfully downgraded all 5 business class reservations to economy with correct refunds to original payment methods and accurately communicated total savings of $23,553."
+}

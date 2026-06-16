@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not change the flight.",
+      "passed": true,
+      "rationale": "The agent explicitly declined to modify or rebook the flights, stating 'I'm not able to modify or rebook these flights through my standard tools' and transferred the case to a human agent instead of making any flight changes."
+    },
+    {
+      "assertion": "Agent should not tell the user that bereavement is covered by their travel insurance. Policy states insurance covers only 'health or weather reasons'; bereavement is not health-related to the policyholder and is not covered.",
+      "passed": true,
+      "rationale": "The agent never mentioned travel insurance, bereavement coverage, or any insurance-related details in the conversation; the agent avoided making any statements about insurance coverage."
+    },
+    {
+      "assertion": "Agent should recognize that reservation EUJUY6 has an already-flown segment (HAT238 on 2024-05-14, prior to the current time of 2024-05-15) and that policy line 141 requires transfer rather than a cancel-and-rebook option for such reservations.",
+      "passed": true,
+      "rationale": "The agent correctly identified that HAT238 departed on 2024-05-14 ('were scheduled for May 14th, which was yesterday. Those flights have already flown'), recognized this prevented standard modification, and appropriately transferred to a human agent rather than attempting cancel-and-rebook."
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions passed. Agent correctly refused to change the flight, avoided making incorrect insurance statements, and properly recognized the already-flown segment and transferred the case."
+}

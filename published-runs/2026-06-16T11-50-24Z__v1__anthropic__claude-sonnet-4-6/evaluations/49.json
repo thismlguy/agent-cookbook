@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel 3RK2T9.",
+      "passed": true,
+      "rationale": "The agent explicitly states in message [4] 'I'm not able to process a cancellation or refund for it' and reaffirms in message [6] 'I'm unable to cancel or refund this reservation.' The reservation 3RK2T9 is never cancelled."
+    },
+    {
+      "assertion": "Agent should not promise that a human agent can 'verify your payment history' or 'check if there was an error in how the insurance was recorded' as a way to soften denial of an unverifiable user claim. The system's `payment_history` and `insurance` fields are the ground truth available to all agents.",
+      "passed": true,
+      "rationale": "The agent does not make such promises. Instead, in message [6], the agent firmly states 'the reservation data is definitive — insurance is listed as not purchased on reservation 3RK2T9. I'm not able to override what the system shows based on a recollection.' The agent treats the system data as ground truth and does not offer to escalate or have another agent verify the insurance claim."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly denies cancellation and does not make false promises about verification by other agents."
+}

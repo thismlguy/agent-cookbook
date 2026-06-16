@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent checks all reservations.",
+      "passed": true,
+      "rationale": "The agent retrieved details for all 7 reservations (8C8K4E, UDMOP1, XAZ3C0, LU15PA, MSJ4OA, I6M8JQ, 4XGCCM) in message [8] with tool calls and received results in messages [9-15], then summarized findings in message [16]."
+    },
+    {
+      "assertion": "Agent does not cancel any reservation.",
+      "passed": true,
+      "rationale": "The agent attempted to check cancellation eligibility for UDMOP1 in message [18], but the check returned a 'deny' status in message [19]. The agent then explained the ineligibility to the user and transferred the case to a human agent in message [22] rather than proceeding with cancellation. No cancel_reservation tool was ever called, and the conversation ended with a transfer before any cancellation could occur."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent properly checked all 7 reservations and correctly declined to cancel any, respecting API constraints and transferring to a human agent instead."
+}

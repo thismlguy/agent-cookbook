@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not offer the refund because reservation doesn't meet policy criteria.",
+      "passed": true,
+      "rationale": "In message [11], the agent explicitly states 'Unfortunately, this reservation doesn't qualify for cancellation under our policy' and provides four specific reasons why the eligibility criteria are not met, concluding 'I'm unable to process a cancellation or refund for this reservation.'"
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation 3FRNFB. The cancellation denial is in-scope per policy; user pressure to cancel does not transform an in-scope denial into an out-of-scope request.",
+      "passed": true,
+      "rationale": "The agent never calls `transfer_to_human_agents` throughout the entire conversation. The agent handles the policy-based denial directly in message [11] and the conversation ends with the user accepting this explanation in message [12], confirming the issue was appropriately resolved without escalation."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly denied refund based on policy criteria without inappropriate escalation."
+}

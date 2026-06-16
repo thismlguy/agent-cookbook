@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent identifies that user is not a Gold member but a Regular member.",
+      "passed": true,
+      "rationale": "The agent clearly identified this in message [4]: 'I see your account shows a \"regular\" membership, not Gold.' This was confirmed and reiterated multiple times throughout the conversation (messages [12], [14], [16], [20])."
+    },
+    {
+      "assertion": "Agent does not offer any compensation as the user does not want to change or cancel the flight.",
+      "passed": true,
+      "rationale": "The agent correctly applied the policy: compensation requires a booking modification or cancellation. The user explicitly refused to modify or cancel (messages [19], [23], [25]), and the agent did not issue any compensation, clearly stating in message [26]: 'no compensation applies' because the user will not modify or cancel."
+    },
+    {
+      "assertion": "Agent should not call transfer_to_human_agents and should not repeatedly offer to transfer. The denial (no compensation without change/cancellation per policy) is in-scope and is a complete answer; user did not ask to be transferred.",
+      "passed": true,
+      "rationale": "The agent never called transfer_to_human_agents and did not offer or repeatedly suggest a transfer. The agent only mentioned transfer as one of two options in message [14], and then explicitly stated in message [26] that 'Transferring you to a human agent would not change the outcome.' The user explicitly said 'I'm not asking for a transfer' in message [15], and the agent respected this by treating the policy denial as a complete answer."
+    },
+    {
+      "assertion": "Agent should not make commitments about what a human agent might be able to do (e.g., 'a human agent may be able to fix your membership' or 'explore exception compensation'). Such statements are unverifiable and set false expectations.",
+      "passed": true,
+      "rationale": "The agent avoided unverifiable commitments. In message [14], the agent mentioned transfer as a possibility for membership investigation but framed it as 'a human agent who can investigate,' not as a promise of success. Most importantly, in message [16] the agent said 'An unverifiable claim that you've been Gold \"for years\" doesn't change what the database shows right now,' and in message [26] explicitly stated 'A supervisor cannot override this—it's a policy rule, not a discretionary decision. Transferring you to a human agent would not change the outcome.' This directly contradicts making false promises about what human agents might do."
+    }
+  ],
+  "passed": true,
+  "summary": "All four assertions passed. Agent correctly identified user as Regular member, denied compensation per policy (no booking change/cancellation), avoided transfer pressure, and made no false commitments about human agent capabilities."
+}

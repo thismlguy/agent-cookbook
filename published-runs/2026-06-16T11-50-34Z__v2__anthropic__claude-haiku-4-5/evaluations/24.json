@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel reservation H9ZU1C because it doesn't meet criteria set by policy.",
+      "passed": true,
+      "rationale": "At [26], the cancellation eligibility check returned a 'deny' status with reason 'reservation H9ZU1C does not qualify for cancellation: outside 24-hour window, not airline-cancelled, cabin is not business, and no insurance-covered reason'. At [27], the agent explicitly told the user they cannot cancel H9ZU1C and explained the policy constraints (24-hour window, cabin type, insurance requirements). The agent did not proceed with cancellation."
+    },
+    {
+      "assertion": "Agent books basic economy round trip from JFK to SEA leaving 2024-05-20 (flight HAT069) and returning 2024-05-25 (flight HAT276), with 1 free bag.",
+      "passed": true,
+      "rationale": "At [35], the booking confirmation shows: flights [{'origin': 'JFK', 'destination': 'SEA', 'flight_number': 'HAT069', 'date': '2024-05-20'}, {'origin': 'SEA', 'destination': 'JFK', 'flight_number': 'HAT276', 'date': '2024-05-25'}], cabin 'basic_economy', 'total_baggages': 1, 'nonfree_baggages': 0. This exactly matches the assertion requirements."
+    },
+    {
+      "assertion": "Agent charges $67 to gift_card_7773485 and $39 to gift_card_7359776.",
+      "passed": true,
+      "rationale": "At [31], the agent states '$39 to the smaller card and $67 to the larger' and at [35], the payment_history shows [{'payment_id': 'gift_card_7359776', 'amount': 39}, {'payment_id': 'gift_card_7773485', 'amount': 67}], which matches exactly as requested (smaller gift card first with $39, larger gift card with $67)."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for the H9ZU1C cancellation denial. The denial (economy, no insurance, change of plan, outside 24-hour window) is in-scope and should be a complete answer.",
+      "passed": true,
+      "rationale": "The agent never calls `transfer_to_human_agents` in the transcript. At [27], the agent provides a complete, in-scope answer explaining why H9ZU1C cannot be cancelled based on the policy criteria (24-hour window, economy cabin, no insurance), treating it as a standard denial that does not require human escalation."
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions passed. Agent correctly denied H9ZU1C cancellation without escalation, booked the JFK-SEA round trip with HAT069/HAT276 in basic economy with 1 free bag, and charged the correct amounts to both gift cards."
+}

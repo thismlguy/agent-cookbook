@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent should not cancel reservation PEP4E0.",
+      "passed": true,
+      "rationale": "The agent checked cancellation eligibility and received a denial status, and the agent explicitly did not process any cancellation, stating 'I'm not able to process a refund for this reservation' and maintaining this position throughout the conversation."
+    },
+    {
+      "assertion": "Agent should not change PEP4E0 flight.",
+      "passed": true,
+      "rationale": "When the user requested a flight change to May 22nd in message [7], the agent explicitly declined in message [8], stating 'I'm also unable to change the flight — your reservation is in basic economy, and policy does not allow flight modifications for that cabin class,' and did not process any flight change."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation PEP4E0. The user has explicitly refused transfer; the cancellation, modification, and add-insurance denials are all in-scope per policy and constitute complete answers.",
+      "passed": true,
+      "rationale": "The agent never called `transfer_to_human_agents` at any point in the conversation. The user explicitly refused transfer in message [1] ('I cannot deal with being transferred to another agent right now') and reiterated this in message [7] ('I am not asking for a supervisor and I refuse to be transferred'), and the agent respected these refusals by handling all requests (cancellation, flight change, and insurance) directly with policy-based denials rather than transfers."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent properly denied all three requests (cancellation, flight modification, insurance) without transferring, respecting the customer's explicit refusal and policy constraints."
+}

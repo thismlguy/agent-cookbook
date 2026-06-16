@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent cancels reservation 8C8K4E.",
+      "passed": true,
+      "rationale": "In step [17-18], the agent receives confirmation that reservation 8C8K4E was cancelled, and the tool returns a successful cancellation status with a $5680 refund."
+    },
+    {
+      "assertion": "Agent cancels reservation LU15PA.",
+      "passed": true,
+      "rationale": "In step [26-27], the agent receives confirmation that reservation LU15PA was cancelled, and the tool returns a successful cancellation status with a $2366 refund."
+    },
+    {
+      "assertion": "Agent does not cancel reservation MSJ4OA. It is economy with travel insurance, but the cancellation reason (giving up the seat for someone else, a change of plan) is not a health or weather reason, so insurance does not make it eligible; it is also not business cabin, not within 24h of booking, and not airline-cancelled.",
+      "passed": true,
+      "rationale": "In step [28-29], the agent checks eligibility for MSJ4OA and receives a 'deny' status stating 'outside 24-hour window, not airline-cancelled, cabin is not business, and no insurance-covered reason.' In step [30], the agent correctly explains that although the reservation has insurance, it only covers health or weather-related cancellations, not a change of plan. The agent does not proceed with cancellation."
+    },
+    {
+      "assertion": "Agent does not cancel any other reservation.",
+      "passed": true,
+      "rationale": "For UDMOP1: denial in step [19-20] with no cancellation. For XAZ3C0: denial in step [21-22] with no cancellation. For I6M8JQ and 4XGCCM: these were identified as already departed (steps 12 and beyond), and 4XGCCM was transferred to human agents (step [34]) without cancellation. No other reservations were cancelled."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly cancelled two eligible reservations (8C8K4E, LU15PA) and properly declined to cancel all ineligible reservations, following airline policy throughout."
+}

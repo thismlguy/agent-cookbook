@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Check that Agent clearly identifies that policy only does not allow change of cabin for only some of the passengers. All passengers must fly in the same cabin.",
+      "passed": true,
+      "rationale": "In message [12], the agent explicitly states: 'Unfortunately, cabin class must be the same for all passengers in a reservation — I'm not able to upgrade only one passenger to business while the other stays in economy.' This clearly identifies the policy and explains that all passengers must fly in the same cabin."
+    },
+    {
+      "assertion": "Check that agent correctly adds 2 checked bags for free.",
+      "passed": true,
+      "rationale": "The agent successfully added 2 checked bags for free to the reservation. In message [16], the tool was called with total_baggages: 2 and nonfree_baggages: 0, confirming both bags are free. The tool result in [17] confirms the update with total_baggages: 2 and nonfree_baggages: 0. Message [18] confirms 'Done! 2 checked bags have been added to your reservation at no charge.'"
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly refused partial cabin upgrades citing policy, and successfully added 2 free checked bags."
+}

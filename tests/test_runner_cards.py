@@ -15,6 +15,7 @@ from src.agents.v2.pending_actions import (
     FlightRef,
     PaymentRef,
     PendingBook,
+    PendingCancel,
     PendingModifyFlights,
     PendingPassenger,
     render_card_summary,
@@ -25,10 +26,25 @@ import importlib
 # shadows the submodule attribute — so fetch the real module from sys.modules to
 # monkeypatch its `new_action_id`.
 _booking_mod = importlib.import_module("src.agents.v2.subagents.booking_specialist")
+_cancel_mod = importlib.import_module("src.agents.v2.subagents.cancellation_specialist")
 from src.config import DB_PATH
 from src.domain.store import Store
-from src.runner.runner import _render_cards_for_sim, _serialize_message, _visible_text, run_task
+from src.runner.runner import (
+    _open_card,
+    _render_cards_for_sim,
+    _serialize_message,
+    _surface_open_card,
+    _visible_text,
+    run_task,
+)
 from src.sim.schemas import UserTurn
+
+
+def _id_sequence(ids):
+    """A new_action_id() stand-in that hands out `ids` in order (deterministic
+    action_ids so a test can name the cards the agent emits)."""
+    it = iter(ids)
+    return lambda: next(it)
 
 
 class ScriptedChatModel(FakeMessagesListChatModel):
@@ -143,6 +159,123 @@ def test_runner_does_not_execute_on_reject(monkeypatch):
     assert any("never mind" in t.lower() for t in user_texts)  # pivot text passed through
 
 
+def test_runner_executes_two_bundled_cards(monkeypatch):
+    """Reproduces task 42: the agent bundles TWO confirmation cards in one
+    message. Each accept must execute one — the second card stays acceptable even
+    though it was never the immediately-preceding message's only/first card.
+    Pre-fix, only the first card ever executed and the second was stranded.
+    Also asserts the structural write is logged into the transcript (judge view)."""
+    monkeypatch.setattr(_cancel_mod, "new_action_id", _id_sequence(["act_c1", "act_c2"]))
+    agent_script = [
+        AIMessage(
+            content="",
+            tool_calls=[
+                _tc("check_cancellation_eligibility",
+                    {"reservation_id": "4WQ150", "reason": "airline_cancelled"}, "c1"),
+                _tc("check_cancellation_eligibility",
+                    {"reservation_id": "VAAOXJ", "reason": "airline_cancelled"}, "c2"),
+            ],
+        ),
+        AIMessage(
+            content=(
+                'Both are eligible — please confirm each. '
+                '<confirmation_card action_id="act_c1" kind="cancel"/> '
+                '<confirmation_card action_id="act_c2" kind="cancel"/>'
+            )
+        ),
+        AIMessage(content="4WQ150 is cancelled. The second is still awaiting your confirmation."),
+        AIMessage(content="VAAOXJ is cancelled too. Anything else?"),
+    ]
+    sim_turns = [
+        UserTurn(kind="message", text="Cancel both 4WQ150 and VAAOXJ — duplicate bookings."),
+        UserTurn(kind="message", text="", card_action="accept"),
+        UserTurn(kind="message", text="", card_action="accept"),
+        UserTurn(kind="end", text="thanks"),
+    ]
+
+    result = run_task(
+        task={"id": "t-bundled", "user_scenario": {}},
+        agent_id="v2",
+        agent_llm=ScriptedChatModel(responses=agent_script),
+        sim_llm=_ScriptedSimLLM(sim_turns),
+        max_turns=10,
+    )
+
+    # Both writes executed: two templated confirmations, both reservations gone
+    # from the store (cancel_reservation removes them).
+    user_texts = [e["content"] for e in result.transcript if e["role"] == "user"]
+    assert sum("Confirmed cancellation." in t for t in user_texts) == 2
+    reservations = result.store_snapshot["reservations"]
+    assert "4WQ150" not in reservations and "VAAOXJ" not in reservations
+    # Fix 2: each structural write is logged as a tool entry the judge can see.
+    cancel_writes = [
+        e for e in result.transcript
+        if e.get("role") == "tool" and e.get("name") == "cancel_reservation"
+    ]
+    written_ids = {e["args"]["reservation_id"] for e in cancel_writes}
+    assert written_ids == {"4WQ150", "VAAOXJ"}
+
+
+def test_runner_executes_card_after_pushback(monkeypatch):
+    """Reproduces task 11: the user doesn't accept on the turn right after the
+    card — they ask a question first, the agent replies in prose (no tag), and
+    only then accepts. The card from two turns ago must still execute."""
+    monkeypatch.setattr(_cancel_mod, "new_action_id", _id_sequence(["act_c1"]))
+    agent_script = [
+        AIMessage(content="",
+                  tool_calls=[_tc("check_cancellation_eligibility",
+                                  {"reservation_id": "4WQ150", "reason": "airline_cancelled"}, "c1")]),
+        AIMessage(content='Eligible. <confirmation_card action_id="act_c1" kind="cancel"/>'),
+        AIMessage(content="The refund returns to your original payment method."),  # prose, no tag
+        AIMessage(content="Done — 4WQ150 is cancelled. Anything else?"),
+    ]
+    sim_turns = [
+        UserTurn(kind="message", text="Cancel 4WQ150."),
+        UserTurn(kind="message", text="Wait — what's the refund amount?"),  # card_action=None
+        UserTurn(kind="message", text="Ok, go ahead.", card_action="accept"),
+        UserTurn(kind="end", text="bye"),
+    ]
+
+    result = run_task(
+        task={"id": "t-pushback", "user_scenario": {}},
+        agent_id="v2",
+        agent_llm=ScriptedChatModel(responses=agent_script),
+        sim_llm=_ScriptedSimLLM(sim_turns),
+        max_turns=10,
+    )
+
+    user_texts = [e["content"] for e in result.transcript if e["role"] == "user"]
+    assert any("Confirmed cancellation." in t for t in user_texts)  # stale card still executed
+    assert "4WQ150" not in result.store_snapshot["reservations"]
+
+
+def test_open_card_and_surface_handle_stale_bundled():
+    """Unit: _open_card returns the most-recent still-pending card even when it's
+    the 2nd card of a bundle / not in the last message, and _surface_open_card
+    re-shows it to the sim view."""
+    store = Store.load_from_path(DB_PATH)
+    store.pending_actions["a1"] = PendingCancel(action_id="a1", reservation_id="R1")
+    store.pending_actions["a2"] = PendingCancel(action_id="a2", reservation_id="R2")
+    history = [
+        HumanMessage(content="cancel both"),
+        AIMessage(content='Confirm each: <confirmation_card action_id="a1" kind="cancel"/> '
+                          '<confirmation_card action_id="a2" kind="cancel"/>'),
+        AIMessage(content="R1 cancelled."),  # tag-free follow-up
+    ]
+    store.pending_actions["a1"].status = "executed"  # first already ran
+
+    open_card = _open_card(history, store)
+    assert open_card is not None and open_card["action_id"] == "a2"  # stale+bundled, still open
+
+    sim_view = _surface_open_card(_render_cards_for_sim(history, store),
+                                  store.pending_actions["a2"], store)
+    assert "[Confirmation requested]" in sim_view[-1].content  # re-surfaced on last agent turn
+
+    # When nothing is pending, _open_card is None.
+    store.pending_actions["a2"].status = "executed"
+    assert _open_card(history, store) is None
+
+
 def test_runner_v0_card_path_inert():
     """v0 never emits a card; the new sim-facing rendering + card_action are a
     no-op and the run completes normally."""
@@ -191,6 +324,65 @@ def test_render_card_summary_book_full_split():
     summary = render_card_summary(pa, store)
     assert "Total $171" in summary
     assert "$100 to" in summary and "$71 to" in summary  # full split, both methods
+
+
+def test_cabin_change_refund_is_passenger_multiplied():
+    """policy.md: a cabin change charges/refunds the fare difference for EVERY
+    passenger (all share the same flights/cabin). GV1N64 is business→basic_economy
+    with 3 passengers; per-passenger diff is -$1748, so the refund must be -$5244.
+    The specialist's card delta and the authoritative write must agree.
+    Regression for the per-passenger (non-multiplied) bug in data/CHANGES.md."""
+    from src.agents.v0.tools import make_tools
+    from src.agents.v2.subagents.modification_specialist import modification_specialist
+    from src.agents.v2.subagents.schemas import ModificationInput
+
+    store = Store.load_from_path(DB_PATH)
+    r = store.reservations["GV1N64"]
+    assert r.cabin == "business" and len(r.passengers) == 3  # guard the fixture
+    payment_id = next(iter(store.users[r.user_id].payment_methods))
+
+    # specialist card delta
+    resp = modification_specialist(
+        ModificationInput(reservation_id="GV1N64", change_kind="cabin",
+                          new_cabin="basic_economy", payment_id=payment_id),
+        store,
+    )
+    assert store.pending_actions[resp.action_id].price_delta == -5244
+
+    # authoritative write records the same amount
+    store2 = Store.load_from_path(DB_PATH)
+    flights = [{"flight_number": f.flight_number, "date": f.date}
+               for f in store2.reservations["GV1N64"].flights]
+    tools = {t.name: t for t in make_tools(store2)}
+    out = tools["update_reservation_flights"].invoke(
+        {"reservation_id": "GV1N64", "cabin": "basic_economy",
+         "flights": flights, "payment_id": payment_id}
+    )
+    assert out["payment_history"][-1]["amount"] == -5244
+
+
+def test_modify_baggage_derives_free_allowance():
+    """Baggage modification derives the paid-bag count from the free allowance
+    (membership x cabin x passengers), ignoring the LLM's nonfree_baggages —
+    mirroring booking_specialist. Regression for tasks 22/33 (charged for bags
+    that should be free). 4WQ150 is silver/business x3 = 9 free bags, so adding
+    up to 8 stays free even if the LLM claims they're all paid."""
+    from src.agents.v2.subagents.modification_specialist import modification_specialist
+    from src.agents.v2.subagents.schemas import ModificationInput
+
+    store = Store.load_from_path(DB_PATH)
+    pid = next(iter(store.users[store.reservations["4WQ150"].user_id].payment_methods))
+    resp = modification_specialist(
+        ModificationInput(
+            reservation_id="4WQ150", change_kind="baggage",
+            total_baggages=8, nonfree_baggages=8,  # LLM claims all 8 are paid
+            payment_id=pid,
+        ),
+        store,
+    )
+    pa = store.pending_actions[resp.action_id]
+    assert pa.nonfree_baggages == 0  # 8 <= 9 free → none paid, LLM input ignored
+    assert pa.price_delta == 0  # no charge for bags within the free allowance
 
 
 def test_render_card_summary_modify_shows_delta():

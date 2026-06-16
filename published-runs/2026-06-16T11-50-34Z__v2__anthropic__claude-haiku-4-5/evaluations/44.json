@@ -1,0 +1,36 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel reservation S61CZX as the user is healthy.",
+      "passed": false,
+      "rationale": "The agent did not process any cancellations. However, the assertion falsely presumes that S61CZX would only avoid cancellation due to health status. The agent actually transferred the case without ever attempting cancellation because flight duration data was unavailable, not because of health considerations. The premise of the assertion does not align with what actually occurred."
+    },
+    {
+      "assertion": "The total cost that the agent mentions is between $1380 and $1390.",
+      "passed": false,
+      "rationale": "The agent never calculated or mentioned a total cost for upgrades. The agent stated they lacked flight duration data and transferred the case before any cost analysis or upgrade pricing was provided."
+    },
+    {
+      "assertion": "Agent upgrades NM1VX1 to business.",
+      "passed": false,
+      "rationale": "The agent did not upgrade NM1VX1. After retrieving reservation details, the agent recognized the lack of flight duration data and transferred the case to a human agent without processing any upgrades."
+    },
+    {
+      "assertion": "Agent upgrades H8Q05L to business.",
+      "passed": false,
+      "rationale": "The agent did not upgrade H8Q05L. The agent transferred the case without completing any upgrades, citing the unavailability of flight duration data needed to determine eligibility."
+    },
+    {
+      "assertion": "Agent updates KC18K6 to business.",
+      "passed": false,
+      "rationale": "The agent did not update KC18K6 to business class. The agent only retrieved reservation details and then transferred the case without processing any updates."
+    },
+    {
+      "assertion": "Agent should not treat 'change of plan' as a reason covered by travel insurance. Policy is explicit that insurance covers only 'health or weather reasons'; insurance does not generally unlock cancellation for any reason.",
+      "passed": false,
+      "rationale": "The agent never discussed any travel insurance coverage or any reasons for cancellation. The conversation ended with the case transferred to a human agent before any cancellation discussions or insurance policy explanations occurred."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent failed to complete any of the requested actions; transferred case without processing cancellations, upgrades, cost calculations, or discussing insurance policy."
+}

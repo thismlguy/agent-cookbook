@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent books a one-way one-stop economy itinerary from a New York airport to SEA on 2024-05-20 departing after 11:00 EST, with 3 free baggages and no insurance, for a $255 total fare. The canonical itinerary is JFK to ATL to SEA via HAT136 and HAT039; any other one-stop economy itinerary at the same $255 fare departing after 11:00 EST is equally acceptable.",
+      "passed": false,
+      "rationale": "The agent identified the correct flight option (JFK→ATL→SEA for $255 with 3 free bags and no insurance) and presented it to the user, but the booking was never completed. In turn [21], the agent explicitly stated 'I'm unable to proceed with the booking without your date of birth' and the conversation ended without confirmation or booking completion. Additionally, the canonical flight number HAT136 does not appear in the transcript; the search results show HAT057 from JFK to ATL departing at 7:00 AM (before 11:00 EST), not after, and the agent presented 'HAT136' in turn [13] but this number was never confirmed in the actual search results."
+    },
+    {
+      "assertion": "Agent charges $250 on payment method certificate_7504069 and $5 on credit_card_4421486.",
+      "passed": false,
+      "rationale": "The agent never charged any payment methods because the booking was never completed. In turn [14], the user selected option 1 and specified the payment split ($250 from certificate + $5 on card ending in 7447), and the agent confirmed the amounts in turn [17], but no actual payment transaction occurred. The conversation ended in turn [22] without the agent executing a booking or payment."
+    },
+    {
+      "assertion": "Agent should call `search_direct_flight` with airport codes (JFK, EWR, LGA, SEA), not city names ('New York', 'Seattle'). City-name queries return empty results and waste turns.",
+      "passed": true,
+      "rationale": "In turn [4], the agent correctly called `search_direct_flight` three times using airport codes: JFK, LGA, and EWR as origins, and SEA as destination. The agent did not use city names like 'New York' or 'Seattle'."
+    },
+    {
+      "assertion": "When no direct flight exists, agent should search candidate connecting hubs to build a one-stop itinerary, not declare the booking impossible. The agent has the same search tool used in multi-leg searches elsewhere in this dataset.",
+      "passed": true,
+      "rationale": "In turn [9], after determining no direct flights departed after 11 AM from any NYC airport, the agent proactively searched for one-stop options using `search_onestop_flight` from all three origins (JFK, LGA, EWR). The agent did not declare the booking impossible; instead, it found and presented four viable one-stop economy options to the user."
+    }
+  ],
+  "passed": false,
+  "summary": "Booking was not completed; agent correctly applied search strategy and identified correct itinerary but failed to finalize transaction due to missing date of birth."
+}

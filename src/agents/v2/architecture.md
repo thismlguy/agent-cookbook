@@ -32,7 +32,7 @@ This document is the design. Implementation lands in follow-up files
 
 A single LangGraph ReAct agent. Owns:
 - the conversation with the user
-- basic info-gathering tool calls (`get_user_details`, `get_reservation_details`, `search_route`)
+- basic info-gathering tool calls (`get_user_details`, `get_reservation_details`, `search_direct_flight`/`search_onestop_flight`)
 - routing decisions ("this is a cancellation request → invoke cancellation specialist")
 - relaying specialist verdicts to the user (deny/transfer as prose;
   ready_to_act as a confirmation-card tag — see *Confirmation card protocol*)
@@ -48,7 +48,9 @@ invokes it; the LLM is not on the tool surface for it. See
 The orchestrator's prompt is short. It does **not** carry the policy
 text. It carries the conversation pattern, the available specialists,
 each specialist's required-input schema, and the pending-action
-protocol. Total target length: under 400 words.
+protocol. The goal is to keep it short — the policy lives in the
+specialist functions, not the prompt — but there's no hard word cap;
+length is whatever cleanly expresses the coordination logic.
 
 The orchestrator runs on a small model (target: 7B-class fast inference;
 could also be a tiny model with structured-output mode).
@@ -487,21 +489,26 @@ documenting rather than papering over.
 
 ## Orchestrator tool surface
 
-Total: 8 tools.
+Total: 10 tools.
 
 | Tool | Kind | Notes |
 |---|---|---|
 | `get_user_details(user_id)` | info | look up user profile |
 | `get_reservation_details(reservation_id)` | info | look up reservation |
-| `search_route(origin, destination, date)` | info | direct + one-stop fallback |
+| `search_direct_flight(origin, destination, date)` | info | nonstop flights on a date (each carries `total_duration_min`) |
+| `search_onestop_flight(origin, destination, date)` | info | one-stop connecting itineraries (with combined `total_duration_min`) |
+| `get_baggage_allowance(reservation_id OR user_id, cabin, passenger_count)` | info | policy-driven free-bag allowance; the second form answers pre-booking |
 | `check_booking_eligibility(...)` | specialist | invokes booking subagent |
 | `check_modification_eligibility(...)` | specialist | invokes modification subagent |
 | `check_cancellation_eligibility(reservation_id, reason)` | specialist | invokes cancellation subagent |
 | `check_compensation_eligibility(reservation_id, complaint_kind, change_or_cancel_done)` | specialist | invokes compensation subagent |
 | `transfer_to_human_agents(summary)` | escape | unchanged |
 
-`search_direct_flight` is no longer top-level; it's used internally by
-`search_route`. `book_reservation`, `cancel_reservation`,
+Search mirrors upstream tau2-bench's two tools (`search_direct_flight` +
+`search_onestop_flight`). An earlier v2 merged them into one `search_route`
+with a direct-XOR-one-stop fallback; the eval showed that hid the
+direct/one-stop distinction and dropped per-leg times, so it was reverted (see
+changes.md "Fix 8"). `book_reservation`, `cancel_reservation`,
 `update_reservation_*` are not on the LLM's tool surface at all —
 they're invoked only inside `pa.execute(store)`, which itself runs only
 when the UI/runner calls `execute_pending_action(action_id)` after user
@@ -736,9 +743,9 @@ understanding, which is what the LLM is good at.
 
 ## What changes from v0/v1
 
-- Orchestrator's system prompt is dramatically shorter (~400 words vs
-  ~1500). The policy is no longer in the prompt; it's encoded in the
-  specialist functions.
+- Orchestrator's system prompt is substantially shorter than v1's
+  (~1500 words) because the policy is no longer in the prompt; it's
+  encoded in the specialist functions.
 - Tool surface differs: write tools are not on the LLM's tool surface
   at all. Specialists are top-level tools; the write step happens
   outside the LLM loop via `execute_pending_action`, triggered by the

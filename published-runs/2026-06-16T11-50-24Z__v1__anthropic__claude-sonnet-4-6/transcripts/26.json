@@ -1,0 +1,91 @@
+{
+  "agent_response_times_ms": [
+    2080.8352080020995,
+    14673.372000001109,
+    4392.931499998667
+  ],
+  "task_id": "26",
+  "terminated_by": "simulator_end",
+  "transcript": [
+    {
+      "content": "Hi, this is Amelia Sanchez. I need to cancel my flights from MCO to CLT, and I want to make sure I get a full refund.",
+      "role": "user"
+    },
+    {
+      "content": "I can help with that. Could you please provide me with your user ID?",
+      "role": "agent"
+    },
+    {
+      "content": "Sure, it's amelia_sanchez_4739.",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "user_id": "amelia_sanchez_4739"
+          },
+          "id": "toolu_015RmJoNRmuPAzS8TjSg3dbf",
+          "name": "get_user_details"
+        }
+      ]
+    },
+    {
+      "content": "{\"user_id\": \"amelia_sanchez_4739\", \"name\": {\"first_name\": \"Amelia\", \"last_name\": \"Sanchez\"}, \"address\": {\"address1\": \"225 Sunset Drive\", \"address2\": \"Suite 563\", \"city\": \"Los Angeles\", \"country\": \"USA\", \"state\": \"CA\", \"zip\": \"91292\"}, \"email\": \"amelia.sanchez3631@example.com\", \"dob\": \"1955-02-01\", \"payment_methods\": {\"credit_card_4065275\": {\"source\": \"credit_card\", \"id\": \"credit_card_4065275\", \"brand\": \"mastercard\", \"last_four\": \"3658\", \"amount\": null}}, \"saved_passengers\": [{\"first_name\": \"Ivan\", \"last_name\": \"Martin\", \"dob\": \"1973-08-20\"}], \"membership\": \"gold\", \"reservations\": [\"3FRNFB\", \"Q4L9HS\"]}",
+      "name": "get_user_details",
+      "role": "tool",
+      "tool_call_id": "toolu_015RmJoNRmuPAzS8TjSg3dbf"
+    },
+    {
+      "content": "Let me pull up your reservations to find the MCO to CLT flight.",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "reservation_id": "3FRNFB"
+          },
+          "id": "toolu_01Q6kKf84oEvnTb78H7EUoc5",
+          "name": "get_reservation_details"
+        },
+        {
+          "args": {
+            "reservation_id": "Q4L9HS"
+          },
+          "id": "toolu_01DPgNU7NC9tpLARZdXTVKrb",
+          "name": "get_reservation_details"
+        }
+      ]
+    },
+    {
+      "content": "{\"reservation_id\": \"3FRNFB\", \"user_id\": \"amelia_sanchez_4739\", \"origin\": \"MCO\", \"destination\": \"CLT\", \"flight_type\": \"one_way\", \"cabin\": \"basic_economy\", \"flights\": [{\"origin\": \"MCO\", \"destination\": \"BOS\", \"flight_number\": \"HAT028\", \"date\": \"2024-05-28\", \"price\": 79}, {\"origin\": \"BOS\", \"destination\": \"CLT\", \"flight_number\": \"HAT277\", \"date\": \"2024-05-28\", \"price\": 64}], \"passengers\": [{\"first_name\": \"Amelia\", \"last_name\": \"Sanchez\", \"dob\": \"1955-02-01\"}, {\"first_name\": \"Ivan\", \"last_name\": \"Martin\", \"dob\": \"1973-08-20\"}], \"payment_history\": [{\"payment_id\": \"credit_card_4065275\", \"amount\": 286}], \"created_at\": \"2024-05-06T13:25:06\", \"total_baggages\": 0, \"nonfree_baggages\": 0, \"insurance\": \"no\"}",
+      "name": "get_reservation_details",
+      "role": "tool",
+      "tool_call_id": "toolu_01Q6kKf84oEvnTb78H7EUoc5"
+    },
+    {
+      "content": "{\"reservation_id\": \"Q4L9HS\", \"user_id\": \"amelia_sanchez_4739\", \"origin\": \"EWR\", \"destination\": \"SEA\", \"flight_type\": \"one_way\", \"cabin\": \"business\", \"flights\": [{\"origin\": \"EWR\", \"destination\": \"DFW\", \"flight_number\": \"HAT213\", \"date\": \"2024-05-17\", \"price\": 1839}, {\"origin\": \"DFW\", \"destination\": \"SEA\", \"flight_number\": \"HAT067\", \"date\": \"2024-05-17\", \"price\": 1566}], \"passengers\": [{\"first_name\": \"Amelia\", \"last_name\": \"Sanchez\", \"dob\": \"1955-02-01\"}], \"payment_history\": [{\"payment_id\": \"credit_card_4065275\", \"amount\": 3405}], \"created_at\": \"2024-05-12T20:47:43\", \"total_baggages\": 0, \"nonfree_baggages\": 0, \"insurance\": \"no\"}",
+      "name": "get_reservation_details",
+      "role": "tool",
+      "tool_call_id": "toolu_01DPgNU7NC9tpLARZdXTVKrb"
+    },
+    {
+      "content": "I found reservation **3FRNFB** — a one-way MCO to CLT trip on May 28, 2024, in basic economy for 2 passengers.\n\nWhat is the reason for your cancellation? The options are:\n- **Change of plan**\n- **Airline cancelled** the flight\n- **Other**",
+      "role": "agent"
+    },
+    {
+      "content": "Change of plan. I need to cancel this and get a refund.",
+      "role": "user"
+    },
+    {
+      "content": "Unfortunately, this reservation doesn't qualify for cancellation under our policy. Here's why none of the eligibility criteria are met:\n\n- The booking was made on May 6 (more than 24 hours ago)\n- The reason is a change of plan (not airline-cancelled)\n- The cabin is basic economy (not business)\n- There is no travel insurance on the reservation\n\nI'm unable to process a cancellation or refund for this reservation.",
+      "role": "agent"
+    },
+    {
+      "content": "Okay, I understand. Thanks anyway.",
+      "role": "user"
+    }
+  ],
+  "turn_count": 4
+}

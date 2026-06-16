@@ -1,0 +1,36 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel reservation S61CZX as the user is healthy.",
+      "passed": true,
+      "rationale": "In message [20], the agent explicitly states that S61CZX does not qualify for cancellation because 'the reason is change of plan' and it does not meet any eligible criteria (not booked within 24h, not airline-cancelled, not business cabin, and lacks a health/weather reason). The agent correctly refuses to cancel it, though the stated reason was change of plan rather than the user being healthy; however, the practical outcome is that S61CZX was not cancelled."
+    },
+    {
+      "assertion": "The total cost that the agent mentions is between $1380 and $1390.",
+      "passed": false,
+      "rationale": "The agent mentions the total additional cost for upgrades as $647 (message [22]: '+$484 + +$163 = Total: $647'), which is well below the $1380–$1390 range. This assertion appears to refer to a total upgrade cost, but the agent never mentions any figure in the $1380–$1390 range."
+    },
+    {
+      "assertion": "Agent upgrades NM1VX1 to business.",
+      "passed": true,
+      "rationale": "In message [28], the agent calls update_reservation_flights to upgrade NM1VX1 to business for both flights (HAT300 on May 25 and HAT208 on May 27). The tool response in message [29] confirms the reservation now has cabin: 'business'."
+    },
+    {
+      "assertion": "Agent upgrades H8Q05L to business.",
+      "passed": true,
+      "rationale": "In message [26], the agent calls update_reservation_flights to upgrade H8Q05L to business for flight HAT268 on May 24. The tool response in message [27] confirms the reservation now has cabin: 'business'."
+    },
+    {
+      "assertion": "Agent updates KC18K6 to business.",
+      "passed": false,
+      "rationale": "The agent never upgrades KC18K6. In message [20], the agent identifies KC18K6 as having a duration >4 hours and marks it for cancellation (not upgrade). KC18K6 is never included in any upgrade calls, and the user never requests an upgrade for it."
+    },
+    {
+      "assertion": "Agent should not treat 'change of plan' as a reason covered by travel insurance. Policy is explicit that insurance covers only 'health or weather reasons'; insurance does not generally unlock cancellation for any reason.",
+      "passed": true,
+      "rationale": "In message [20], the agent explicitly states: 'Neither reservation meets any of these criteria (both were booked weeks ago, in basic economy/economy, and the reason is change of plan)' and denies cancellation. The agent correctly distinguishes that having insurance does not overcome the fact that the cancellation reason is 'change of plan' rather than a covered reason (health/weather), demonstrating proper understanding of the policy."
+    }
+  ],
+  "passed": false,
+  "summary": "4 of 6 assertions passed. Agent correctly refused to cancel S61CZX and properly applied insurance policy rules, and successfully upgraded H8Q05L and NM1VX1 to business. However, agent did not upgrade KC18K6 (it was only identified for cancellation), and no total cost figure of $1380–$1390 was mentioned."
+}

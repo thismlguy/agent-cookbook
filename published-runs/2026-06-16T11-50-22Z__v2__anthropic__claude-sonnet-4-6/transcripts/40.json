@@ -1,0 +1,124 @@
+{
+  "agent_response_times_ms": [
+    2805.092082999181,
+    10947.590750001837,
+    1888.6752079997677
+  ],
+  "task_id": "40",
+  "terminated_by": "simulator_end",
+  "transcript": [
+    {
+      "content": "Hi, I need to change the passenger name on reservation 3RK2T9 from Mei Lee to Mei Garcia.",
+      "role": "user"
+    },
+    {
+      "content": "I'd be happy to help with that name change. Could you please provide me with your user ID so I can verify your account?",
+      "role": "agent"
+    },
+    {
+      "content": "anya_garcia_5901",
+      "role": "user"
+    },
+    {
+      "content": "",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "user_id": "anya_garcia_5901"
+          },
+          "id": "toolu_01JbUBTd1iRHna8Y3PEQr9qX",
+          "name": "get_user_details"
+        },
+        {
+          "args": {
+            "reservation_id": "3RK2T9"
+          },
+          "id": "toolu_01D3oFrLuWeqpDy5qiSvWPAC",
+          "name": "get_reservation_details"
+        }
+      ]
+    },
+    {
+      "content": "{\"user_id\": \"anya_garcia_5901\", \"name\": {\"first_name\": \"Anya\", \"last_name\": \"Garcia\"}, \"address\": {\"address1\": \"555 Highland Drive\", \"address2\": \"Suite 243\", \"city\": \"San Antonio\", \"country\": \"USA\", \"state\": \"TX\", \"zip\": \"78256\"}, \"email\": \"anya.garcia8816@example.com\", \"dob\": \"1992-11-12\", \"payment_methods\": {\"gift_card_2550356\": {\"source\": \"gift_card\", \"id\": \"gift_card_2550356\", \"brand\": null, \"last_four\": null, \"amount\": 149.0}, \"certificate_7583008\": {\"source\": \"certificate\", \"id\": \"certificate_7583008\", \"brand\": null, \"last_four\": null, \"amount\": 150.0}}, \"saved_passengers\": [{\"first_name\": \"Mei\", \"last_name\": \"Lee\", \"dob\": \"1989-12-13\"}], \"membership\": \"silver\", \"reservations\": [\"82K959\", \"790JYN\", \"BE2L57\", \"CXBB4L\", \"TAMSDK\", \"3RK2T9\", \"VAOW1B\", \"Q4MCUF\", \"JMO1MG\"]}",
+      "name": "get_user_details",
+      "role": "tool",
+      "tool_call_id": "toolu_01JbUBTd1iRHna8Y3PEQr9qX"
+    },
+    {
+      "content": "{\"reservation_id\": \"3RK2T9\", \"user_id\": \"anya_garcia_5901\", \"origin\": \"MCO\", \"destination\": \"SFO\", \"flight_type\": \"one_way\", \"cabin\": \"basic_economy\", \"flights\": [{\"origin\": \"MCO\", \"destination\": \"PHX\", \"flight_number\": \"HAT214\", \"date\": \"2024-05-19\", \"price\": 57}, {\"origin\": \"PHX\", \"destination\": \"SFO\", \"flight_number\": \"HAT009\", \"date\": \"2024-05-20\", \"price\": 83}], \"passengers\": [{\"first_name\": \"Anya\", \"last_name\": \"Garcia\", \"dob\": \"1992-11-12\"}, {\"first_name\": \"Mei\", \"last_name\": \"Lee\", \"dob\": \"1989-12-13\"}], \"payment_history\": [{\"payment_id\": \"gift_card_2550356\", \"amount\": 280}], \"created_at\": \"2024-05-02T06:02:56\", \"total_baggages\": 0, \"nonfree_baggages\": 0, \"insurance\": \"no\"}",
+      "name": "get_reservation_details",
+      "role": "tool",
+      "tool_call_id": "toolu_01D3oFrLuWeqpDy5qiSvWPAC"
+    },
+    {
+      "content": "Got it. I'll change Mei Lee to Mei Garcia, keeping the same date of birth (1989-12-13). Let me check eligibility now.",
+      "role": "agent",
+      "tool_calls": [
+        {
+          "args": {
+            "change_kind": "passengers",
+            "new_passengers": [
+              {
+                "dob": "1992-11-12",
+                "first_name": "Anya",
+                "last_name": "Garcia"
+              },
+              {
+                "dob": "1989-12-13",
+                "first_name": "Mei",
+                "last_name": "Garcia"
+              }
+            ],
+            "reservation_id": "3RK2T9"
+          },
+          "id": "toolu_01AYRZfWnpQA1ASEvbibwUPq",
+          "name": "check_modification_eligibility"
+        }
+      ]
+    },
+    {
+      "content": "{\"status\": \"ready_to_act\", \"action_id\": \"act_f651fdbe5365\"}",
+      "name": "check_modification_eligibility",
+      "role": "tool",
+      "tool_call_id": "toolu_01AYRZfWnpQA1ASEvbibwUPq"
+    },
+    {
+      "content": "Please review and confirm the name change from Mei Lee to Mei Garcia:\n\n<confirmation_card action_id=\"act_f651fdbe5365\" kind=\"modify_passengers\"/>",
+      "role": "agent"
+    },
+    {
+      "content": "Confirmed passenger update on reservation 3RK2T9: Anya Garcia, Mei Garcia.",
+      "role": "user"
+    },
+    {
+      "args": {
+        "passengers": [
+          {
+            "dob": "1992-11-12",
+            "first_name": "Anya",
+            "last_name": "Garcia"
+          },
+          {
+            "dob": "1989-12-13",
+            "first_name": "Mei",
+            "last_name": "Garcia"
+          }
+        ],
+        "reservation_id": "3RK2T9"
+      },
+      "content": "{'reservation_id': '3RK2T9', 'user_id': 'anya_garcia_5901', 'origin': 'MCO', 'destination': 'SFO', 'flight_type': 'one_way', 'cabin': 'basic_economy', 'flights': [{'origin': 'MCO', 'destination': 'PHX', 'flight_number': 'HAT214', 'date': '2024-05-19', 'price': 57}, {'origin': 'PHX', 'destination': 'SFO', 'flight_number': 'HAT009', 'date': '2024-05-20', 'price': 83}], 'passengers': [{'first_name': 'Anya', 'last_name': 'Garcia', 'dob': '1992-11-12'}, {'first_name': 'Mei', 'last_name': 'Garcia', 'dob': '1989-12-13'}], 'payment_history': [{'payment_id': 'gift_card_2550356', 'amount': 280}], 'created_at': '2024-05-02T06:02:56', 'total_baggages': 0, 'nonfree_baggages': 0, 'insurance': 'no'}",
+      "name": "update_reservation_passengers",
+      "role": "tool"
+    },
+    {
+      "content": "The passenger name has been successfully updated — Mei Lee is now Mei Garcia on reservation 3RK2T9. Is there anything else I can help you with?",
+      "role": "agent"
+    },
+    {
+      "content": "No, that's all. Thanks, bye.",
+      "role": "user"
+    }
+  ],
+  "turn_count": 4
+}

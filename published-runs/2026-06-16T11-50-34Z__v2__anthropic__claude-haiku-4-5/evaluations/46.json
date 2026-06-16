@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel insurance or offer a refund.",
+      "passed": true,
+      "rationale": "The agent explicitly stated 'I'm unable to remove or refund travel insurance after booking—that's outside our policy' and did not cancel the insurance or offer any refund, maintaining this position throughout the conversation."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for the insurance-refund denial. Insurance cannot be added or removed post-booking per policy; the denial is in-scope.",
+      "passed": true,
+      "rationale": "The agent did not call `transfer_to_human_agents` at any point in the conversation; the agent handled the insurance refund denial directly by citing policy, which is appropriate since this is an in-scope policy matter."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly denied the insurance refund request by citing policy and did not inappropriately escalate."
+}

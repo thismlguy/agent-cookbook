@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent cancels reservation FDZ0T5",
+      "passed": true,
+      "rationale": "The agent successfully cancelled reservation FDZ0T5 in message [16], and the cancellation was confirmed in message [19] with a $3,778 refund."
+    },
+    {
+      "assertion": "Agent cancels reservation HSR97W",
+      "passed": true,
+      "rationale": "The agent successfully cancelled reservation HSR97W in message [16], and the cancellation was confirmed in message [18] with a $1,227 refund."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent successfully cancelled both required reservations (FDZ0T5 and HSR97W) based on sound reasoning about locations, passengers, and flight dates."
+}

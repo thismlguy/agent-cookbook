@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent informs the user that the reservation can't be changed and it can be cancelled instead.",
+      "passed": true,
+      "rationale": "In message [7], the agent explicitly informs the user that 'Your reservation is DTW ↔ LGA. Flight modifications cannot change the route endpoints' and offers two options: cancel the reservation and rebook on DTW–JFK, or modify to different DTW–LGA options. The agent clearly communicates that changing the destination requires cancellation, not modification."
+    },
+    {
+      "assertion": "Agent cancelled reservation VA5SGQ.",
+      "passed": true,
+      "rationale": "In message [15], the tool result confirms: 'cancel_reservation(VA5SGQ) → {status: cancelled}'. The cancellation was processed and $686 was refunded, as confirmed in message [25] which states '✅ Cancelled VA5SGQ — $686 refunded to Visa ending in 6521'."
+    },
+    {
+      "assertion": "Agent books new round trip reservation with flights HAT169 and HAT033 with one bag.",
+      "passed": true,
+      "rationale": "In message [24], the tool result shows the new reservation ZW37W1 was created with flights [{'flight_number': 'HAT169', 'date': '2024-05-17'}, {'flight_number': 'HAT033', 'date': '2024-05-19'}], 'flight_type': 'round_trip', 'total_baggages': 1. Message [25] summarizes: 'Booked ZW37W1 — DTW→JFK (HAT169, May 17) + JFK→DTW (HAT033, May 19), Economy, 1 free checked bag'."
+    },
+    {
+      "assertion": "Agent should not silently change the destination of a reservation (DTW→LGA → DTW→JFK) via `update_reservation_flights`. Policy prohibits modifying origin, destination, or trip type; the correct path is cancel + new booking, not flight modification.",
+      "passed": true,
+      "rationale": "The agent never called `update_reservation_flights` at all. Instead, in message [7], the agent explicitly informed the user that destination changes are prohibited and offered the correct path: cancel the old reservation and book a new one. The agent followed the policy by canceling VA5SGQ (message [15]) and then creating a new booking ZW37W1 with the new destination (message [24]). The agent did not attempt a silent or improper modification."
+    }
+  ],
+  "passed": true,
+  "summary": "All assertions passed. Agent properly informed user of change restrictions, cancelled the original reservation, and booked a new round-trip with the correct flights and baggage, without attempting improper modification."
+}

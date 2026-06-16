@@ -1,0 +1,11 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent cancels reservation Z7GOZK",
+      "passed": false,
+      "rationale": "The agent did not cancel reservation Z7GOZK. Instead, the agent identified that the flight is in basic economy, explained that basic economy flights cannot be modified per policy, and transferred the customer to a human agent without performing a cancellation."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent did not cancel reservation Z7GOZK as required; instead transferred to human agent."
+}

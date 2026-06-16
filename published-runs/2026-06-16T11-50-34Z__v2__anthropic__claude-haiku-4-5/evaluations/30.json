@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent updates reservation to flights HAT266 and HAT112.",
+      "passed": true,
+      "rationale": "The tool result in [12] shows the reservation was successfully updated with flights HAT266 (2024-05-19) and HAT112 (2024-05-27), and the agent confirms this in [13]: 'Your outbound flight is now the nonstop HAT266 departing at 1:00 PM on May 19... Your return flight (HAT112 on May 27) remains unchanged.'"
+    },
+    {
+      "assertion": "Agent does not make modifications to checked bags since policy doesn't allow to remove bags.",
+      "passed": true,
+      "rationale": "In [4], the agent explicitly states 'Unfortunately, checked bags cannot be removed from a reservation—once booked, the baggage is part of your reservation and cannot be refunded.' The agent never attempts to modify or remove bags, and the final reservation in [12] maintains 'total_baggages': 1, showing no baggage modifications were made despite the customer's request in [1]."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent successfully updated flights to HAT266 and HAT112 while correctly refusing to remove checked bags per policy."
+}

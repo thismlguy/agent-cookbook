@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not offer the refund because reservation doesn't meet policy criteria.",
+      "passed": true,
+      "rationale": "The agent checked cancellation eligibility using the check_cancellation_eligibility tool in step [13], received a 'deny' status with detailed reasons in step [14], and explicitly informed the user in step [15] that the reservation is ineligible for cancellation and a refund cannot be processed due to the booking being outside the 24-hour window, in basic economy, airline not having cancelled, and no insurance coverage."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation 3FRNFB. The cancellation denial is in-scope per policy; user pressure to cancel does not transform an in-scope denial into an out-of-scope request.",
+      "passed": true,
+      "rationale": "The agent never called transfer_to_human_agents throughout the conversation. The agent handled the cancellation request entirely within scope by checking eligibility, receiving a deny status with clear policy reasons, and denying the refund based on those reasons. The user's acceptance of the denial in step [16] further confirms no escalation was needed or provided."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly refused refund based on policy criteria and did not inappropriately escalate the in-scope cancellation denial."
+}

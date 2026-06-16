@@ -1,0 +1,21 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel flight.",
+      "passed": true,
+      "rationale": "Throughout the conversation, the agent explicitly stated in [9] and [11] that it cannot process a cancellation and that the reservation does not qualify for cancellation. The agent never cancelled the flight, and the conversation ended with the reservation still intact."
+    },
+    {
+      "assertion": "Agent does not offer any refund.",
+      "passed": true,
+      "rationale": "The agent consistently declined to offer any refund in [9] ('I'm unable to process a cancellation or refund'), [11] ('I'm unable to offer partial refunds, travel vouchers, or any percentage refund outside of that policy'), and [13] ('I'm unable to offer any partial refunds, vouchers, or credits outside of our cancellation policy'). No refund was offered at any point."
+    },
+    {
+      "assertion": "Agent should not repeatedly offer to transfer to a human agent (`Would you like me to transfer you?`) after a clear in-scope denial. One offer (or zero) is sufficient; repeated offers under user pushback amount to soft escalation of an in-policy denial.",
+      "passed": true,
+      "rationale": "The agent never offered to transfer the customer to a human agent at any point in the conversation. The agent instead stated in [11] that 'this is an in-scope policy decision, and a supervisor would apply the same policy,' which appropriately explains why escalation is not necessary rather than offering one."
+    }
+  ],
+  "passed": true,
+  "summary": "All three assertions passed. The agent maintained policy compliance by refusing to cancel the flight or offer any refund, and did not inappropriately offer escalation."
+}

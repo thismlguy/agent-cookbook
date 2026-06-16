@@ -1,0 +1,36 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent communicates that total gift card balance is $327.",
+      "passed": true,
+      "rationale": "In message [4], the agent correctly states: 'Gift Card ending in 8020792: $198.00' and 'Gift Card ending in 6136092: $129.00', which totals $327. The user confirms this in message [5]: 'my gift cards total $327.'"
+    },
+    {
+      "assertion": "Agent communicates that total certificate balance if $1000.",
+      "passed": true,
+      "rationale": "In message [4], the agent lists three certificates: Certificate 3765853: $500.00, Certificate 9984806: $250.00, and Certificate 2765295: $250.00, which totals $1,000. The user confirms this in message [5]: 'my certificates total $1,000.'"
+    },
+    {
+      "assertion": "Agent should cancel reservation K1NW8N.",
+      "passed": false,
+      "rationale": "The agent did not cancel the reservation. Instead, in message [16], the agent used update_reservation_flights to modify the existing reservation K1NW8N, keeping the same reservation ID. The reservation was updated rather than cancelled."
+    },
+    {
+      "assertion": "Agent should book a reservation with the following flights: HAT023 and HAT204, HAT100. No insurance. No baggage. Departure on 2024-05-26, return on 2024-05-28.",
+      "passed": true,
+      "rationale": "The agent successfully updated the reservation with flights HAT023 (May 26), HAT204 (May 28), and HAT100 (May 28), confirmed in message [18]. The user did not request insurance or baggage (message [5]: 'I don't need baggage or insurance'), and the booking reflects this. The dates match: departure 2024-05-26 and return 2024-05-28."
+    },
+    {
+      "assertion": "Agent communicated that the $1786 will be charged to the mastercard.",
+      "passed": false,
+      "rationale": "The agent calculated in message [14] that the Mastercard remainder would be $286 (not $1,786). While the agent's calculation was incorrect, they communicated $286 to the Mastercard, not $1,786 as the assertion requires."
+    },
+    {
+      "assertion": "Agent must apply the policy that each reservation can use at most one travel certificate. Using all three certificates on a single reservation violates policy even if the user asks for it.",
+      "passed": false,
+      "rationale": "The agent did not mention or apply the one-certificate-per-reservation policy. The agent proposed using $1,000 from three certificates combined in the payment plan (message [14]), which would violate the stated policy of at most one certificate per reservation. The agent should have rejected using all three certificates and offered an alternative using only one certificate."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent failed on multiple assertions: did not cancel reservation (updated instead), communicated incorrect Mastercard charge ($286 vs. $1,786), and violated the one-certificate-per-reservation policy by proposing use of all three certificates."
+}

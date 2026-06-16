@@ -1,0 +1,19 @@
+{
+  "agent_variant": "v2",
+  "api_keys_used": [
+    "ANTHROPIC_API_KEY",
+    "LANGFUSE_BASE_URL",
+    "LANGFUSE_PUBLIC_KEY",
+    "LANGFUSE_SECRET_KEY",
+    "OPENROUTER_API_KEY"
+  ],
+  "end_ts": "2026-06-16T12:15:16.898002+00:00",
+  "git_sha": "3408202d12672dd44bc197ec6c25f6d818f1be0a",
+  "judge_model": "anthropic:claude-haiku-4-5",
+  "max_turns": 15,
+  "model": "anthropic:claude-sonnet-4-6",
+  "run_id": "2026-06-16T11-50-22Z__v2__anthropic__claude-sonnet-4-6",
+  "sim_model": "openrouter:moonshotai/kimi-k2.6",
+  "start_ts": "2026-06-16T11:50:22.314297+00:00",
+  "task_count": 50
+}

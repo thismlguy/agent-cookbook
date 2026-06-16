@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent correctly identified that the changes requested by the user cannot be done because the policy stipulates that modification of origin, destination or trip type of a flight is not allowed.",
+      "passed": true,
+      "rationale": "In message [4], the agent explicitly stated: 'That would change your destination from LAX to LAS, which is outside the scope of flight modifications. Per policy, origin, destination, and trip type cannot be changed on an existing reservation.' The agent correctly identified the policy violation and denied the requested change."
+    },
+    {
+      "assertion": "Agent should not conflate the basic-economy modification restriction with the origin/destination restriction. The correct denial for changing ATL→LAX to ATL→LAS is the origin/destination rule, not the basic-economy rule; upgrading cabin does not unlock destination changes.",
+      "passed": false,
+      "rationale": "In message [4], the agent stated both 'Additionally, your reservation is in basic economy, and basic economy flights cannot have their flight segments modified' and attributed the denial to the origin/destination policy. This conflates the two restrictions. While the agent did cite the correct policy (origin/destination restriction), the inclusion of the basic-economy limitation as an additional reason creates confusion and suggests that upgrading cabin class might enable the change, which contradicts the assertion."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent correctly invoked the origin/destination policy but conflated it with basic-economy restrictions, potentially implying that cabin upgrade could unlock destination changes."
+}

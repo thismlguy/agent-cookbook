@@ -279,7 +279,13 @@ def make_tools(store: Store) -> list[StructuredTool]:
             )
 
         new_total = sum(int(f.price) for f in new_flights)
-        diff = new_total - old_total
+        # Fares are stored per passenger; all passengers fly the same flights in
+        # the same cabin, so a flight/cabin change charges or refunds the per-
+        # passenger difference for EVERY passenger on the reservation. Policy:
+        # "pay/refund the difference" is the total difference; the customer-facing
+        # $-amount ground truth (tasks 11/18) is passenger-multiplied. See
+        # data/CHANGES.md.
+        diff = (new_total - old_total) * len(r.passengers)
         r.flights = new_flights
         r.cabin = cabin
         if diff != 0:

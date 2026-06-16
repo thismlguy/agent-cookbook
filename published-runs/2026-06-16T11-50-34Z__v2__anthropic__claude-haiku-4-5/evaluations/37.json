@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel reservation NQNU5R since it is in the past.",
+      "passed": true,
+      "rationale": "The agent correctly identified that NQNU5R contains a flight on May 13 (already in the past) and explicitly stated inability to process cancellations directly, explaining that it has an 'already-flown segment' (Turn 6). The agent never attempted to cancel this reservation."
+    },
+    {
+      "assertion": "Agent does not cancel reservation IFOYYZ since it doesn't meet criteria.",
+      "passed": true,
+      "rationale": "The agent checked eligibility using check_cancellation_eligibility (Turn 8), received a 'deny' status (Turn 9) due to being outside the 24-hour window, not business class, and lacking insurance. The agent then clearly communicated the denial to the user without canceling it (Turn 11)."
+    },
+    {
+      "assertion": "Agent upgrades M20IZO to business class.",
+      "passed": true,
+      "rationale": "The agent processed the cabin upgrade for M20IZO using check_modification_eligibility and update_reservation_flights (Turn 11-15). The tool response in Turn 15 confirms the reservation was successfully updated to business cabin with new flight prices, and the agent confirmed completion in Turn 16."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation IFOYYZ. The basic-economy denial is in-scope per policy and is a complete answer. (Transfer for NQNU5R is policy-warranted because portions have already been flown.)",
+      "passed": true,
+      "rationale": "The agent appropriately did not transfer for IFOYYZ after denying the cancellation—the policy-based denial for basic-economy outside the 24-hour window was a complete answer provided to the user in Turn 11. The agent only transferred for NQNU5R (Turn 16), which is correct because the already-flown segment requires human agent intervention per policy."
+    }
+  ],
+  "passed": true,
+  "summary": "Agent correctly denied both cancellations per policy, upgraded M20IZO to business class, and transferred only NQNU5R (with valid justification) while handling IFOYYZ denial without escalation."
+}

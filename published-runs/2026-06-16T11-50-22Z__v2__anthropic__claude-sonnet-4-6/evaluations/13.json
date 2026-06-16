@@ -1,0 +1,16 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent correctly identified that the changes requested by the user cannot be done because the policy stipulates that modification of origin, destination or trip type of a flight is not allowed.",
+      "passed": true,
+      "rationale": "In message [7], the agent explicitly states 'changing the destination from LAX to Las Vegas (LAS) would alter the reservation's endpoint, which is also not permitted,' correctly identifying the destination modification restriction as a blocking factor."
+    },
+    {
+      "assertion": "Agent should not conflate the basic-economy modification restriction with the origin/destination restriction. The correct denial for changing ATL→LAX to ATL→LAS is the origin/destination rule, not the basic-economy rule; upgrading cabin does not unlock destination changes.",
+      "passed": false,
+      "rationale": "In message [7], the agent lists two reasons for denial in the wrong order of importance, presenting basic-economy as the primary blocking factor ('for two reasons: 1. **Basic economy cabin**...') followed by the destination change as secondary, which conflates the restrictions and suggests basic-economy is the determinative issue rather than clearly establishing that even in a modifiable cabin, destination changes are not allowed. However, the agent does acknowledge both restrictions, the origin/destination rule is mentioned, though the framing suggests it's secondary to the cabin restriction."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent correctly identified the destination-change restriction but conflated it with the basic-economy restriction by presenting the cabin restriction as the primary blocking factor."
+}

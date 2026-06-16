@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent books a one-way one-stop economy itinerary from a New York airport to SEA on 2024-05-20 departing after 11:00 EST, with 3 free baggages and no insurance, for a $255 total fare. The canonical itinerary is JFK to ATL to SEA via HAT136 and HAT039; any other one-stop economy itinerary at the same $255 fare departing after 11:00 EST is equally acceptable.",
+      "passed": false,
+      "rationale": "The agent never booked any flight. After receiving a direct flight search result with no matches, the agent stated 'I'm only able to search for direct flights' and refused to search for connecting flights, ultimately telling the customer to contact the main reservations line instead."
+    },
+    {
+      "assertion": "Agent charges $250 on payment method certificate_7504069 and $5 on credit_card_4421486.",
+      "passed": false,
+      "rationale": "No booking was made, so no payment was processed. The conversation ended without the customer completing a reservation with any payment method."
+    },
+    {
+      "assertion": "Agent should call `search_direct_flight` with airport codes (JFK, EWR, LGA, SEA), not city names ('New York', 'Seattle'). City-name queries return empty results and waste turns.",
+      "passed": false,
+      "rationale": "The agent called search_direct_flight with city names 'New York' and 'Seattle' in message [2], which resulted in an empty response ([3]), wasting a turn as indicated by the assertion."
+    },
+    {
+      "assertion": "When no direct flight exists, agent should search candidate connecting hubs to build a one-stop itinerary, not declare the booking impossible. The agent has the same search tool used in multi-leg searches elsewhere in this dataset.",
+      "passed": false,
+      "rationale": "After receiving empty results from the direct flight search, the agent declared 'I'm only able to search for direct flights' (message [6]) and 'this system only supports direct flights' (message [8]), rather than attempting to search for connecting hubs as required by the assertion."
+    }
+  ],
+  "passed": false,
+  "summary": "Agent failed to book the flight and instead incorrectly claimed the system only supports direct flights, refusing to search for connecting flights."
+}

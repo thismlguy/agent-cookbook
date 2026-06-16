@@ -76,6 +76,24 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "Applies to the agent model only.",
     )
     p.add_argument(
+        "--sim-reasoning",
+        action="store_true",
+        help="enable reasoning for an openrouter Kimi-K2.x simulator model "
+        "(off for every other provider/model). No effect unless --sim-model is Kimi.",
+    )
+    p.add_argument(
+        "--judge-reasoning",
+        action="store_true",
+        help="same as --sim-reasoning, for the judge model.",
+    )
+    p.add_argument(
+        "--sim-reasoning-budget",
+        type=int,
+        default=None,
+        help="cap Kimi sim reasoning to N tokens (OpenRouter token-budget form). "
+        "Only meaningful with --sim-reasoning; Moonshot treats it as a soft cap.",
+    )
+    p.add_argument(
         "--concurrency",
         type=int,
         default=DEFAULT_CONCURRENCY,
@@ -297,8 +315,12 @@ def _run_one_task(
     try:
         thinking = {"type": args.thinking} if args.thinking else None
         agent_llm = build_chat_model(args.model, effort=args.effort, thinking=thinking)
-        sim_llm = build_chat_model(sim_spec)
-        judge_llm = build_chat_model(judge_spec)
+        sim_llm = build_chat_model(
+            sim_spec,
+            enable_reasoning=args.sim_reasoning,
+            reasoning_max_tokens=args.sim_reasoning_budget,
+        )
+        judge_llm = build_chat_model(judge_spec, enable_reasoning=args.judge_reasoning)
 
         run_result = run_task(
             task=task,

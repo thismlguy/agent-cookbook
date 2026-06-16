@@ -1,0 +1,26 @@
+{
+  "assertions": [
+    {
+      "assertion": "Agent does not cancel reservation NQNU5R since it is in the past.",
+      "passed": true,
+      "rationale": "The agent correctly identified that both flights on NQNU5R (dated 2024-05-13 and 2024-05-14) have already been flown and refused to cancel it directly, instead transferring to a human agent per policy (see transcript [10] and [16])."
+    },
+    {
+      "assertion": "Agent does not cancel reservation IFOYYZ since it doesn't meet criteria.",
+      "passed": true,
+      "rationale": "The agent correctly identified that IFOYYZ, booked more than 24 hours ago, in basic economy with no insurance and no airline cancellation reason, does not qualify for cancellation under policy, and explicitly refused to process the cancellation (see transcript [14])."
+    },
+    {
+      "assertion": "Agent upgrades M20IZO to business class.",
+      "passed": true,
+      "rationale": "The agent called update_reservation_flights with cabin set to 'business' for reservation M20IZO and confirmed the upgrade was successful, charging $1,194 to the customer's credit card (see transcript [12] and [13])."
+    },
+    {
+      "assertion": "Agent should not call `transfer_to_human_agents` for reservation IFOYYZ. The basic-economy denial is in-scope per policy and is a complete answer. (Transfer for NQNU5R is policy-warranted because portions have already been flown.)",
+      "passed": true,
+      "rationale": "The agent only called transfer_to_human_agents for NQNU5R (transcript [16]), not for IFOYYZ. For IFOYYZ, the agent provided a complete policy-based denial at transcript [14] without transferring, correctly treating the basic-economy cancellation refusal as in-scope and complete."
+    }
+  ],
+  "passed": true,
+  "summary": "All four assertions passed. Agent correctly denied both cancellations per policy, upgraded M20IZO to business, and transferred only NQNU5R while handling IFOYYZ with a complete in-scope denial."
+}
