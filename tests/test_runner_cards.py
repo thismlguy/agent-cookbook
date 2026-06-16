@@ -326,6 +326,41 @@ def test_render_card_summary_book_full_split():
     assert "$100 to" in summary and "$71 to" in summary  # full split, both methods
 
 
+def test_cabin_change_refund_is_passenger_multiplied():
+    """policy.md: a cabin change charges/refunds the fare difference for EVERY
+    passenger (all share the same flights/cabin). GV1N64 is business→basic_economy
+    with 3 passengers; per-passenger diff is -$1748, so the refund must be -$5244.
+    The specialist's card delta and the authoritative write must agree.
+    Regression for the per-passenger (non-multiplied) bug in data/CHANGES.md."""
+    from src.agents.v0.tools import make_tools
+    from src.agents.v2.subagents.modification_specialist import modification_specialist
+    from src.agents.v2.subagents.schemas import ModificationInput
+
+    store = Store.load_from_path(DB_PATH)
+    r = store.reservations["GV1N64"]
+    assert r.cabin == "business" and len(r.passengers) == 3  # guard the fixture
+    payment_id = next(iter(store.users[r.user_id].payment_methods))
+
+    # specialist card delta
+    resp = modification_specialist(
+        ModificationInput(reservation_id="GV1N64", change_kind="cabin",
+                          new_cabin="basic_economy", payment_id=payment_id),
+        store,
+    )
+    assert store.pending_actions[resp.action_id].price_delta == -5244
+
+    # authoritative write records the same amount
+    store2 = Store.load_from_path(DB_PATH)
+    flights = [{"flight_number": f.flight_number, "date": f.date}
+               for f in store2.reservations["GV1N64"].flights]
+    tools = {t.name: t for t in make_tools(store2)}
+    out = tools["update_reservation_flights"].invoke(
+        {"reservation_id": "GV1N64", "cabin": "basic_economy",
+         "flights": flights, "payment_id": payment_id}
+    )
+    assert out["payment_history"][-1]["amount"] == -5244
+
+
 def test_render_card_summary_modify_shows_delta():
     store = Store.load_from_path(DB_PATH)
     pa = PendingModifyFlights(

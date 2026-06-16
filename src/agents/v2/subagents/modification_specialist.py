@@ -47,12 +47,17 @@ def _legs_total(store: Store, legs, cabin: str) -> int | None:
 
 def _flights_delta(store: Store, reservation, new_legs, cabin: str) -> int:
     """Charge(+)/refund(-) for swapping `reservation`'s flights to `new_legs` at
-    `cabin`, vs its current per-leg prices. 0 if new prices can't be resolved."""
+    `cabin`, vs its current per-leg prices. 0 if new prices can't be resolved.
+
+    Fares are per passenger and all passengers share the same flights/cabin, so
+    the difference applies to every passenger — multiply by the passenger count.
+    This must match `update_reservation_flights` (the authoritative write) so the
+    confirmation card shows the same amount that gets charged/refunded."""
     new_total = _legs_total(store, new_legs, cabin)
     if new_total is None:
         return 0
     old_total = sum(int(leg.price) for leg in reservation.flights)
-    return new_total - old_total
+    return (new_total - old_total) * len(reservation.passengers)
 
 
 def modification_specialist(

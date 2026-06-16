@@ -21,6 +21,7 @@ Orientation for AI coding agents working in this repo. Keep it short — link ou
 | Prompt-design principles applied in v1 | [src/agents/v1/prompting-best-practices.md](src/agents/v1/prompting-best-practices.md) |
 | v2 (orchestrator + specialists, pending-action store) | [src/agents/v2/architecture.md](src/agents/v2/architecture.md) |
 | v2 end-to-end test plan | [src/agents/v2/testing.md](src/agents/v2/testing.md) |
+| v2 post-eval bug-fix log (chain of thought for the talk) | [src/agents/v2/changes.md](src/agents/v2/changes.md) |
 | Project intent / workshop framing | [openspec/SOUL.md](openspec/SOUL.md) |
 | Spec-driven change proposals | [openspec/changes/](openspec/changes/) |
 | What the Chainlit user sees on launch | [chainlit.md](chainlit.md) |
