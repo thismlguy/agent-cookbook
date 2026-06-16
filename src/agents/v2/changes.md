@@ -221,14 +221,49 @@ delta and the written `payment_history`.
 
 ---
 
+## Fix 7 — three gaps the full Sonnet re-run surfaced
+
+The full re-run took v2 Sonnet from 52%→**60%** tasks (75.0%→**81.8%** assertions),
+closing the v1-Sonnet regression. Reading the residual fails surfaced three small,
+real gaps (separate from the search/seam structural ceiling):
+
+- **Transfer vs. denial of a *forbidden* request (task 46).** The agent treated
+  "remove my insurance" as *out of scope* → transferred. But policy *forbids* it;
+  that's an in-scope **denial**, not an out-of-scope transfer. Fix: the prompt now
+  spells out that a policy-forbidden modification (remove/refund insurance, remove
+  bags, reduce passenger count, modify basic-economy flights) is denied in scope,
+  never transferred.
+- **DOB on passenger *modification* (tasks 40, 22).** Fix 3 told the agent to ask
+  for passenger DOB — correct for *booking* (new people), **wrong for
+  modification**. A name correction ("Mei Lee" → "Mei Garcia") is the same person;
+  the dob is already on the reservation. The agent was demanding a dob the user
+  didn't have and dead-ending. Fix: for `change_kind=passengers`, **reuse** the
+  existing dob from `get_reservation_details`; only ask for a genuinely unknown
+  one. *(Nice talk beat: "ask vs. reuse" — the same field is gathered for booking
+  but carried-forward for modification.)*
+- **Baggage free-allowance not derived on modification (tasks 22, 33).** The
+  *booking* specialist already computes paid bags from the free-allowance table
+  and ignores the LLM; the *modification* baggage path still trusted the LLM's
+  `nonfree_baggages`, so it charged for bags that were actually free. Fix:
+  derive `paid_bags = max(0, total − free_per_pax × passengers)` in
+  `modification_specialist`, mirroring booking. *(Same lesson as Fix 6: policy
+  arithmetic belongs in the specialist, not the LLM.)*
+
+Targeted re-run of the four affected tasks: **46, 40, 33 PASS**; 22 improved to
+8/9 assertions (its remaining miss is an unrelated payment-method choice). New
+unit test: `test_modify_baggage_derives_free_allowance`.
+
 ## Where we are
 
-- **Full mocked suite: green** (regression tests for every fix above).
-- **Sonnet spot-check (tasks 42, 11):** 42 PASS; 11's card executes and now
-  refunds the correct $5,244 (its earlier miss was Fix 6, not the card loop).
-- **Pending:** full 50-task re-runs on both models (deferred for token cost). The
-  Sonnet number is the one to watch — these were plumbing bugs, so it should now
-  clear the v1 baseline it previously trailed.
+- **Full mocked suite: green** (54 tests; a regression test for every fix above).
+- **Full Sonnet re-run:** 30/50 (60%) tasks, 130/159 (81.8%) assertions — up from
+  26/50 (52%) / 75.0%, now level with the v1 Sonnet baseline (62% / 82.7%). 11
+  tasks flipped to PASS; the apparent "regressions" were sim/judge variance, not
+  the fixes (verified per-transcript).
+- **Remaining ceiling:** the `search_route` tool regression (tasks 9, 20, 35) and
+  the arithmetic/"seam" rules (7, 23, 38) — see the search + reasoning root-cause.
+- **Pending:** a Haiku re-run, and (for a publishable number) averaging 2 Sonnet
+  runs or moving the judge to Sonnet to kill the intermittent judge ERRORs.
 
 ## Talk takeaways
 

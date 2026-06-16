@@ -361,6 +361,30 @@ def test_cabin_change_refund_is_passenger_multiplied():
     assert out["payment_history"][-1]["amount"] == -5244
 
 
+def test_modify_baggage_derives_free_allowance():
+    """Baggage modification derives the paid-bag count from the free allowance
+    (membership x cabin x passengers), ignoring the LLM's nonfree_baggages —
+    mirroring booking_specialist. Regression for tasks 22/33 (charged for bags
+    that should be free). 4WQ150 is silver/business x3 = 9 free bags, so adding
+    up to 8 stays free even if the LLM claims they're all paid."""
+    from src.agents.v2.subagents.modification_specialist import modification_specialist
+    from src.agents.v2.subagents.schemas import ModificationInput
+
+    store = Store.load_from_path(DB_PATH)
+    pid = next(iter(store.users[store.reservations["4WQ150"].user_id].payment_methods))
+    resp = modification_specialist(
+        ModificationInput(
+            reservation_id="4WQ150", change_kind="baggage",
+            total_baggages=8, nonfree_baggages=8,  # LLM claims all 8 are paid
+            payment_id=pid,
+        ),
+        store,
+    )
+    pa = store.pending_actions[resp.action_id]
+    assert pa.nonfree_baggages == 0  # 8 <= 9 free → none paid, LLM input ignored
+    assert pa.price_delta == 0  # no charge for bags within the free allowance
+
+
 def test_render_card_summary_modify_shows_delta():
     store = Store.load_from_path(DB_PATH)
     pa = PendingModifyFlights(

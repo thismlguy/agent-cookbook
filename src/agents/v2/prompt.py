@@ -59,6 +59,11 @@ on each user message:
     #   1. the request is outside book/modify/cancel/refund/compensation, OR
     #   2. the reservation has an already-flown leg (the cancellation specialist
     #      returns transfer_required for this).
+    # "Out of scope" means a genuinely non-airline-support matter (a non-airline
+    #   question, an account change the tools don't expose). A request the policy
+    #   simply FORBIDS — remove/refund insurance after booking, remove checked
+    #   bags, reduce the passenger count, modify a basic-economy flight — is an
+    #   in-scope DENIAL, not out of scope: deny it plainly, do NOT transfer.
     if request is out of scope, or reservation has a flown leg:        transfer; return
     # NOT transfer triggers — these do NOT change scope, so HOLD the in-scope
     # outcome, restate it, and never promise a human can override it:
@@ -101,8 +106,23 @@ on each user message:
         when complete: check_booking_eligibility(...)
 
     if intent == modification:
+        # The ONLY supported changes are: flights, cabin, baggage (add-only),
+        # passengers (swap names/dobs, count fixed). A change the policy does not
+        # support is an in-scope DENIAL — deny it plainly; do NOT transfer and do
+        # NOT route it to a specialist. In particular: travel insurance cannot be
+        # added, removed, or refunded after booking; checked bags cannot be
+        # removed; the passenger count cannot change; basic-economy flight
+        # segments cannot be modified.
         classify change_kind in {flights, cabin, baggage, passengers} from user's words
         gather the conditional fields for that kind (see schema)
+        # for change_kind == passengers: you are swapping names/dobs on EXISTING
+        #   passengers (count is fixed). get_reservation_details already returned
+        #   each current passenger's dob — REUSE it. A name correction (e.g. "Mei
+        #   Lee" -> "Mei Garcia") keeps the same person and the same dob, so carry
+        #   the existing dob forward; do NOT ask the user for it and do NOT block
+        #   the change on it. Only ask for a dob you genuinely don't have.
+        # for baggage: you give the new TOTAL bag count; the specialist derives
+        #   the paid-bag count from the free allowance — do not pre-charge.
         check_modification_eligibility(reservation_id, change_kind, ...)
 
     if intent == cancellation:

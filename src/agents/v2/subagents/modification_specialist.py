@@ -14,6 +14,10 @@ from src.agents.v2.pending_actions import (
     PendingModifyPassengers,
     new_action_id,
 )
+from src.agents.v2.subagents.baggage import (
+    EXTRA_BAG_FEE_USD,
+    free_allowance_per_passenger,
+)
 from src.agents.v2.subagents.cancellation_specialist import (
     _flight_already_flown,
 )
@@ -135,26 +139,33 @@ def modification_specialist(
         return ReadyToAct(action_id=pa.action_id)
 
     if input.change_kind == "baggage":
-        if (
-            input.total_baggages is None
-            or input.nonfree_baggages is None
-            or input.payment_id is None
-        ):
+        if input.total_baggages is None or input.payment_id is None:
             return Deny(
-                reason=(
-                    "baggage change requires `total_baggages`, "
-                    "`nonfree_baggages`, and `payment_id`"
-                )
+                reason="baggage change requires `total_baggages` and `payment_id`"
             )
         if input.total_baggages < r.total_baggages:
             return Deny(reason="can only add bags, not remove")
+        # Paid-bag count is policy-DERIVED, not taken from the LLM: the free
+        # allowance is a function of (membership, cabin, passenger_count); any bag
+        # beyond it is a $50 paid bag. Mirrors booking_specialist so the
+        # orchestrator cannot over- or under-charge by miscounting free bags. The
+        # LLM's `nonfree_baggages` input is advisory and intentionally ignored.
+        user = store.users.get(r.user_id)
+        if user is None:
+            return Deny(reason=f"user '{r.user_id}' on reservation not found")
+        free_per_pax = free_allowance_per_passenger(user.membership, r.cabin)
+        if free_per_pax is None:
+            return Deny(
+                reason=f"no baggage rule for membership='{user.membership}', cabin='{r.cabin}'"
+            )
+        paid_bags = max(0, int(input.total_baggages) - free_per_pax * len(r.passengers))
         pa = PendingModifyBaggage(
             action_id=new_action_id(),
             reservation_id=input.reservation_id,
             total_baggages=int(input.total_baggages),
-            nonfree_baggages=int(input.nonfree_baggages),
+            nonfree_baggages=paid_bags,
             payment_id=input.payment_id,
-            price_delta=(int(input.nonfree_baggages) - r.nonfree_baggages) * 50,
+            price_delta=(paid_bags - r.nonfree_baggages) * EXTRA_BAG_FEE_USD,
         )
         store.pending_actions[pa.action_id] = pa
         return ReadyToAct(action_id=pa.action_id)
