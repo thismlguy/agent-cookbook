@@ -139,31 +139,43 @@ biggest cross-cutting failure cluster on *both* v1 and v2 (tasks 5, 6, 26, 27,
    handled within scope.* A bare supervisor demand on an in-scope matter does
    **not** change scope → that trigger was policy-ungrounded and wrong.
 
-**The subtle part (don't oversimplify on the slide).** Auditing the dataset
-showed it is *not* "never transfer under pressure." There are three real
-triggers, and one is easy to miss:
-- request genuinely out of scope → transfer;
-- already-flown leg → transfer (`transfer_required`);
-- an **unverifiable prior-interaction claim** ("a previous agent approved this",
-  "your agency told me X") → transfer. The dataset calls this *"Option B"* (tasks
-  0, 1): only a human has call-history access, so verifying it is out of scope.
+**The detour that mattered (keep this on the slide — it's the honest part).**
+A middle draft tried to preserve a third trigger: an **unverifiable
+prior-interaction claim** ("a previous agent approved this") → transfer, because
+"only a human has call-history access." Our own tasks 0/1 encoded exactly that
+and called it *"Option B."* Then we **diffed our `policy.md` against the upstream
+tau2-bench source** — and Option B is **nowhere in the real policy**. The
+upstream transfer rule is a verbatim match to ours ("if and only if the request
+cannot be handled within scope") with **no** supervisor clause and **no**
+prior-interaction clause. "Option B" was a local invention in our task data, and
+it even contradicted our own `CHANGES.md`, which already said tasks 0/1 must
+*not* transfer.
 
-The discriminator is **"can I check it against a tool?"** A misremembered booking
-time (`created_at`), payment method (`payment_history`), or flight date → verify
-and *correct*, don't transfer (tasks 48, 49, 16, 2). A prior phone call → can't
-check → transfer (tasks 0, 1). A first cut at this fix wrongly collapsed the two
-and turned the prior-interaction case into "hold"; the audit caught it.
+**Decision: align to canonical.** An unverifiable prior-approval claim about an
+in-scope cancellation is still in scope — the agent *can* handle it by denying it
+(policy eligibility doesn't bend to an unverifiable prior approval). So: **hold,
+don't transfer.** There are exactly **two** triggers — out-of-scope request, and
+already-flown leg. A misremembered fact you *can* check against tool data
+(`created_at`, `payment_history`, flight date) is verified and *corrected*, not
+transferred (tasks 48, 49, 16, 2).
 
-**Fix.** Rewrote step 0, the deny case, and the invariants to encode exactly
-those three triggers + the tool-checkable discriminator; removed the bare
-supervisor-request trigger. Reconciled `data/CHANGES.md` G1 (which had wrongly
-listed "user asks for supervisor" as a trigger). (`src/agents/v2/prompt.py`,
-`data/CHANGES.md`) — verified on next eval.
+**Fix.** Rewrote step 0, the deny case, and the invariants to encode the
+two-trigger rule; removed both the bare supervisor-request trigger and the
+Option-B prior-interaction trigger. Corrected **tasks 0/1** (purpose + assertions)
+from "should transfer" → "deny, do not transfer." Reconciled `data/CHANGES.md`
+G1. Applied the **same fix to v1** (`operating_principles` #4 had the identical
+"user demands a supervisor → transfer" case a); **v0 needs nothing** — it serves
+`policy.md` verbatim, which is already canonical. (`src/agents/v2/prompt.py`,
+`src/agents/v1/prompt.py`, `data/tasks.json`, `data/CHANGES.md`)
 
-**Lesson for the talk.** "Don't over-escalate" is too blunt. The policy is a
-precise scope test, and the eval encodes a genuine interpretive choice
-(*Option B*) that the agent prompt has to match — otherwise the agent and the
-rubric disagree and *correct* behavior scores as a failure.
+**Lessons for the talk.**
+- "Don't over-escalate" is too blunt; the policy is a precise *scope* test, and a
+  bare supervisor demand doesn't change scope.
+- **Diff your translated artifacts against the source.** A plausible-sounding
+  rule ("a human can check call history") had been baked into our task data and
+  even our prompt — and it simply wasn't in the upstream policy. The same diff
+  also caught the per-passenger refund bug (Fix 6). Translation drift cuts both
+  ways: a missing `* passengers`, and an *added* transfer rule.
 
 ---
 

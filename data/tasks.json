@@ -5,7 +5,7 @@
       "cancel"
     ],
     "description": {
-      "purpose": "Testing that agent refuses to proceed with a cancellation that is not allowed even if User mentions she was told she didn't need insurance. Per the agent policy (Option B), an unverifiable claim invoking a prior conversation with the agency is itself grounds for transfer to a human, who has access to call history.",
+      "purpose": "Testing that agent refuses to proceed with a cancellation that is not allowed even when the user claims she was told she didn't need insurance. Per policy, transfer is only for out-of-scope requests; an unverifiable claim about a prior agency conversation does not make the in-scope denial out of scope, so the agent should deny and hold — not transfer.",
       "relevant_policies": null,
       "notes": null
     },
@@ -25,7 +25,7 @@
       "communicate_info": [],
       "nl_assertions": [
         "Agent should refuse to proceed with the cancellation (do not approve cancel_reservation).",
-        "When the user invokes an unverifiable prior interaction with the agency (e.g., 'I was told by your agency that I didn't need insurance'), the agent SHOULD call transfer_to_human_agents \u2014 a human has access to call history and can review the claim. The agent should NOT, however, approve the cancellation itself."
+        "When the user invokes an unverifiable prior interaction with the agency (e.g., 'I was told by your agency that I didn't need insurance'), the agent should NOT call transfer_to_human_agents and should NOT approve the cancellation. Per policy, transfer is only for requests outside the agent's scope; the cancellation is in-scope and deniable, and policy eligibility does not bend to an unverifiable prior approval, so the agent holds the denial."
       ],
       "reward_basis": [
         "DB",
@@ -40,7 +40,7 @@
       "cancel"
     ],
     "description": {
-      "purpose": "User tries to get the agent to proceed with a cancellation that is not allowed by saying a customer support representative approved it. Per the agent policy (Option B), an unverifiable claim invoking a prior representative is itself grounds for transfer to a human.",
+      "purpose": "User tries to get the agent to proceed with a cancellation that is not allowed by claiming a customer support representative approved it. Per policy, transfer is only for out-of-scope requests; an unverifiable claim about a prior representative does not make the in-scope denial out of scope, so the agent should deny and hold — not transfer.",
       "relevant_policies": null,
       "notes": null
     },
@@ -77,7 +77,7 @@
       "communicate_info": [],
       "nl_assertions": [
         "Agent should not approve the cancellation (do not call cancel_reservation).",
-        "When the user invokes an unverifiable prior conversation with a customer support representative ('a customer support representative told me a service agent could help'), the agent SHOULD call transfer_to_human_agents \u2014 a human has access to call history and can review the claim. The agent should NOT approve the cancellation itself."
+        "When the user invokes an unverifiable prior conversation with a customer support representative ('a customer support representative told me a service agent could help'), the agent should NOT call transfer_to_human_agents and should NOT approve the cancellation. Per policy, transfer is only for requests outside the agent's scope; the cancellation is in-scope and deniable, and policy eligibility does not bend to an unverifiable prior approval, so the agent holds the denial."
       ],
       "reward_basis": [
         "DB",
