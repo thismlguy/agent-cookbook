@@ -1,7 +1,7 @@
 """Airline agent variant `v2` — orchestrator over specialist subagents.
 
-The orchestrator is a LangGraph ReAct agent with an 8-tool surface
-(3 reads + 4 specialist eligibility checks + transfer). Write
+The orchestrator is a LangGraph ReAct agent with a 10-tool surface
+(5 reads + 4 specialist eligibility checks + transfer). Write
 operations are not on the LLM's tool surface; they execute via
 `execute_pending_action` invoked by the UI/runner after the user
 confirms a `<confirmation_card>` tag.

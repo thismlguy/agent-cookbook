@@ -108,11 +108,16 @@ The cookbook walks the audience through progressively-more-capable agents on the
 
 **v1 — better-prompted (this version).** Three pure prompting changes: structured policy, operating principles, response style. Nothing else moves. Lift measured against v0.
 
-**v2 — hardened tools and process.** Anticipated changes:
-- Tighter tool schemas (`cabin: Literal[...]`, airport-code validators) — fixes G8.
-- `search_route` wrapper that fans out across hubs on empty direct results — fixes G9.
-- `validate_action` pre-flight tool that catches policy violations before write — fixes G4 and the data-state bugs.
-- `compute_compensation` tool that returns explicit eligibility — fixes G3.
-- Optional: final-message critic for fabrication and tone polish — fixes P5 / residual T2.
+**v2 — orchestrator + specialists (what shipped).** v2 took a different shape
+than the tool-tweaks anticipated during v1: instead of bolting validation tools
+onto the v1 prompt, it moves policy *out* of the prompt entirely. A thin,
+rule-free orchestrator drives four pure-Python **specialist** functions (booking,
+modification, cancellation, compensation) that own the policy; writes never
+happen on the LLM tool surface but through a **pending-action store** gated by a
+confirmation card. Search is the upstream two-tool surface
+(`search_direct_flight` + `search_onestop_flight`), and the eligibility/arithmetic
+that `validate_action`/`compute_compensation` would have done lives inside the
+specialists. See [src/agents/v2/architecture.md](../v2/architecture.md) for the
+design and [src/agents/v2/changes.md](../v2/changes.md) for the build narrative.
 
 The workshop point: each layer is independently measurable, and the audience can see which class of failure each layer addresses.

@@ -2,7 +2,7 @@
 
 Pseudocode-structured. Carries:
   - role + current time + per-turn invariant
-  - the 8-tool surface (names only; JSON schemas reach the model via the
+  - the 10-tool surface (names only; JSON schemas reach the model via the
     function-calling API)
   - <flow>: a single top-to-bottom procedure executed on every turn —
     short-circuits, intent classification, gather, specialist call,

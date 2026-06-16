@@ -495,9 +495,9 @@ Total: 10 tools.
 |---|---|---|
 | `get_user_details(user_id)` | info | look up user profile |
 | `get_reservation_details(reservation_id)` | info | look up reservation |
-| `search_direct_flight(origin, destination, date)` | info | nonstop flights on a date |
-| `search_onestop_flight(origin, destination, date)` | info | one-stop connecting itineraries |
-| `get_baggage_allowance(reservation_id)` | info | policy-driven free-bag allowance |
+| `search_direct_flight(origin, destination, date)` | info | nonstop flights on a date (each carries `total_duration_min`) |
+| `search_onestop_flight(origin, destination, date)` | info | one-stop connecting itineraries (with combined `total_duration_min`) |
+| `get_baggage_allowance(reservation_id OR user_id, cabin, passenger_count)` | info | policy-driven free-bag allowance; the second form answers pre-booking |
 | `check_booking_eligibility(...)` | specialist | invokes booking subagent |
 | `check_modification_eligibility(...)` | specialist | invokes modification subagent |
 | `check_cancellation_eligibility(reservation_id, reason)` | specialist | invokes cancellation subagent |

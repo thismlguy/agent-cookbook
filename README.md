@@ -61,6 +61,13 @@ uv run python -m src.eval.run \
   --sim-model anthropic:claude-sonnet-4-5 \
   --judge-model openai:gpt-5-5
 
+# run the user simulator on Kimi K2.6 with reasoning ("thinking") enabled.
+# --sim-reasoning turns it on (off for every other model); --sim-reasoning-budget
+# caps the thinking depth (soft cap on Moonshot). --judge-reasoning is the same
+# knob for the judge. Reasoning stays OFF on the agent path regardless.
+uv run python -m src.eval.run \
+  --sim-model openrouter:moonshotai/kimi-k2.6 --sim-reasoning --sim-reasoning-budget 256
+
 # debug a single task end-to-end
 uv run python -m src.eval.run --task-id 0
 
@@ -139,7 +146,7 @@ data/                   tau2-bench airline dataset (db.json, policy.md, tasks.js
 src/
   config.py             env loading + strict precheck
   domain/               typed entities + in-memory mutable store
-  agents/               agent variants — v0/ is the flat ReAct baseline, v1/ is the current (XML-structured) agent
+  agents/               agent variants — v0/ (flat ReAct baseline), v1/ (XML-structured prompt), v2/ (orchestrator + specialists with a pending-action store)
   providers/            provider/model selection (init_chat_model + openrouter alias)
   sim/                  LLM-driven user simulator
   runner/               sim ↔ agent conversation runner
