@@ -60,7 +60,7 @@
       one-stop hub fallback. Keep `search_direct_flight` internal —
       not on the tool surface.
 - [x] 3.3 Add `src/agents/v2/prompt.py` with the orchestrator system
-      prompt (under 400 words): conversation pattern, specialist input
+      prompt (kept short, no word cap): conversation pattern, specialist input
       schemas, three response handlers (`ready_to_act` → emit
       confirmation_card, `deny` → relay reason, `transfer_required` →
       call `transfer_to_human_agents`), pending-action protocol, and

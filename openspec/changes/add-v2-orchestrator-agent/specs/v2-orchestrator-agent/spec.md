@@ -11,7 +11,8 @@ compensation) to a corresponding specialist via a typed
 contain the airline policy text; it SHALL contain only the conversation
 pattern, the list of specialists with their input schemas, and the
 pending-action / confirmation-card protocol. The orchestrator's prompt
-SHALL be under 400 words.
+SHALL be kept short — it carries coordination logic only, not policy —
+with no fixed word cap.
 
 #### Scenario: Variant is registered
 

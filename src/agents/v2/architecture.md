@@ -48,7 +48,9 @@ invokes it; the LLM is not on the tool surface for it. See
 The orchestrator's prompt is short. It does **not** carry the policy
 text. It carries the conversation pattern, the available specialists,
 each specialist's required-input schema, and the pending-action
-protocol. Total target length: under 400 words.
+protocol. The goal is to keep it short — the policy lives in the
+specialist functions, not the prompt — but there's no hard word cap;
+length is whatever cleanly expresses the coordination logic.
 
 The orchestrator runs on a small model (target: 7B-class fast inference;
 could also be a tiny model with structured-output mode).
@@ -736,9 +738,9 @@ understanding, which is what the LLM is good at.
 
 ## What changes from v0/v1
 
-- Orchestrator's system prompt is dramatically shorter (~400 words vs
-  ~1500). The policy is no longer in the prompt; it's encoded in the
-  specialist functions.
+- Orchestrator's system prompt is substantially shorter than v1's
+  (~1500 words) because the policy is no longer in the prompt; it's
+  encoded in the specialist functions.
 - Tool surface differs: write tools are not on the LLM's tool surface
   at all. Specialists are top-level tools; the write step happens
   outside the LLM loop via `execute_pending_action`, triggered by the

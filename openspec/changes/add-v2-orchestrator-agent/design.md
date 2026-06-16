@@ -42,8 +42,8 @@ Constraints:
   one orchestrator (LangGraph `create_react_agent`) + four typed
   specialist functions + pending-action store + confirmation-card
   protocol.
-- Keep the orchestrator's system prompt under ~400 words. Policy
-  text does **not** live in the prompt; it lives in the specialists.
+- Keep the orchestrator's system prompt short (no fixed word cap).
+  Policy text does **not** live in the prompt; it lives in the specialists.
 - Make `execute_pending_action` invisible to the LLM (not registered
   as a tool, not in the prompt). Writes happen only on user
   confirmation, via UI button click in production and via the eval
