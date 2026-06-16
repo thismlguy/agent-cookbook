@@ -29,16 +29,61 @@ _ATTR_RE = re.compile(r"(\w+)\s*=\s*\"([^\"]*)\"")
 
 
 def _extract_card(text: str) -> dict[str, str] | None:
-    """Return {action_id, kind} if `text` contains a confirmation_card tag, else None."""
+    """Return {action_id, kind} for the FIRST confirmation_card tag in `text`, else None."""
+    cards = _extract_all_cards(text)
+    return cards[0] if cards else None
+
+
+def _extract_all_cards(text: str) -> list[dict[str, str]]:
+    """Every confirmation_card tag in `text`, in document order."""
+    cards: list[dict[str, str]] = []
     if not text:
-        return None
-    m = _CARD_RE.search(text)
-    if not m:
-        return None
-    attrs = dict(_ATTR_RE.findall(m.group("attrs")))
-    if "action_id" not in attrs:
-        return None
-    return {"action_id": attrs["action_id"], "kind": attrs.get("kind", "")}
+        return cards
+    for m in _CARD_RE.finditer(text):
+        attrs = dict(_ATTR_RE.findall(m.group("attrs")))
+        if "action_id" in attrs:
+            cards.append({"action_id": attrs["action_id"], "kind": attrs.get("kind", "")})
+    return cards
+
+
+def _open_card(history: list[BaseMessage], store: Store) -> dict[str, str] | None:
+    """The confirmation card currently awaiting the user, or None.
+
+    A card is 'open' while its pending action is still status=='pending'. We scan
+    agent messages newest-first (and within a message in document order) so the
+    most recently proposed, still-unexecuted card wins. This keeps a card
+    acceptable even when it was bundled with an already-executed sibling, or was
+    presented a few turns ago because the user paused or pushed back — the cases
+    that silently stranded multi-write tasks when only the immediately-preceding
+    message was inspected.
+    """
+    for m in reversed(history):
+        if isinstance(m, AIMessage):
+            for card in _extract_all_cards(_visible_text(m.content)):
+                pa = store.pending_actions.get(card["action_id"])
+                if pa is not None and getattr(pa, "status", None) == "pending":
+                    return card
+    return None
+
+
+def _surface_open_card(
+    sim_history: list[BaseMessage], open_pa: Any, store: Store
+) -> list[BaseMessage]:
+    """Append the open card's `[Confirmation requested]` summary to the last agent
+    turn in the sim-facing view, so the simulator keeps seeing a pending proposal
+    it can accept/reject even after a tag-free agent reply. Sim view only — the
+    real history is untouched. No-op if the summary is already shown."""
+    summary = render_card_summary(open_pa, store)
+    for i in range(len(sim_history) - 1, -1, -1):
+        m = sim_history[i]
+        if isinstance(m, AIMessage):
+            text = _visible_text(m.content)
+            if summary in text:
+                return sim_history
+            new = list(sim_history)
+            new[i] = AIMessage(content=f"{text}\n\n{summary}")
+            return new
+    return sim_history
 
 
 def _render_cards_for_sim(history: list[BaseMessage], store: Store) -> list[BaseMessage]:
@@ -202,6 +247,9 @@ def run_task(
 
     history: list[BaseMessage] = []
     agent_response_times_ms: list[float] = []
+    # Structural writes (executed via execute_pending_action, off the LLM tool
+    # surface) recorded for judge visibility: (history_index_to_insert_after, entry).
+    executed_writes: list[tuple[int, dict[str, Any]]] = []
     turn = 0
     terminated_by: TerminatedBy
     while True:
@@ -216,25 +264,41 @@ def run_task(
         # history keeps the bare tag; the sim decides via `card_action` — no
         # fragile verbatim id echo. A no-op for plain tag-free string turns.
         sim_history = _render_cards_for_sim(history, store)
+        # The 'open' card is whichever pending action is still awaiting the user,
+        # not merely one tagged in the immediately-preceding message. Keep showing
+        # it to the sim so a bundled or paused-on card stays acceptable.
+        open_card = _open_card(history, store)
+        open_pa = store.pending_actions.get(open_card["action_id"]) if open_card else None
+        if open_pa is not None:
+            sim_history = _surface_open_card(sim_history, open_pa, store)
+
         user_turn: UserTurn = simulator(sim_history)
         user_text = user_turn.text
         effective_kind = user_turn.kind
 
-        last_agent_text = ""
-        for m in reversed(history):
-            if isinstance(m, AIMessage):
-                last_agent_text = _visible_text(m.content)
-                break
-        prior_card = _extract_card(last_agent_text)
-        if prior_card is not None and user_turn.card_action == "accept":
+        if open_card is not None and open_pa is not None and user_turn.card_action == "accept":
             # Accept: run the pending action (action_id comes from the agent's
             # message, not the sim) and substitute the templated post-execute
             # message. Force one more agent turn so its confirmation is recorded.
-            pa = store.pending_actions.get(prior_card["action_id"])
-            if pa is not None:
-                exec_result = execute_pending_action(prior_card["action_id"], store)
-                user_text = render_post_execute_message(pa, exec_result, store)
-                effective_kind = "message"
+            exec_result = execute_pending_action(open_card["action_id"], store)
+            user_text = render_post_execute_message(open_pa, exec_result, store)
+            effective_kind = "message"
+            if exec_result.get("ok"):
+                # Log the structural write so the judge sees the tool + its args
+                # (e.g. the per-reservation payment_id) — it never hit the LLM
+                # tool surface. Insert after the templated user turn appended next.
+                _name, _args = open_pa.write_call()
+                executed_writes.append(
+                    (
+                        len(history),
+                        {
+                            "role": "tool",
+                            "name": _name,
+                            "args": _args,
+                            "content": _stringify(exec_result.get("result")),
+                        },
+                    )
+                )
 
         user_msg = HumanMessage(content=user_text)
         history.append(user_msg)
@@ -280,7 +344,14 @@ def run_task(
             terminated_by = "transferred"
             break
 
-    transcript = [_serialize_message(m) for m in history]
+    writes_by_index: dict[int, list[dict[str, Any]]] = {}
+    for idx, rec in executed_writes:
+        writes_by_index.setdefault(idx, []).append(rec)
+    transcript: list[dict[str, Any]] = []
+    for i, m in enumerate(history):
+        transcript.append(_serialize_message(m))
+        for rec in writes_by_index.get(i, []):
+            transcript.append(rec)
     return RunResult(
         task_id=task_id,
         transcript=transcript,

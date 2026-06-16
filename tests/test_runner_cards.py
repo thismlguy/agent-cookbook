@@ -15,6 +15,7 @@ from src.agents.v2.pending_actions import (
     FlightRef,
     PaymentRef,
     PendingBook,
+    PendingCancel,
     PendingModifyFlights,
     PendingPassenger,
     render_card_summary,
@@ -25,10 +26,25 @@ import importlib
 # shadows the submodule attribute — so fetch the real module from sys.modules to
 # monkeypatch its `new_action_id`.
 _booking_mod = importlib.import_module("src.agents.v2.subagents.booking_specialist")
+_cancel_mod = importlib.import_module("src.agents.v2.subagents.cancellation_specialist")
 from src.config import DB_PATH
 from src.domain.store import Store
-from src.runner.runner import _render_cards_for_sim, _serialize_message, _visible_text, run_task
+from src.runner.runner import (
+    _open_card,
+    _render_cards_for_sim,
+    _serialize_message,
+    _surface_open_card,
+    _visible_text,
+    run_task,
+)
 from src.sim.schemas import UserTurn
+
+
+def _id_sequence(ids):
+    """A new_action_id() stand-in that hands out `ids` in order (deterministic
+    action_ids so a test can name the cards the agent emits)."""
+    it = iter(ids)
+    return lambda: next(it)
 
 
 class ScriptedChatModel(FakeMessagesListChatModel):
@@ -141,6 +157,123 @@ def test_runner_does_not_execute_on_reject(monkeypatch):
     user_texts = [e["content"] for e in result.transcript if e["role"] == "user"]
     assert not any("Confirmed booking." in t for t in user_texts)  # never executed
     assert any("never mind" in t.lower() for t in user_texts)  # pivot text passed through
+
+
+def test_runner_executes_two_bundled_cards(monkeypatch):
+    """Reproduces task 42: the agent bundles TWO confirmation cards in one
+    message. Each accept must execute one — the second card stays acceptable even
+    though it was never the immediately-preceding message's only/first card.
+    Pre-fix, only the first card ever executed and the second was stranded.
+    Also asserts the structural write is logged into the transcript (judge view)."""
+    monkeypatch.setattr(_cancel_mod, "new_action_id", _id_sequence(["act_c1", "act_c2"]))
+    agent_script = [
+        AIMessage(
+            content="",
+            tool_calls=[
+                _tc("check_cancellation_eligibility",
+                    {"reservation_id": "4WQ150", "reason": "airline_cancelled"}, "c1"),
+                _tc("check_cancellation_eligibility",
+                    {"reservation_id": "VAAOXJ", "reason": "airline_cancelled"}, "c2"),
+            ],
+        ),
+        AIMessage(
+            content=(
+                'Both are eligible — please confirm each. '
+                '<confirmation_card action_id="act_c1" kind="cancel"/> '
+                '<confirmation_card action_id="act_c2" kind="cancel"/>'
+            )
+        ),
+        AIMessage(content="4WQ150 is cancelled. The second is still awaiting your confirmation."),
+        AIMessage(content="VAAOXJ is cancelled too. Anything else?"),
+    ]
+    sim_turns = [
+        UserTurn(kind="message", text="Cancel both 4WQ150 and VAAOXJ — duplicate bookings."),
+        UserTurn(kind="message", text="", card_action="accept"),
+        UserTurn(kind="message", text="", card_action="accept"),
+        UserTurn(kind="end", text="thanks"),
+    ]
+
+    result = run_task(
+        task={"id": "t-bundled", "user_scenario": {}},
+        agent_id="v2",
+        agent_llm=ScriptedChatModel(responses=agent_script),
+        sim_llm=_ScriptedSimLLM(sim_turns),
+        max_turns=10,
+    )
+
+    # Both writes executed: two templated confirmations, both reservations gone
+    # from the store (cancel_reservation removes them).
+    user_texts = [e["content"] for e in result.transcript if e["role"] == "user"]
+    assert sum("Confirmed cancellation." in t for t in user_texts) == 2
+    reservations = result.store_snapshot["reservations"]
+    assert "4WQ150" not in reservations and "VAAOXJ" not in reservations
+    # Fix 2: each structural write is logged as a tool entry the judge can see.
+    cancel_writes = [
+        e for e in result.transcript
+        if e.get("role") == "tool" and e.get("name") == "cancel_reservation"
+    ]
+    written_ids = {e["args"]["reservation_id"] for e in cancel_writes}
+    assert written_ids == {"4WQ150", "VAAOXJ"}
+
+
+def test_runner_executes_card_after_pushback(monkeypatch):
+    """Reproduces task 11: the user doesn't accept on the turn right after the
+    card — they ask a question first, the agent replies in prose (no tag), and
+    only then accepts. The card from two turns ago must still execute."""
+    monkeypatch.setattr(_cancel_mod, "new_action_id", _id_sequence(["act_c1"]))
+    agent_script = [
+        AIMessage(content="",
+                  tool_calls=[_tc("check_cancellation_eligibility",
+                                  {"reservation_id": "4WQ150", "reason": "airline_cancelled"}, "c1")]),
+        AIMessage(content='Eligible. <confirmation_card action_id="act_c1" kind="cancel"/>'),
+        AIMessage(content="The refund returns to your original payment method."),  # prose, no tag
+        AIMessage(content="Done — 4WQ150 is cancelled. Anything else?"),
+    ]
+    sim_turns = [
+        UserTurn(kind="message", text="Cancel 4WQ150."),
+        UserTurn(kind="message", text="Wait — what's the refund amount?"),  # card_action=None
+        UserTurn(kind="message", text="Ok, go ahead.", card_action="accept"),
+        UserTurn(kind="end", text="bye"),
+    ]
+
+    result = run_task(
+        task={"id": "t-pushback", "user_scenario": {}},
+        agent_id="v2",
+        agent_llm=ScriptedChatModel(responses=agent_script),
+        sim_llm=_ScriptedSimLLM(sim_turns),
+        max_turns=10,
+    )
+
+    user_texts = [e["content"] for e in result.transcript if e["role"] == "user"]
+    assert any("Confirmed cancellation." in t for t in user_texts)  # stale card still executed
+    assert "4WQ150" not in result.store_snapshot["reservations"]
+
+
+def test_open_card_and_surface_handle_stale_bundled():
+    """Unit: _open_card returns the most-recent still-pending card even when it's
+    the 2nd card of a bundle / not in the last message, and _surface_open_card
+    re-shows it to the sim view."""
+    store = Store.load_from_path(DB_PATH)
+    store.pending_actions["a1"] = PendingCancel(action_id="a1", reservation_id="R1")
+    store.pending_actions["a2"] = PendingCancel(action_id="a2", reservation_id="R2")
+    history = [
+        HumanMessage(content="cancel both"),
+        AIMessage(content='Confirm each: <confirmation_card action_id="a1" kind="cancel"/> '
+                          '<confirmation_card action_id="a2" kind="cancel"/>'),
+        AIMessage(content="R1 cancelled."),  # tag-free follow-up
+    ]
+    store.pending_actions["a1"].status = "executed"  # first already ran
+
+    open_card = _open_card(history, store)
+    assert open_card is not None and open_card["action_id"] == "a2"  # stale+bundled, still open
+
+    sim_view = _surface_open_card(_render_cards_for_sim(history, store),
+                                  store.pending_actions["a2"], store)
+    assert "[Confirmation requested]" in sim_view[-1].content  # re-surfaced on last agent turn
+
+    # When nothing is pending, _open_card is None.
+    store.pending_actions["a2"].status = "executed"
+    assert _open_card(history, store) is None
 
 
 def test_runner_v0_card_path_inert():
