@@ -39,7 +39,13 @@ def _is_kimi_k2(model: str) -> bool:
     return model.startswith("moonshotai/kimi-k2")
 
 
-def _build_openrouter(model: str, *, enable_reasoning: bool = False, **kwargs) -> ChatOpenAI:
+def _build_openrouter(
+    model: str,
+    *,
+    enable_reasoning: bool = False,
+    reasoning_max_tokens: int | None = None,
+    **kwargs,
+) -> ChatOpenAI:
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
         raise RuntimeError("OPENROUTER_API_KEY is required to build an openrouter:* model")
@@ -49,7 +55,12 @@ def _build_openrouter(model: str, *, enable_reasoning: bool = False, **kwargs) -
         # Reasoning is OFF by default to preserve agent behavior; callers that
         # want a thinking Kimi (e.g. the user simulator) opt in explicitly. The
         # reasoning trace bills as completion tokens and stays out of `.content`.
-        extra_body["reasoning"] = {"enabled": bool(enable_reasoning)}
+        # A reasoning_max_tokens budget caps the thinking depth (OpenRouter's
+        # token-budget form); note Moonshot treats it as a soft cap.
+        if enable_reasoning and reasoning_max_tokens:
+            extra_body["reasoning"] = {"max_tokens": int(reasoning_max_tokens)}
+        else:
+            extra_body["reasoning"] = {"enabled": bool(enable_reasoning)}
     return ChatOpenAI(
         model=model,
         openai_api_key=api_key,
@@ -66,6 +77,7 @@ def build_chat_model(
     effort: str | None = None,
     thinking: dict | None = None,
     enable_reasoning: bool = False,
+    reasoning_max_tokens: int | None = None,
     **kwargs,
 ):
     """Build a LangChain chat model from a `<provider>:<model>` spec.
@@ -87,7 +99,12 @@ def build_chat_model(
     """
     provider, model = parse_spec(spec)
     if provider == "openrouter":
-        return _build_openrouter(model, enable_reasoning=enable_reasoning, **kwargs)
+        return _build_openrouter(
+            model,
+            enable_reasoning=enable_reasoning,
+            reasoning_max_tokens=reasoning_max_tokens,
+            **kwargs,
+        )
 
     # Anthropic requires max_tokens; the constructor default (None → 1024)
     # is too small once thinking is on, so set a ceiling here. It bounds,

@@ -100,7 +100,9 @@ def _reasoning_enabled(llm: BaseChatModel) -> bool:
     providers.select._build_openrouter). Such models reject a forced tool_choice,
     so structured output must use json_schema rather than function_calling."""
     eb = getattr(llm, "extra_body", None) or {}
-    return bool(isinstance(eb, dict) and (eb.get("reasoning") or {}).get("enabled"))
+    r = eb.get("reasoning") if isinstance(eb, dict) else None
+    r = r or {}
+    return bool(r.get("enabled") or r.get("max_tokens") or r.get("effort"))
 
 
 def make_simulator(scenario: dict[str, Any], llm: BaseChatModel) -> SimulatorFn:
