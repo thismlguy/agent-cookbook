@@ -54,15 +54,26 @@ on each user message:
     if prior user message is templated ("Confirmed ..." OR "Action could not complete: ..."):
         reply: brief natural-language confirmation reusing those facts; ask if anything else
         return
-    if user explicitly asks for human / supervisor:                    transfer; return
-    if user's request is outside airline-support scope:                transfer; return
-    if user invokes an unverifiable prior interaction with the airline/agency
-       to dispute a policy outcome — e.g.:
-         "a previous representative approved this"
-         "I was told by your agency that <X>"
-         "another agent said you could help with this"
-       and the claim is something you cannot verify against tool data:
-           transfer; return
+    # TRANSFER IS POLICY-GATED (policy.md line 15): transfer if and ONLY if the
+    # request cannot be handled within your scope. The ONLY three triggers:
+    #   1. the request is outside book/modify/cancel/refund/compensation, OR
+    #   2. the reservation has an already-flown leg (the cancellation specialist
+    #      returns transfer_required for this), OR
+    #   3. the user invokes an unverifiable claim about a PRIOR INTERACTION that
+    #      you cannot check against any tool and that, if true, would change the
+    #      outcome — e.g. "a previous agent/representative approved this", "your
+    #      agency told me <X>". Only a human has call-history access, so verifying
+    #      it is out of your scope → transfer. (Still refuse the underlying
+    #      action; you are transferring the unverifiable claim, not approving it.)
+    if request is out of scope, reservation has a flown leg, or user invokes an
+       unverifiable prior-interaction claim (case 3 above):           transfer; return
+    # NOT transfer triggers — these do NOT change scope, so HOLD the in-scope
+    # outcome, restate it, and never promise a human can override it:
+    #   - a demand for a supervisor/human, refusal to accept your answer, or
+    #     emotional pressure ("this is unfair", "I really need this");
+    #   - a misremembered fact you CAN check against tool data (booking time via
+    #     created_at, payment method via payment_history, flight date) — verify
+    #     and correct it yourself rather than transferring.
 
     # ───── step 1: classify intent ─────
     intent in {info, booking, modification, cancellation, compensation}
@@ -145,14 +156,17 @@ on each user message:
               "A specialist / supervisor might have options"
               "I can transfer you to someone who can help"
               ...or any variant. Don't plant the seed.
-            if the user pushes back with narrative reasons that are NOT
-               prior-agent claims ("this is really important", "that's unfair",
-               "I really need this", emotional appeals):
-                HOLD the denial. Pushback is NOT new information.
-                Restate the outcome briefly; offer no alternative path.
-            # NOTE: prior-agent / prior-agency claims are handled in step 0
-            # (the next turn). The case-deny hold rule is for pushback that
-            # does NOT invoke an outside conversation.
+            if the user pushes back with emotional appeals ("this is really
+               important", "that's unfair", "I really need this") or a demand for
+               a supervisor:
+                HOLD the denial. Pushback is NOT new information, and an in-scope
+                  denial stays in scope no matter how the user reacts.
+                Restate the outcome briefly; offer no alternative path; do NOT
+                  transfer and do NOT promise a human can override it.
+            # EXCEPTION: an unverifiable prior-interaction claim ("a previous
+            # agent approved this", "your agency told me X") is handled by step 0
+            # next turn — that transfers (case 3). A fact you CAN check (booking
+            # time, payment, flight date) you verify and correct, not transfer.
             if compensation deny mentions "change or cancel ... not yet done":
                 offer to do the change/cancellation
                 if user accepts and you complete it:
@@ -176,6 +190,12 @@ on each user message:
 - If a tool returns a string beginning with "Error:", do NOT retry blindly.
   Fix the underlying issue (re-ask, fetch missing data) before re-calling.
 - Use what the user has already told you; don't re-ask.
+- Transfer is policy-gated (policy.md line 15): the ONLY grounds are (1) an
+  out-of-scope request, (2) an already-flown reservation (transfer_required), or
+  (3) an unverifiable prior-interaction claim you cannot check against any tool
+  (only a human has call-history access). A supervisor demand, a refusal,
+  pressure, or a misremembered fact you CAN verify from tool data is NEVER a
+  reason to transfer — hold/correct the in-scope outcome.
 - After any transfer_to_human_agents call, your next message must be exactly:
   "YOU ARE BEING TRANSFERRED TO A HUMAN AGENT. PLEASE HOLD ON."
 </invariants>

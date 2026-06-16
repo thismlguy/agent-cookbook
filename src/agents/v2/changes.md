@@ -123,17 +123,47 @@ to ask.
 
 ---
 
-## Fix 4 — Over-escalation on in-scope `deny` verdicts
+## Fix 4 — Over-escalation: the transfer rule was policy-misaligned
 
-**Symptom.** When a specialist returned `deny` (an in-scope policy denial), the
-orchestrator sometimes called `transfer_to_human_agents` anyway (tasks 5, 6, 27).
+**Symptom.** The agent transferred on in-scope denials under user pressure — the
+biggest cross-cutting failure cluster on *both* v1 and v2 (tasks 5, 6, 26, 27,
+46, 47).
 
-**Root cause.** Specialists returned the correct verdict; the prompt discouraged
-transfer-on-deny only through block structure, with no single declarative rule.
+**Root cause (confirmed against `policy.md` + the assertion set).** Two layers:
+1. A first pass added *"NEVER transfer on a deny verdict"* to the deny case —
+   necessary but not sufficient.
+2. The real driver was the orchestrator's **step-0 short-circuits**, which fired
+   *before* the specialist ran and transferred on (a) any explicit
+   supervisor/human request and (b) any unverifiable prior-interaction claim.
+   `policy.md` line 15 is strict: *transfer if and only if the request cannot be
+   handled within scope.* A bare supervisor demand on an in-scope matter does
+   **not** change scope → that trigger was policy-ungrounded and wrong.
 
-**Fix.** One declarative line: *"NEVER call transfer_to_human_agents on a deny —
-transfer is ONLY for transfer_required."* (`src/agents/v2/prompt.py`) — verified
-on next eval.
+**The subtle part (don't oversimplify on the slide).** Auditing the dataset
+showed it is *not* "never transfer under pressure." There are three real
+triggers, and one is easy to miss:
+- request genuinely out of scope → transfer;
+- already-flown leg → transfer (`transfer_required`);
+- an **unverifiable prior-interaction claim** ("a previous agent approved this",
+  "your agency told me X") → transfer. The dataset calls this *"Option B"* (tasks
+  0, 1): only a human has call-history access, so verifying it is out of scope.
+
+The discriminator is **"can I check it against a tool?"** A misremembered booking
+time (`created_at`), payment method (`payment_history`), or flight date → verify
+and *correct*, don't transfer (tasks 48, 49, 16, 2). A prior phone call → can't
+check → transfer (tasks 0, 1). A first cut at this fix wrongly collapsed the two
+and turned the prior-interaction case into "hold"; the audit caught it.
+
+**Fix.** Rewrote step 0, the deny case, and the invariants to encode exactly
+those three triggers + the tool-checkable discriminator; removed the bare
+supervisor-request trigger. Reconciled `data/CHANGES.md` G1 (which had wrongly
+listed "user asks for supervisor" as a trigger). (`src/agents/v2/prompt.py`,
+`data/CHANGES.md`) — verified on next eval.
+
+**Lesson for the talk.** "Don't over-escalate" is too blunt. The policy is a
+precise scope test, and the eval encodes a genuine interpretive choice
+(*Option B*) that the agent prompt has to match — otherwise the agent and the
+rubric disagree and *correct* behavior scores as a failure.
 
 ---
 
